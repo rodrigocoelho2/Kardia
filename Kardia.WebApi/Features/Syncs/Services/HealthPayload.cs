@@ -59,7 +59,7 @@ internal static partial class HealthPayload
     /// The values the Watch measures mostly while you sleep. With a time on each reading, a day's value is the average of
     /// that night's readings (like WHOOP), so readings later in the day can't change a morning's recovery.
     /// </summary>
-    public static readonly HashSet<HealthMetric> SampledMetrics = [HealthMetric.Hrv, HealthMetric.RespiratoryRate, HealthMetric.BloodOxygen];
+    public static readonly HashSet<HealthMetric> SampledMetrics = [HealthMetric.Hrv, HealthMetric.RespiratoryRate, HealthMetric.BloodOxygen, HealthMetric.WristTemperature];
 
     /// <summary>Gap between sleep segments that starts a new night.</summary>
     public static readonly TimeSpan NightGap = TimeSpan.FromHours(2);
@@ -340,7 +340,9 @@ internal static partial class HealthPayload
     }
 
     private static double? InRange(HealthMetric metric, double? value) =>
-        value is { } number && double.IsFinite(number) && Ranges.TryGetValue(metric, out var range) && number >= range.Min && number <= range.Max ? number : null;
+        value is { } number && double.IsFinite(number) && Ranges.TryGetValue(metric, out var range)
+            && ((number >= range.Min && number <= range.Max) || (metric == HealthMetric.WristTemperature && Math.Abs(number) <= 5))
+            ? number : null;
 
     /// <summary>Converts a value to Kardia's unit for the metric.</summary>
     private static double? Convert(HealthMetric metric, double? value, string units)
@@ -354,7 +356,8 @@ internal static partial class HealthPayload
         {
             HealthMetric.ActiveEnergy or HealthMetric.BasalEnergy when units is "kj" => number / 4.184,
             HealthMetric.BodyMass when units is "lb" or "lbs" => number * 0.45359237,
-            HealthMetric.WristTemperature when units.Contains('f', StringComparison.Ordinal) => (number - 32) * 5 / 9,
+            // Absolute (°F) or, as some exports send it, the change from the Watch's own baseline (°F).
+            HealthMetric.WristTemperature when units.Contains('f', StringComparison.Ordinal) => Math.Abs(number) < 15 ? number * 5 / 9 : (number - 32) * 5 / 9,
             HealthMetric.BloodOxygen when number <= 1 => number * 100,
             HealthMetric.ExerciseMinutes when units is "s" or "sec" => number / 60,
             HealthMetric.ExerciseMinutes when units is "hr" or "h" => number * 60,
@@ -665,7 +668,7 @@ internal static partial class HealthPayload
         private void Add(HealthMetric metric, bool sum, DateTime day, double? value)
         {
             // Averaged values must each be sane; summed ones (steps, energy) only non-negative, the day's total is checked in Build.
-            if (value is not { } number || !double.IsFinite(number) || number < 0 || (!sum && InRange(metric, number) is null))
+            if (value is not { } number || !double.IsFinite(number) || (number < 0 && metric != HealthMetric.WristTemperature) || (!sum && InRange(metric, number) is null))
             {
                 return;
             }

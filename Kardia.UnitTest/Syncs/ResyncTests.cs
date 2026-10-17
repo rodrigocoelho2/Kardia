@@ -97,6 +97,21 @@ public sealed class ResyncTests
         Assert.Equal(66m, await Hrv(app, id));
     }
 
+    [Theory]
+    [InlineData("35.42", "degC", 35.42)]
+    [InlineData("95.76", "degF", 35.42)]
+    [InlineData("-0.38", "degC", -0.38)]
+    public async Task WristTemperature_StampedTheEveningBefore_LandsOnTheMorningItBelongsTo(string value, string units, double expected)
+    {
+        var (app, key, id) = await SetUpAsync();
+        await Sync(app, key, Night.Replace("""{ "name": "respiratory_rate",""", "{ \"name\": \"apple_sleeping_wrist_temperature\", \"units\": \"" + units + "\", \"data\": [ { \"date\": \"2026-10-15 23:10:00 +0100\", \"qty\": " + value + " } ] },\n          { \"name\": \"respiratory_rate\","));
+
+        var rows = await app.Health.MetricsListAsync(id, TestSupport.Today.AddDays(-1), TestSupport.Today);
+        var temperature = Assert.Single(rows, static m => m.Metric == (int)HealthMetric.WristTemperature);
+        Assert.Equal(TestSupport.Today.ToDateTime(TimeOnly.MinValue), temperature.DayDate);
+        Assert.Equal(expected, (double)temperature.Value, 1);
+    }
+
     [Fact]
     public void NightlyVitals_UseTheReadingsOfTheNight()
     {

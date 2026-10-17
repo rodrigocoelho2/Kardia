@@ -4,7 +4,7 @@ using Kardia.WebApi.Features.Syncs.Models.Entities;
 namespace Kardia.WebApi.Features.Syncs.Services;
 
 /// <summary>
-/// The day values of HRV, respiratory rate and blood oxygen, worked out from their timed readings like WHOOP does: the
+/// The day values of HRV, respiratory rate, blood oxygen and wrist temperature, worked out from their timed readings like WHOOP does: the
 /// average of the readings taken during the night that ended that morning. Readings from later in the day never move
 /// them, so a sync in the afternoon can't change the morning's recovery. Without a night yet, the day's readings are
 /// used until the night arrives. Pure, unit-tested.
@@ -30,14 +30,16 @@ internal static class NightlyVitals
                 List<decimal> values;
                 if (byNight.TryGetValue(day, out var night))
                 {
-                    // During the night, with a little room either side for readings taken as you fell asleep or woke.
-                    var from = night.BedStart.AddMinutes(-15);
-                    var to = night.BedEnd.AddMinutes(15);
+                    // During the night, with room either side: the Watch stamps some readings (wrist temperature) with
+                    // the start of the sleep session, which can be a little before the first sleep stage.
+                    var from = night.BedStart.AddMinutes(-60);
+                    var to = night.BedEnd.AddMinutes(30);
                     values = readings.Where(sample => sample.SampleAt >= from && sample.SampleAt <= to).Select(static sample => sample.Value).ToList();
                 }
                 else
                 {
-                    values = readings.Where(sample => DateOnly.FromDateTime(sample.SampleAt) == day).Select(static sample => sample.Value).ToList();
+                    // No night yet: the day's readings, with those from the evening counted towards the next morning.
+                    values = readings.Where(sample => MorningOf(sample.SampleAt) == day).Select(static sample => sample.Value).ToList();
                 }
 
                 if (values.Count > 0)
@@ -49,4 +51,9 @@ internal static class NightlyVitals
 
         return rows;
     }
+
+    /// <summary>The morning a reading belongs to: from 18:00 on, the next day's.</summary>
+    /// <param name="at">When it was measured.</param>
+    /// <returns>The day.</returns>
+    public static DateOnly MorningOf(DateTime at) => DateOnly.FromDateTime(at.Hour >= 18 ? at.AddDays(1) : at);
 }
