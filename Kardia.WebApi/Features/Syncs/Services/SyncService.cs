@@ -163,6 +163,9 @@ internal sealed class SyncService(
     /// <returns>What was imported.</returns>
     private async Task<SyncIngestResultDTO> ProcessAsync(Guid id, JsonElement body)
     {
+        // One export at a time: Health Auto Export retries and several automations firing together would otherwise
+        // parse and save in parallel and starve a small NAS.
+        await OneAtATime.WaitAsync();
         var watch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
@@ -213,7 +216,14 @@ internal sealed class SyncService(
             await _syncKeyRepository.MarkAsync(id, "The last sync failed: " + exception.Message[..Math.Min(150, exception.Message.Length)]);
             throw;
         }
+        finally
+        {
+            OneAtATime.Release();
+        }
     }
+
+    /// <summary>Lets one export be read and saved at a time.</summary>
+    private static readonly SemaphoreSlim OneAtATime = new(1, 1);
 
     /// <summary>
     /// A short description of an export's shape for the log: each metric's name, sample count and the fields of its

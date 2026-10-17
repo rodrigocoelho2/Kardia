@@ -165,7 +165,13 @@ internal static partial class HealthPayload
         return fields;
     }
 
-    private static string Key(string name) => new([.. name.ToLowerInvariant().Where(char.IsAsciiLetterLower)]);
+    // Exports repeat the same few field names hundreds of thousands of times ("date", "qty", "source"): normalise each once.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> Keys = new(StringComparer.Ordinal);
+
+    private static string Key(string name) =>
+        name.Length > 64 ? Normalise(name) : Keys.Count < 4096 ? Keys.GetOrAdd(name, Normalise) : Keys.TryGetValue(name, out var known) ? known : Normalise(name);
+
+    private static string Normalise(string name) => new([.. name.ToLowerInvariant().Where(char.IsAsciiLetterLower)]);
 
     private static Dictionary<string, JsonElement>? Child(Dictionary<string, JsonElement> fields, string name) =>
         fields.TryGetValue(name, out var value) && value.ValueKind == JsonValueKind.Object ? Fields(value) : null;
@@ -231,6 +237,12 @@ internal static partial class HealthPayload
             return null;
         }
 
+        // Fast path for Health Auto Export's own format, "2026-10-16 07:00:00 +0100" (almost every sample).
+        if (FastHae(value.GetString()!) is { } fast)
+        {
+            return DateTime.SpecifyKind(TimeZoneInfo.ConvertTime(fast, zone).DateTime, DateTimeKind.Unspecified);
+        }
+
         var text = value.GetString()!.Trim().Replace(" at ", " ", StringComparison.OrdinalIgnoreCase).Replace(" às ", " ", StringComparison.OrdinalIgnoreCase);
         var hae = HaeTimePattern().Match(text);
         if (hae.Success)
@@ -252,6 +264,34 @@ internal static partial class HealthPayload
         }
 
         return null;
+    }
+
+    /// <summary>Reads "yyyy-MM-dd HH:mm:ss ±hhmm" without regular expressions or culture lookups.</summary>
+    private static DateTimeOffset? FastHae(string text)
+    {
+        var t = text.AsSpan();
+        if (t.Length != 25 || t[4] != '-' || t[7] != '-' || t[10] != ' ' || t[13] != ':' || t[16] != ':' || t[19] != ' ' || (t[20] != '+' && t[20] != '-'))
+        {
+            return null;
+        }
+
+        static bool Digits(ReadOnlySpan<char> part, out int value) => int.TryParse(part, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+        if (!Digits(t[..4], out var year) || !Digits(t[5..7], out var month) || !Digits(t[8..10], out var day)
+            || !Digits(t[11..13], out var hour) || !Digits(t[14..16], out var minute) || !Digits(t[17..19], out var second)
+            || !Digits(t[21..23], out var offsetHours) || !Digits(t[23..25], out var offsetMinutes))
+        {
+            return null;
+        }
+
+        try
+        {
+            var offset = new TimeSpan(offsetHours, offsetMinutes, 0);
+            return new DateTimeOffset(year, month, day, hour, minute, second, t[20] == '-' ? -offset : offset);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
     }
 
     private static double? InRange(HealthMetric metric, double? value) =>

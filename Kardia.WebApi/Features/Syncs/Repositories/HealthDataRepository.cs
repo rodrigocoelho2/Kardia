@@ -28,12 +28,19 @@ internal sealed class HealthDataRepository(ISqlConnectionFactory connectionFacto
         QueryAsync<DailyMetricRow>("[dbo].[DailyMetricList]", new { UserUniqueID = userId, From = Date(from), To = Date(to) });
 
     /// <inheritdoc />
-    public Task HeartRatesSaveAsync(Guid userId, IReadOnlyList<HeartRateRow> rows) => rows.Count == 0 ? Task.CompletedTask
-        : ExecuteAsync("[dbo].[HeartRateMinuteSave]", new
+    public async Task HeartRatesSaveAsync(Guid userId, IReadOnlyList<HeartRateRow> rows)
+    {
+        // A month is ~43 000 minutes: save a day or so at a time, so SQL Server never holds one huge transaction and
+        // the NAS stays responsive while a big export goes in.
+        foreach (var chunk in rows.Chunk(2_000))
         {
-            UserUniqueID = userId,
-            Rows = Json(rows.Select(static row => new { t = row.MinuteAt.ToString("yyyy-MM-ddTHH:mm:00"), b = row.Bpm })),
-        });
+            await ExecuteAsync("[dbo].[HeartRateMinuteSave]", new
+            {
+                UserUniqueID = userId,
+                Rows = Json(chunk.Select(static row => new { t = row.MinuteAt.ToString("yyyy-MM-ddTHH:mm:00"), b = row.Bpm })),
+            });
+        }
+    }
 
     /// <inheritdoc />
     public Task<List<HeartRateRow>> HeartRatesListAsync(Guid userId, DateTime from, DateTime to) =>

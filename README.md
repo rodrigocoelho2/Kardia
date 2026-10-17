@@ -150,6 +150,8 @@ project — creates the `Kardia` database the first time, applies schema changes
 | `KARDIA_PORT` | `5090` | Host port of the website. |
 | `SQL_PORT` | `1435` | Host port for SSMS / Azure Data Studio (`<nas-ip>,1435`, user `sa`). |
 | `SQL_MEMORY_LIMIT_MB` | `1024` | Keeps SQL Server from taking most of the NAS memory. |
+| `SQL_CPUS` · `KARDIA_CPUS` | `2` · `1.5` | CPU cores SQL Server and each Kardia container may use, so a big Apple Watch export never takes the whole NAS. |
+| `KARDIA_WEBAPI_MEMORY` · `KARDIA_WEBSITE_MEMORY` | `1g` · `512m` | Memory caps of the WebApi and the website. |
 | `KARDIA_DEMO_MODE` | `false` | `true` runs on sample data in memory (sign in as `demo` / `kardia-demo`; every new account gets the data too). |
 
 **Nginx Proxy Manager:** the website joins `nas-net`, so a proxy host can forward to `http://kardia-website:8080`

@@ -17,6 +17,8 @@ services:
       # Keeps SQL Server from taking most of the NAS memory.
       MSSQL_MEMORY_LIMIT_MB: ${SQL_MEMORY_LIMIT_MB:-1024}
       TZ: ${TIME_ZONE:-Europe/Lisbon}
+    # Leaves the rest of the NAS breathing while a big Apple Watch export is saved.
+    cpus: ${SQL_CPUS:-2}
     networks:
       - default
     ports:
@@ -76,7 +78,11 @@ services:
       Kardia__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
       # "true" runs on sample data in memory, without SQL Server (to try it out).
       Kardia__DemoMode: ${KARDIA_DEMO_MODE:-false}
+      # Workstation GC keeps the heap small; the limits below keep a big export from taking the whole NAS.
+      DOTNET_gcServer: "0"
       TZ: ${TIME_ZONE:-Europe/Lisbon}
+    cpus: ${KARDIA_CPUS:-1.5}
+    mem_limit: ${KARDIA_WEBAPI_MEMORY:-1g}
     logging: *logging
 
   # Kardia (the app): http://<nas-ip>:5090 — and https://kardia.<your-domain> through Nginx Proxy Manager.
@@ -101,7 +107,10 @@ services:
       # The address Health Auto Export reaches Kardia at, shown in Settings › Apple Watch.
       Website__PublicUrl: ${KARDIA_PUBLIC_URL:-}
       Website__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
+      DOTNET_gcServer: "0"
       TZ: ${TIME_ZONE:-Europe/Lisbon}
+    cpus: ${KARDIA_CPUS:-1.5}
+    mem_limit: ${KARDIA_WEBSITE_MEMORY:-512m}
     volumes:
       - keys:/keys                          # session keys: "keep me signed in" survives updates
     networks:
