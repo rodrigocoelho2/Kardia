@@ -98,6 +98,9 @@ public sealed class AiCoachTests
         Assert.False(state.Running);
         Assert.True(new AiModelClient(TestSupport.Options(configure: static o => { o.AiProvider = "ollama"; o.AiBaseUrl = "http://ollama:11434/v1"; })).Enabled);
         Assert.Equal("claude-haiku-5-5", new AiModelClient(TestSupport.Options(configure: static o => { o.AiProvider = "anthropic"; o.AiApiKey = "k"; })).Model);
+        var gemini = new AiModelClient(TestSupport.Options(configure: static o => { o.AiProvider = "Gemini"; o.AiApiKey = "k"; }));
+        Assert.Equal(("gemini", true, "gemini-3.8-flash"), (gemini.Provider, gemini.Enabled, gemini.Model));
+        Assert.False(new AiModelClient(TestSupport.Options(configure: static o => o.AiProvider = "gemini")).Enabled);
     }
 
     private static AiCoachService Service(TestApp app, IAiModelClient model) => new(

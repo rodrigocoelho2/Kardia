@@ -9,7 +9,7 @@
 
 <header class="head rise">
     <div>
-        <div class="eyebrow">@(coach.Enabled ? $"{(coach.Provider == "anthropic" ? "Claude" : "AI")} · {coach.Model}" : "Not set up")</div>
+        <div class="eyebrow">@(coach.Enabled ? $"{(coach.Provider switch { "anthropic" => "Claude", "gemini" => "Gemini", _ => "AI" })} · {coach.Model}" : "Not set up")</div>
         <h1>AI coach</h1>
     </div>
     @if (coach.Enabled)
@@ -27,7 +27,7 @@
     <section class="card empty rise">
         <span class="ico-chip slp">@Icons.Get("sparkle")</span>
         <h2>The AI coach isn't set up on this server</h2>
-        <p>Whoever runs Kardia adds an AI provider to the <code>.env</code> file: a Claude API key (<code>KARDIA_AI_PROVIDER=anthropic</code> and <code>KARDIA_AI_API_KEY</code>), or a local model with Ollama (<code>KARDIA_AI_PROVIDER=openai</code>, <code>KARDIA_AI_BASE_URL=http://ollama:11434/v1</code>). The everyday coach on Today works without it.</p>
+        <p>Whoever runs Kardia adds an AI provider to the <code>.env</code> file: a Claude API key (<code>KARDIA_AI_PROVIDER=anthropic</code> and <code>KARDIA_AI_API_KEY</code>), a Gemini key (<code>KARDIA_AI_PROVIDER=gemini</code>), or a local model with Ollama (<code>KARDIA_AI_PROVIDER=openai</code>, <code>KARDIA_AI_BASE_URL=http://ollama:11434/v1</code>). The everyday coach on Today works without it.</p>
         <a class="btn ghost" href="/">@Icons.Get("left")Back to Today</a>
     </section>
 }
@@ -89,6 +89,6 @@ else
 
     <div class="notice rise">
         @Icons.Get("shield")
-        <p>Only numbers are sent to @(coach.Provider == "anthropic" ? "Anthropic" : "the AI provider") — daily scores, sleep times and averages for the last 30 days. Not your name, your account or your heart rate minute by minute. The AI can be wrong and isn't medical advice.</p>
+        <p>Only numbers are sent to @(coach.Provider switch { "anthropic" => "Anthropic", "gemini" => "Google", _ => "the AI provider" }) — daily scores, sleep times and averages for the last 30 days. Not your name, your account or your heart rate minute by minute. The AI can be wrong and isn't medical advice.</p>
     </div>
 }

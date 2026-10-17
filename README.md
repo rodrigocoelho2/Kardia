@@ -106,7 +106,7 @@
 - One tap and an AI reads your last 30 days and writes a short report: how you're doing, what went well, what to watch
   and **three things to do this week**. **Every screen has its own**: Recovery explains what moved it, Sleep the night
   and tonight, Strain how hard to go, Age which factors to work on, Health Monitor what the signs say, the plan how to
-  hit it, Trends the last 90 days, the report why it scored as it did, and the Journal which habits matter. Bring a **Claude API key**, or run a **local model with Ollama** so nothing
+  hit it, Trends the last 90 days, the report why it scored as it did, and the Journal which habits matter. Bring a **Claude** or **Gemini** API key, or run a **local model with Ollama** so nothing
   leaves your network. Only numbers are sent — never your name or account.
 
 **Journal**
@@ -212,9 +212,9 @@ project — creates the `Kardia` database the first time, applies schema changes
 | `KARDIA_WEBAPI_MEMORY` · `KARDIA_WEBSITE_MEMORY` | `1g` · `512m` | Memory caps of the WebApi and the website. |
 | `KARDIA_PUSH_ENABLED` | `true` | Push notifications (morning recovery, bedtime, Health Monitor, reports). Needs Kardia on HTTPS. |
 | `KARDIA_PUSH_SUBJECT` | the GitHub page | A contact the push services see: `mailto:you@example.com` or your https address. |
-| `KARDIA_AI_PROVIDER` | — (off) | `anthropic` (Claude) or `openai` (OpenAI, **Ollama**, LM Studio — anything OpenAI-compatible). Empty hides the AI coach. |
+| `KARDIA_AI_PROVIDER` | — (off) | `anthropic` (Claude), `gemini` (Google AI Studio key) or `openai` (OpenAI, **Ollama**, LM Studio — anything OpenAI-compatible). Empty hides the AI coach. |
 | `KARDIA_AI_API_KEY` | — | The provider's API key (not needed for a local Ollama). |
-| `KARDIA_AI_MODEL` | `claude-haiku-5-5` · `gpt-4o-mini` | The model, e.g. `claude-sonnet-5-5` or `llama3.1:8b`. |
+| `KARDIA_AI_MODEL` | `claude-haiku-5-5` · `gemini-3.8-flash` · `gpt-4o-mini` | The model, e.g. `claude-sonnet-5-5` or `llama3.1:8b`. |
 | `KARDIA_AI_BASE_URL` | OpenAI | For `openai`: e.g. `http://192.168.1.10:11434/v1` for Ollama on the NAS. |
 | `KARDIA_AI_LANGUAGE` | `English` | The language the AI writes in, e.g. `Portuguese (Portugal)`. |
 | `KARDIA_DEMO_MODE` | `false` | `true` runs on sample data in memory (sign in as `demo` / `kardia-demo`; every new account gets the data too). |
@@ -285,6 +285,10 @@ The **AI coach** is off until you add a provider to `.env` and run `docker compo
 KARDIA_AI_PROVIDER=anthropic
 KARDIA_AI_API_KEY=sk-ant-...
 KARDIA_AI_LANGUAGE=Portuguese (Portugal)
+
+# …or Gemini (a key from Google AI Studio)
+KARDIA_AI_PROVIDER=gemini
+KARDIA_AI_API_KEY=...
 
 # …or a local model with Ollama (on the NAS or another machine)
 KARDIA_AI_PROVIDER=openai

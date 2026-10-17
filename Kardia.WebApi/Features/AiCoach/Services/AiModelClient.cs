@@ -25,7 +25,8 @@ internal interface IAiModelClient
 }
 
 /// <summary>
-/// Claude through the Anthropic Messages API, or any OpenAI-compatible chat API (OpenAI, Ollama, LM Studio, vLLM).
+/// Claude through the Anthropic Messages API, Gemini through its OpenAI-compatible endpoint, or any OpenAI-compatible
+/// chat API (OpenAI, Ollama, LM Studio, vLLM).
 /// </summary>
 /// <param name="options">The options (provider, key, model, address).</param>
 internal sealed class AiModelClient(IOptions<KardiaOptions> options) : IAiModelClient
@@ -36,6 +37,12 @@ internal sealed class AiModelClient(IOptions<KardiaOptions> options) : IAiModelC
     /// <summary>The default model of an OpenAI-compatible API.</summary>
     public const string DefaultOpenAiModel = "gpt-4o-mini";
 
+    /// <summary>The default Gemini model.</summary>
+    public const string DefaultGeminiModel = "gemini-3.8-flash";
+
+    /// <summary>Gemini's OpenAI-compatible endpoint (https://ai.google.dev/gemini-api/docs/openai).</summary>
+    public const string GeminiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/openai";
+
     // Local models on a NAS can take a few minutes for a report.
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(5) };
 
@@ -45,6 +52,7 @@ internal sealed class AiModelClient(IOptions<KardiaOptions> options) : IAiModelC
     public string Provider => (Options.AiProvider ?? string.Empty).Trim().ToLowerInvariant() switch
     {
         "anthropic" or "claude" => "anthropic",
+        "gemini" or "google" => "gemini",
         "openai" or "ollama" or "openai-compatible" => "openai",
         _ => string.Empty,
     };
@@ -52,14 +60,14 @@ internal sealed class AiModelClient(IOptions<KardiaOptions> options) : IAiModelC
     /// <inheritdoc />
     public bool Enabled => Provider switch
     {
-        "anthropic" => !string.IsNullOrWhiteSpace(Options.AiApiKey),
+        "anthropic" or "gemini" => !string.IsNullOrWhiteSpace(Options.AiApiKey),
         "openai" => !string.IsNullOrWhiteSpace(Options.AiBaseUrl) || !string.IsNullOrWhiteSpace(Options.AiApiKey),
         _ => false,
     };
 
     /// <inheritdoc />
     public string Model => !string.IsNullOrWhiteSpace(Options.AiModel) ? Options.AiModel.Trim()
-        : Provider == "anthropic" ? DefaultAnthropicModel : DefaultOpenAiModel;
+        : Provider switch { "anthropic" => DefaultAnthropicModel, "gemini" => DefaultGeminiModel, _ => DefaultOpenAiModel };
 
     /// <inheritdoc />
     public Task<string> CompleteAsync(string system, string user, CancellationToken cancellationToken) =>
@@ -88,7 +96,10 @@ internal sealed class AiModelClient(IOptions<KardiaOptions> options) : IAiModelC
 
     private async Task<string> OpenAiAsync(string system, string user, CancellationToken cancellationToken)
     {
-        var baseUrl = string.IsNullOrWhiteSpace(Options.AiBaseUrl) ? "https://api.openai.com/v1" : Options.AiBaseUrl.Trim().TrimEnd('/');
+        // Gemini speaks the same chat API at its own address.
+        var baseUrl = !string.IsNullOrWhiteSpace(Options.AiBaseUrl) ? Options.AiBaseUrl.Trim().TrimEnd('/')
+            : Provider == "gemini" ? GeminiBaseUrl
+            : "https://api.openai.com/v1";
         using var request = new HttpRequestMessage(HttpMethod.Post, baseUrl + "/chat/completions")
         {
             Content = Json(new

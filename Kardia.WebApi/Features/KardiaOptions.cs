@@ -36,7 +36,8 @@ public sealed class KardiaOptions
     public string PushSubject { get; set; } = "https://github.com/rodrigocoelho2/Kardia";
 
     /// <summary>
-    /// Gets or sets the AI coach's provider: "anthropic" (Claude, needs <see cref="AiApiKey"/>), "openai" (any
+    /// Gets or sets the AI coach's provider: "anthropic" (Claude, needs <see cref="AiApiKey"/>), "gemini" (Google, needs
+    /// <see cref="AiApiKey"/> from Google AI Studio), "openai" (any
     /// OpenAI-compatible API at <see cref="AiBaseUrl"/>: OpenAI, Ollama, LM Studio…) or empty to turn the AI coach off.
     /// </summary>
     public string AiProvider { get; set; } = string.Empty;
