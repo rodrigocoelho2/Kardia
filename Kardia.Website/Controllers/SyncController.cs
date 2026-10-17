@@ -31,7 +31,12 @@ public sealed class SyncController(KardiaClient apiClient, ILogger<SyncControlle
 
         try
         {
-            return Json(await apiClient.SyncIngestAsync(key, Request.Body, HttpContext.RequestAborted));
+            // Read the whole export first, then hand it to the WebApi in one go (with its length), and don't cancel that hand-over
+            // if the iPhone stops waiting: the WebApi finishes saving either way.
+            using var buffer = new MemoryStream();
+            await Request.Body.CopyToAsync(buffer, HttpContext.RequestAborted);
+            buffer.Position = 0;
+            return Json(await apiClient.SyncIngestAsync(key, buffer, CancellationToken.None));
         }
         catch (KardiaApiException exception)
         {

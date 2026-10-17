@@ -126,51 +126,93 @@ internal sealed class SyncService(
             return ServiceApiResponse<SyncIngestResultDTO>.Unauthorized(await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncKeyInvalid)));
         }
 
-        var data = HealthPayload.Parse(body, _clock.Zone, _clock.Now);
-        if (data.IsEmpty)
+        if (body.ValueKind != JsonValueKind.Object)
         {
-            if (body.ValueKind != JsonValueKind.Object)
-            {
-                var invalid = await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncPayloadInvalid));
-                await _syncKeyRepository.MarkAsync(id, invalid);
-                return ServiceApiResponse<SyncIngestResultDTO>.ValidationProblems(invalid).AddError("Body", invalid);
-            }
-
-            // "Since last sync" with nothing new is a normal sync: answer 200, or Health Auto Export reports a failure.
-            // What arrived is logged, so a format Kardia doesn't read yet shows up in the container log.
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("Sync for {UserId} had nothing to import: {Shape}", id, Describe(body));
-            await _syncKeyRepository.MarkAsync(id, await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncNothingToImport)));
-            return ServiceApiResponse<SyncIngestResultDTO>.Success(new SyncIngestResultDTO { Summary = "Nothing new" });
+            var invalid = await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncPayloadInvalid));
+            await _syncKeyRepository.MarkAsync(id, invalid);
+            return ServiceApiResponse<SyncIngestResultDTO>.ValidationProblems(invalid).AddError("Body", invalid);
         }
 
-        await _healthDataRepository.MetricsSaveAsync(id, data.Metrics);
-        await _healthDataRepository.HeartRatesSaveAsync(id, data.HeartRates);
-        await _healthDataRepository.SleepsSaveAsync(id, data.Sleeps);
-        await _healthDataRepository.WorkoutsSaveAsync(id, data.Workouts);
-
-        // A new resting heart rate changes the load of its day too.
-        var loadDays = data.HeartRates.Select(static row => DateOnly.FromDateTime(row.MinuteAt))
-            .Concat(data.Metrics.Where(static row => row.Metric == (int)HealthMetric.RestingHeartRate).Select(static row => DateOnly.FromDateTime(row.DayDate)));
-        await _dayLoadService.RecomputeAsync(id, loadDays);
-
-        var days = data.Days.ToList();
-        var result = new SyncIngestResultDTO
+        // The work runs on its own task, detached from the request: a big export on a slow NAS can take longer than
+        // Health Auto Export waits (60 s by default), and an iPhone that gives up must not cancel the save. Within the
+        // budget the answer has the full counts; past it, Kardia answers "still saving" and finishes in the background.
+        var copy = body.Clone();
+        var work = Task.Run(() => ProcessAsync(id, copy));
+        if (await Task.WhenAny(work, Task.Delay(AnswerWithin)) == work)
         {
-            Days = days.Count,
-            Metrics = data.Metrics.Count,
-            HeartRates = data.HeartRates.Count,
-            Sleeps = data.Sleeps.Count,
-            Workouts = data.Workouts.Count,
-            From = days.Count > 0 ? days[0] : null,
-            To = days.Count > 0 ? days[^1] : null,
-        };
-        result.Summary = Summary(result);
-        await _syncKeyRepository.MarkAsync(id, result.Summary);
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Sync for {UserId}: {Summary}", id, result.Summary);
+            return ServiceApiResponse<SyncIngestResultDTO>.Success(await work);
+        }
 
-        return ServiceApiResponse<SyncIngestResultDTO>.Success(result);
+        _ = work.ContinueWith(
+            task => _logger.LogError(task.Exception, "Sync for {UserId} failed in the background.", id),
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted,
+            TaskScheduler.Default);
+        await _syncKeyRepository.MarkAsync(id, "Received a big export: still saving, refresh in a minute");
+        return ServiceApiResponse<SyncIngestResultDTO>.Success(new SyncIngestResultDTO { Summary = "Received, still saving" });
+    }
+
+    /// <summary>How long a sync request waits for the save before answering "still saving".</summary>
+    internal static TimeSpan AnswerWithin { get; } = TimeSpan.FromSeconds(20);
+
+    /// <summary>
+    /// Reads an export and saves it, logging how long each step took.
+    /// </summary>
+    /// <param name="id">The account.</param>
+    /// <param name="body">The JSON body (owned by this call).</param>
+    /// <returns>What was imported.</returns>
+    private async Task<SyncIngestResultDTO> ProcessAsync(Guid id, JsonElement body)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            var data = HealthPayload.Parse(body, _clock.Zone, _clock.Now);
+            var parsed = watch.ElapsedMilliseconds;
+            if (data.IsEmpty)
+            {
+                // "Since last sync" with nothing new is a normal sync. What arrived is logged, so a format Kardia doesn't
+                // read yet shows up in the container log.
+                if (_logger.IsEnabled(LogLevel.Information))
+                    _logger.LogInformation("Sync for {UserId} had nothing to import: {Shape}", id, Describe(body));
+                await _syncKeyRepository.MarkAsync(id, await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncNothingToImport)));
+                return new SyncIngestResultDTO { Summary = "Nothing new" };
+            }
+
+            await _healthDataRepository.MetricsSaveAsync(id, data.Metrics);
+            await _healthDataRepository.HeartRatesSaveAsync(id, data.HeartRates);
+            await _healthDataRepository.SleepsSaveAsync(id, data.Sleeps);
+            await _healthDataRepository.WorkoutsSaveAsync(id, data.Workouts);
+            var saved = watch.ElapsedMilliseconds;
+
+            // A new resting heart rate changes the load of its day too.
+            var loadDays = data.HeartRates.Select(static row => DateOnly.FromDateTime(row.MinuteAt))
+                .Concat(data.Metrics.Where(static row => row.Metric == (int)HealthMetric.RestingHeartRate).Select(static row => DateOnly.FromDateTime(row.DayDate)));
+            await _dayLoadService.RecomputeAsync(id, loadDays);
+
+            var days = data.Days.ToList();
+            var result = new SyncIngestResultDTO
+            {
+                Days = days.Count,
+                Metrics = data.Metrics.Count,
+                HeartRates = data.HeartRates.Count,
+                Sleeps = data.Sleeps.Count,
+                Workouts = data.Workouts.Count,
+                From = days.Count > 0 ? days[0] : null,
+                To = days.Count > 0 ? days[^1] : null,
+            };
+            result.Summary = Summary(result);
+            await _syncKeyRepository.MarkAsync(id, result.Summary);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("Sync for {UserId}: {Summary} (read {Parse} ms, saved {Save} ms, strain {Load} ms)", id, result.Summary, parsed, saved - parsed, watch.ElapsedMilliseconds - saved);
+
+            return result;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Sync for {UserId} failed after {Elapsed} ms.", id, watch.ElapsedMilliseconds);
+            await _syncKeyRepository.MarkAsync(id, "The last sync failed: " + exception.Message[..Math.Min(150, exception.Message.Length)]);
+            throw;
+        }
     }
 
     /// <summary>

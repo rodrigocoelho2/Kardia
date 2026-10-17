@@ -128,6 +128,11 @@ public sealed class KardiaClient(HttpClient httpClient)
     public async Task<SyncIngestResultDTO> SyncIngestAsync(string? key, Stream body, CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "sync/ingest") { Content = new StreamContent(body) };
+        if (body.CanSeek)
+        {
+            request.Content.Headers.ContentLength = body.Length - body.Position;
+        }
+
         request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         if (!string.IsNullOrWhiteSpace(key))
         {
