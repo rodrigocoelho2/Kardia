@@ -35,7 +35,7 @@
 
 /* ----------------------------------------------------------------- landing nav + hero -- */
 
-.lp-nav { position: relative; z-index: 3; max-width: 1240px; margin: 0 auto; padding: 22px clamp(18px, 4vw, 44px); display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.lp-nav { position: relative; z-index: 3; max-width: 1240px; margin: 0 auto; padding: calc(22px + env(safe-area-inset-top)) clamp(18px, 4vw, 44px) 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .lp-nav .links { display: flex; gap: 26px; font-size: 14px; color: var(--muted); }
 .lp-nav .links a:hover { color: var(--text); }
 .lp-nav .acts { display: flex; gap: 10px; }
@@ -260,7 +260,7 @@
   .lp-bento > * { grid-column: auto !important; }
   .lp-final-in { grid-template-columns: 1fr; }
   .au { grid-template-columns: 1fr; }
-  .au-side { border-right: 0; border-bottom: 1px solid var(--glass-line); padding: 20px 20px 26px; }
+  .au-side { border-right: 0; border-bottom: 1px solid var(--glass-line); padding: calc(20px + env(safe-area-inset-top)) 20px 26px; }
   .au-side h2 { margin-top: 18px; font-size: 34px; }
   .au-cards { gap: 10px; }
   .au-card .ring-box { --size: 78px; }

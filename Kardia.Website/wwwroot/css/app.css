@@ -438,10 +438,10 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 
 @media (max-width: 1023px) {
   .side { display: none; }
-  .phone-top { display: flex; position: relative; z-index: 2; align-items: center; justify-content: space-between; padding: 18px 18px 0; }
+  .phone-top { display: flex; position: relative; z-index: 2; align-items: center; justify-content: space-between; padding: calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) 0 calc(18px + env(safe-area-inset-left)); }
   .phone-top .acts { display: flex; gap: 8px; }
   .avatar { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, #5BE3A6 0%, #8E8CFF 100%); color: #07080A; display: grid; place-items: center; font: 700 14px var(--font-display); border: 0; }
-  .page { padding: 16px 16px 132px; gap: 16px; }
+  .page { padding: 16px 16px calc(132px + env(safe-area-inset-bottom)); gap: 16px; }
   .head h1 { font-size: 28px; }
   .tabbar {
     display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 20;
@@ -507,3 +507,8 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 }
 
 [hidden] { display: none !important; }
+
+/* iOS draws date fields its own way (centred, wider than their box): make them behave like the other fields. */
+input[type="date"].input, .au-in input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; height: 48px; line-height: 46px; text-align: left; }
+.au-in input[type="date"] { height: 52px; line-height: 50px; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
