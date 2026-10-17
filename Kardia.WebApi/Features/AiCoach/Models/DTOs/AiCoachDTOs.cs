@@ -1,3 +1,5 @@
+using Kardia.Library.Enums;
+
 namespace Kardia.WebApi.Features.AiCoach.Models.DTOs;
 
 /// <summary>The AI coach of an account: whether it's set up, whether an analysis is running, and the last report.</summary>
@@ -5,6 +7,12 @@ public sealed class AiCoachDTO
 {
     /// <summary>Gets or sets a value indicating whether an AI provider is set up on this server.</summary>
     public bool Enabled { get; set; }
+
+    /// <summary>Gets or sets what the report looks at.</summary>
+    public AiCoachTopic Topic { get; set; }
+
+    /// <summary>Gets or sets the day the report is about (null: today).</summary>
+    public DateOnly? Date { get; set; }
 
     /// <summary>Gets or sets the provider (anthropic or openai).</summary>
     public string Provider { get; set; } = string.Empty;

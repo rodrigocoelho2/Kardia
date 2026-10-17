@@ -117,7 +117,7 @@
     button.addEventListener("click", function () { window.print(); });
   });
 
-  /* AI coach: start an analysis, then wait for the report (a local model can take minutes). */
+  /* AI coach on the AI screen: start an analysis, then wait for the report (a local model can take minutes). */
   var analyse = document.querySelector("[data-ai-analyse]");
   if (analyse) {
     var wait = document.querySelector("[data-ai-wait]");
@@ -136,13 +136,88 @@
       analyse.querySelector("[data-label]").textContent = "Analysing…";
       if (wait) wait.hidden = false;
       if (failure) failure.hidden = true;
-      post("/coach/analyse").then(function (result) {
+      post("/coach/analyse", { topic: "Overview" }).then(function (result) {
         if (!result.isValid) { alert(errorText(result)); analyse.disabled = false; return; }
         setTimeout(poll, 2500);
       });
     });
     if (analyse.getAttribute("data-running") === "true") setTimeout(poll, 3000);
   }
+
+  /* AI cards on every screen: a short report about that screen, written in place. */
+  document.querySelectorAll("[data-ai-card]").forEach(function (card) {
+    var topic = card.getAttribute("data-topic");
+    var date = card.getAttribute("data-date");
+    var query = "?topic=" + encodeURIComponent(topic) + (date ? "&date=" + date : "");
+    var go = card.querySelector("[data-ai-go]");
+    var q = function (sel) { return card.querySelector(sel); };
+    var timer = null;
+
+    var item = function (tag, text, cls) { var el = document.createElement(tag); el.textContent = text; if (cls) el.className = cls; return el; };
+
+    var paint = function (state) {
+      if (!state || !state.enabled) { card.hidden = true; return; }
+      card.hidden = false;
+      var running = Boolean(state.running);
+      go.disabled = running;
+      go.querySelector("[data-label]").textContent = running ? "Analysing…" : state.report ? "Again" : "Ask AI";
+      q("[data-ai-wait]").hidden = !running;
+      q("[data-ai-error]").hidden = !state.error;
+      q("[data-ai-error]").textContent = state.error || "";
+      var report = state.report;
+      q("[data-ai-body]").hidden = !report;
+      if (!report) return;
+      q("[data-ai-headline]").textContent = report.headline || "Your coach's report";
+      q("[data-ai-summary]").textContent = report.summary || "";
+      var actions = q("[data-ai-actions]");
+      actions.innerHTML = "";
+      (report.actions || []).forEach(function (a) { actions.appendChild(item("li", a)); });
+      actions.hidden = !(report.actions || []).length;
+      var lists = q("[data-ai-lists]");
+      lists.innerHTML = "";
+      (report.wentWell || []).forEach(function (a) { lists.appendChild(item("li", a, "Good")); });
+      (report.watch || []).forEach(function (a) { lists.appendChild(item("li", a, "Caution")); });
+      q("[data-ai-more]").hidden = !lists.children.length;
+      var when = new Date(report.generatedAt);
+      q("[data-ai-meta]").textContent = "Written " + when.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) +
+        " from " + report.daysAnalysed + " days of data · " + (state.model || "AI") + " · can be wrong, not medical advice";
+    };
+
+    var load = function () {
+      return fetch("/coach/state" + query, { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (result) {
+          if (!result.isValid) return;
+          paint(result.data);
+          clearTimeout(timer);
+          if (result.data && result.data.running) timer = setTimeout(load, 3000);
+        })
+        .catch(function () { });
+    };
+
+    go.addEventListener("click", function () {
+      go.disabled = true;
+      q("[data-ai-wait]").hidden = false;
+      q("[data-ai-error]").hidden = true;
+      post("/coach/analyse", { topic: topic, date: date }).then(function (result) {
+        if (!result.isValid) { go.disabled = false; q("[data-ai-wait]").hidden = true; alert(errorText(result)); return; }
+        paint(result.data);
+        timer = setTimeout(load, 2500);
+      });
+    });
+
+    load();
+  });
+
+  /* Today's coach card: "Analyse with AI" starts the overview card below it. */
+  document.querySelectorAll("[data-ai-start]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var target = document.querySelector('[data-ai-card][data-topic="Overview"] [data-ai-go]');
+      if (!target) return;
+      target.closest("[data-ai-card]").scrollIntoView({ behavior: "smooth", block: "center" });
+      if (!target.disabled) target.click();
+    });
+  });
 
   /* Admin: delete an account. */
   document.querySelectorAll("[data-delete-user]").forEach(function (button) {

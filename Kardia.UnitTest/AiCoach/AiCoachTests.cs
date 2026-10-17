@@ -57,6 +57,35 @@ public sealed class AiCoachTests
     }
 
     [Fact]
+    public async Task EachScreen_GetsItsOwnReport_WithItsOwnFocus()
+    {
+        var app = new TestApp(demo: true);
+        var user = await app.CreateUserAsync();
+        var model = new FakeModel("""{"headline":"Age","summary":"s","wentWell":[],"watch":[],"actions":["a"]}""");
+        var service = Service(app, model);
+        var yesterday = TestSupport.Today.AddDays(-1);
+
+        await service.RunAsync(Guid.Parse(user), user, Kardia.Library.Enums.AiCoachTopic.Age);
+        Assert.Contains("Biological age screen", model.System);
+        Assert.Contains("Biological age:", model.User);
+
+        await service.RunAsync(Guid.Parse(user), user, Kardia.Library.Enums.AiCoachTopic.Sleep, yesterday);
+        Assert.Contains("Sleep screen", model.System);
+        Assert.Contains("a past day", model.User);
+
+        await service.RunAsync(Guid.Parse(user), user, Kardia.Library.Enums.AiCoachTopic.Trends);
+        Assert.Contains("Last 90 days", model.User);
+
+        var age = (await service.GetAsync(user, Kardia.Library.Enums.AiCoachTopic.Age)).Result!;
+        var sleep = (await service.GetAsync(user, Kardia.Library.Enums.AiCoachTopic.Sleep, yesterday)).Result!;
+        var overview = (await service.GetAsync(user)).Result!;
+        Assert.NotNull(age.Report);
+        Assert.NotNull(sleep.Report);
+        Assert.Equal(yesterday, sleep.Date);
+        Assert.Null(overview.Report);
+    }
+
+    [Fact]
     public async Task WithoutAProvider_TheCoachIsOff()
     {
         var app = new TestApp(demo: true);
@@ -72,7 +101,7 @@ public sealed class AiCoachTests
     }
 
     private static AiCoachService Service(TestApp app, IAiModelClient model) => new(
-        app.Users, app.Profiles, app.DayService, app.PlanService, app.ReportService, model, new Kardia.WebApi.Extensions.Globalization.GlobalizationHelper(),
+        app.Users, app.Profiles, app.DayService, app.PlanService, app.ReportService, app.AgeService, app.JournalService, model, new Kardia.WebApi.Extensions.Globalization.GlobalizationHelper(),
         app.Clock, app.Time, TestSupport.Options(configure: static o => o.AiLanguage = "Portuguese (Portugal)"), NullLogger<AiCoachService>.Instance);
 
     private sealed class FakeModel(string answer) : IAiModelClient

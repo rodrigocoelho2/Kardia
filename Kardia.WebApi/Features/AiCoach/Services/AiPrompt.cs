@@ -3,7 +3,9 @@ using System.Text;
 using System.Text.Json;
 using Kardia.Library.Enums;
 using Kardia.WebApi.Features.AiCoach.Models.DTOs;
+using Kardia.WebApi.Features.Ages.Models.DTOs;
 using Kardia.WebApi.Features.Days.Models.DTOs;
+using Kardia.WebApi.Features.Journals.Models.DTOs;
 using Kardia.WebApi.Features.Plans.Models.DTOs;
 using Kardia.WebApi.Features.Reports.Models.DTOs;
 
@@ -16,7 +18,23 @@ namespace Kardia.WebApi.Features.AiCoach.Services;
 /// <param name="Days">The last 30 days, oldest first.</param>
 /// <param name="Plan">This week's plan.</param>
 /// <param name="Week">This week's assessment.</param>
-internal sealed record AiCoachInput(int? Age, BiologicalSex Sex, DayDTO Today, IReadOnlyList<DaySummaryDTO> Days, PlanDTO? Plan, ReportDTO? Week);
+internal sealed record AiCoachInput(int? Age, BiologicalSex Sex, DayDTO Today, IReadOnlyList<DaySummaryDTO> Days, PlanDTO? Plan, ReportDTO? Week)
+{
+    /// <summary>Gets what the report looks at.</summary>
+    public AiCoachTopic Topic { get; init; }
+
+    /// <summary>Gets the biological age (the Age topic).</summary>
+    public AgeDTO? BiologicalAge { get; init; }
+
+    /// <summary>Gets the journal and what each habit does (the Journal topic).</summary>
+    public JournalDayDTO? Journal { get; init; }
+
+    /// <summary>Gets the Health Monitor over 30 days (the Health topic).</summary>
+    public HealthReportDTO? HealthMonth { get; init; }
+
+    /// <summary>Gets this month's assessment (the Report topic).</summary>
+    public ReportDTO? Month { get; init; }
+}
 
 /// <summary>
 /// Turns the numbers into the prompt, and the model's answer into a report. Pure, unit-tested.
@@ -26,7 +44,26 @@ internal static class AiPrompt
     /// <summary>The instructions the model gets.</summary>
     /// <param name="language">The language to write in.</param>
     /// <returns>The system prompt.</returns>
-    public static string System(string language) => $$"""
+    public static string System(string language, AiCoachTopic topic = AiCoachTopic.Overview) => Base(language) + Focus(topic);
+
+    /// <summary>What to concentrate on for each screen.</summary>
+    /// <param name="topic">The topic.</param>
+    /// <returns>A paragraph for the instructions.</returns>
+    public static string Focus(AiCoachTopic topic) => "\nFocus: " + topic switch
+    {
+        AiCoachTopic.Recovery => "this report is for the Recovery screen. Explain what moved the day's recovery (HRV, resting heart rate, respiratory rate, sleep, wrist temperature against the person's normal), how it compares with the last weeks, and how hard to train today.",
+        AiCoachTopic.Sleep => "this report is for the Sleep screen. Look at the night (time asleep against the need, stages, efficiency, bedtime against their usual), the pattern of the last two weeks, sleep debt, and tonight's bedtime and sleep goal.",
+        AiCoachTopic.Strain => "this report is for the Strain screen. Look at the day's strain against its target, the heart-rate zones and workouts, strain against recovery over the last weeks, the cardio load, and what to do today and this week.",
+        AiCoachTopic.Age => "this report is for the Biological age screen. Explain which factors add years and which take years off, the pace of ageing, and which one or two factors would move it most.",
+        AiCoachTopic.Health => "this report is for the Health Monitor screen. Look at which overnight signs are outside the typical range, since when, and together with which other changes (hard training, short or late sleep, journal habits like alcohol). Give everyday explanations only, never a diagnosis, and say when to see a doctor.",
+        AiCoachTopic.Plan => "this report is for the Weekly plan screen. Look at the progress on each target with the days left, what's realistic to still hit and exactly how (which days, how many minutes or steps), and whether the targets fit the person.",
+        AiCoachTopic.Trends => "this report is for the Trends screen, with 90 days of data. Describe the trends: what improved, what declined, any change of pace, and what explains them.",
+        AiCoachTopic.Report => "this report is for the weekly and monthly assessment. Explain why the assessment came out as it did, the biggest differences with the period before, and what would raise it next week.",
+        AiCoachTopic.Journal => "this report is for the Journal screen. Use the habits' effect on next-morning recovery: which help, which hurt, how confident that is (days logged), and which to change first.",
+        _ => "an overview of how the person is doing across recovery, sleep, strain and health.",
+    } + "\n";
+
+    private static string Base(string language) => $$"""
         You are the coach inside Kardia, a self-hosted app like WHOOP that turns Apple Watch data into recovery (0-100 %,
         from HRV, resting heart rate, breathing and sleep against the person's own 30-day normal), sleep performance
         (sleep against the night's need), strain (0-21, heart load of the day) and cardio load (last 7 days of heart load
@@ -52,7 +89,7 @@ internal static class AiPrompt
         var inv = CultureInfo.InvariantCulture;
         var today = input.Today;
         var text = new StringBuilder();
-        text.AppendLine(inv, $"Today: {today.Date:yyyy-MM-dd} ({today.Date.DayOfWeek}).");
+        text.AppendLine(inv, $"Day analysed: {today.Date:yyyy-MM-dd} ({today.Date.DayOfWeek}){(today.IsToday ? ", today" : ", a past day: \"today\" below means that day")}.");
         text.AppendLine(inv, $"Person: {(input.Age is { } age ? $"{age} years" : "age unknown")}, {(input.Sex == BiologicalSex.Unspecified ? "sex not given" : input.Sex.ToString().ToLowerInvariant())}.");
 
         var rec = today.Recovery;
@@ -93,8 +130,39 @@ internal static class AiPrompt
             text.AppendLine(inv, $"This week's assessment: {(week.Score is { } score ? $"{score}/100 {week.Assessment}" : "not enough days")}. {string.Join(" ", week.Highlights)}");
         }
 
+        if (input.Month is { DaysWithData: > 0 } month)
+        {
+            text.AppendLine(inv, $"This month's assessment: {(month.Score is { } score ? $"{score}/100 {month.Assessment}" : "not enough days")}. {string.Join(" ", month.Highlights)}");
+        }
+
+        if (input.HealthMonth is { } health)
+        {
+            var signs = string.Join("; ", health.Signs.Select(sign =>
+                $"{sign.Name}: average {N(sign.Average, sign.Decimals)}{sign.Unit}, {sign.InRangeDays} nights in range, {sign.OutsideDays} outside"));
+            text.AppendLine(inv, $"Health Monitor, last 30 days: {health.DaysFlagged} nights with 2+ signs outside. {signs}.");
+        }
+
+        if (input.BiologicalAge is { } bio)
+        {
+            text.AppendLine(bio.Ready
+                ? string.Format(inv, "Biological age: {0:0.0} (calendar {1:0.0}), pace of ageing {2}. Factors (years added, + is older): {3}.",
+                    bio.BiologicalAge, bio.ChronologicalAge, bio.Pace is { } pace ? pace.ToString("0.00", inv) + "x" : "-",
+                    string.Join("; ", bio.Factors.Select(factor => string.Format(inv, "{0} {1}{2} (typical {3}) {4:+0.0;-0.0;0}", factor.Name, N(factor.Value, 1), factor.Unit, N(factor.Typical, 1), factor.Years))))
+                : $"Biological age: not ready ({bio.DaysWithData} of {bio.DaysNeeded} days{(bio.HasBirthDate ? string.Empty : ", no date of birth")}).");
+        }
+
+        if (input.Journal is { } journal)
+        {
+            text.AppendLine(inv, $"Journal: {journal.DaysLogged} days logged; today: {string.Join(", ", journal.Tags.Where(static t => t.On).Select(static t => t.Name).DefaultIfEmpty("nothing"))}.");
+            if (journal.Impacts.Count > 0)
+            {
+                text.AppendLine("Habits and next-morning recovery: " + string.Join("; ", journal.Impacts.Select(impact =>
+                    string.Format(inv, "{0}: {1:0} % after vs {2:0} % without ({3:+0;-0} points, {4} days)", impact.Name, impact.RecoveryWith, impact.RecoveryWithout, impact.Difference, impact.DaysWith))) + ".");
+            }
+        }
+
         text.AppendLine();
-        text.AppendLine("Last 30 days (date, recovery %, strain, asleep h, sleep %, bedtime, HRV ms, resting HR, steps, zone 2+ min, Health Monitor flags):");
+        text.AppendLine($"Last {input.Days.Count} days (date, recovery %, strain, asleep h, sleep %, bedtime, HRV ms, resting HR, steps, zone 2+ min, Health Monitor flags):");
         foreach (var day in input.Days.Where(static d => d.Recovery is not null || d.Strain is not null || d.AsleepMinutes is not null))
         {
             text.AppendLine(inv, $"{day.Date:MM-dd},{N(day.Recovery)},{N(day.Strain, 1)},{(day.AsleepMinutes is { } asleep ? (asleep / 60.0).ToString("0.0", inv) : "-")},{N(day.SleepPerformance)},{(day.BedStart is { } start ? start.ToString("HH:mm", inv) : "-")},{N(day.Hrv)},{N(day.RestingHeartRate)},{N(day.Steps)},{day.ActiveMinutes},{(day.HealthFlags.Count > 0 ? string.Join("+", day.HealthFlags) : "-")}");

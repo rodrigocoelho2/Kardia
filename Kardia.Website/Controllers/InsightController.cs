@@ -69,16 +69,22 @@ public sealed class InsightController(KardiaClient apiClient) : WebsiteBaseContr
     public async Task<IActionResult> AiCoach() =>
         View("AiCoach", await new InsightModel(ApiClient).AiCoachAsync(Shell(new AiCoachPageModel(), AppSection.AiCoach), UserId));
 
-    /// <summary>The AI coach's state, for the page waiting on a report.</summary>
+    /// <summary>The AI coach's state for a screen, for the card waiting on a report.</summary>
+    /// <param name="topic">What the report looks at (overview, recovery, sleep…).</param>
+    /// <param name="date">The day.</param>
     /// <returns>JSON <c>AjaxDataResult</c>.</returns>
     [HttpGet("/coach/state")]
-    public async Task<IActionResult> AiCoachState() => Json(await new InsightModel(ApiClient).AiCoachStateAsync(UserId));
+    public async Task<IActionResult> AiCoachState(AiCoachTopic topic = AiCoachTopic.Overview, DateOnly? date = null) =>
+        Json(await new InsightModel(ApiClient).AiCoachStateAsync(UserId, topic, date));
 
-    /// <summary>Starts an analysis of the last 30 days.</summary>
+    /// <summary>Starts an analysis for a screen.</summary>
+    /// <param name="topic">What the report looks at.</param>
+    /// <param name="date">The day.</param>
     /// <returns>JSON <c>AjaxDataResult</c>.</returns>
     [HttpPost("/coach/analyse")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AiCoachAnalyse() => Json(await new InsightModel(ApiClient).AiCoachAnalyseAsync(UserId));
+    public async Task<IActionResult> AiCoachAnalyse([FromForm] AiCoachTopic topic = AiCoachTopic.Overview, [FromForm] DateOnly? date = null) =>
+        Json(await new InsightModel(ApiClient).AiCoachAnalyseAsync(UserId, topic, date));
 
     /// <summary>Everything that isn't in the phone's tab bar.</summary>
     /// <returns>The view.</returns>

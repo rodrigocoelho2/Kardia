@@ -634,6 +634,23 @@ a.bar { display: block; }
 @keyframes ai-dot { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 .btn:disabled { opacity: 0.7; cursor: default; }
 
+.ai-card { background: linear-gradient(var(--surface-flat), var(--surface-flat)) padding-box, linear-gradient(135deg, rgba(142, 140, 255, 0.6) 0%, rgba(91, 227, 166, 0.3) 55%, var(--line) 100%) border-box; border: 1px solid transparent; }
+.ai-top { display: flex; align-items: center; gap: 14px; }
+.ai-top .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ai-headline { font: 600 17px/1.35 var(--font-display); letter-spacing: -0.01em; }
+.ai-card .ai-wait { display: flex; align-items: center; gap: 14px; }
+.ai-card .ai-wait[hidden] { display: none; }
+.ai-summary { color: var(--text-2); line-height: 1.6; font-size: 15px; white-space: pre-line; }
+.ai-more summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); padding: 4px 0 10px; }
+.ai-more[hidden] { display: none; }
+[data-ai-body] { display: flex; flex-direction: column; gap: 14px; }
+[data-ai-body][hidden] { display: none; }
+@media (max-width: 520px) {
+  .ai-top { flex-wrap: wrap; }
+  .ai-top .grow { flex-basis: calc(100% - 54px); }
+  .ai-top .btn { width: 100%; }
+}
+
 /* Print: the report pages on white paper, without the app around them. */
 @media print {
   :root, [data-theme] { --bg: #FFF; --text: #0E1116; --text-2: #333; --muted: #555; --dim: #666; --line: #DDD; --tile: #F6F6F7; --tile-line: #E4E4E7; --surface: #FFF; --surface-flat: #FFF; }

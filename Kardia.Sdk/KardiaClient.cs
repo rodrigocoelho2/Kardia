@@ -121,15 +121,21 @@ public sealed class KardiaClient(HttpClient httpClient)
 
     // ----- AI coach -----
 
-    /// <summary>Gets whether the AI coach is set up, whether it's working, and the last report.</summary>
+    /// <summary>Gets whether the AI coach is set up, whether it's working, and the last report of a topic and day.</summary>
     /// <param name="userId">The account.</param>
+    /// <param name="topic">What the report looks at.</param>
+    /// <param name="date">The day (today when null).</param>
     /// <returns>The state.</returns>
-    public Task<AiCoachDTO> AiCoachGetAsync(string userId) => GetAsync<AiCoachDTO>($"aicoach?userId={Uri.EscapeDataString(userId)}");
+    public Task<AiCoachDTO> AiCoachGetAsync(string userId, AiCoachTopic topic = AiCoachTopic.Overview, DateOnly? date = null) =>
+        GetAsync<AiCoachDTO>($"aicoach?userId={Uri.EscapeDataString(userId)}&topic={topic}{(date is { } day ? "&date=" + Iso(day) : string.Empty)}");
 
-    /// <summary>Starts an analysis of the last 30 days.</summary>
+    /// <summary>Starts an analysis.</summary>
     /// <param name="userId">The account.</param>
+    /// <param name="topic">What the report looks at.</param>
+    /// <param name="date">The day (today when null).</param>
     /// <returns>The state.</returns>
-    public Task<AiCoachDTO> AiCoachAnalyseAsync(string userId) => PostAsync<AiCoachDTO>($"aicoach/analyse?userId={Uri.EscapeDataString(userId)}", null);
+    public Task<AiCoachDTO> AiCoachAnalyseAsync(string userId, AiCoachTopic topic = AiCoachTopic.Overview, DateOnly? date = null) =>
+        PostAsync<AiCoachDTO>($"aicoach/analyse?userId={Uri.EscapeDataString(userId)}&topic={topic}{(date is { } day ? "&date=" + Iso(day) : string.Empty)}", null);
 
     // ----- Push -----
 

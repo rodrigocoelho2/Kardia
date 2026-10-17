@@ -104,7 +104,9 @@
 **AI coach** (optional)
 
 - One tap and an AI reads your last 30 days and writes a short report: how you're doing, what went well, what to watch
-  and **three things to do this week**. Bring a **Claude API key**, or run a **local model with Ollama** so nothing
+  and **three things to do this week**. **Every screen has its own**: Recovery explains what moved it, Sleep the night
+  and tonight, Strain how hard to go, Age which factors to work on, Health Monitor what the signs say, the plan how to
+  hit it, Trends the last 90 days, the report why it scored as it did, and the Journal which habits matter. Bring a **Claude API key**, or run a **local model with Ollama** so nothing
   leaves your network. Only numbers are sent — never your name or account.
 
 **Journal**
@@ -290,7 +292,8 @@ KARDIA_AI_BASE_URL=http://192.168.1.10:11434/v1
 KARDIA_AI_MODEL=llama3.1:8b
 ```
 
-Then **Analyse with AI** appears on Today and in the menu. What's sent: the day's scores, the last 30 days as one line
+Then an **AI coach** card appears on every screen (and **Analyse with AI** on Today), each with a report about that
+screen and that day. What's sent: the day's scores, the last 30 days as one line
 each (recovery, strain, hours asleep, bedtime, HRV, resting heart rate, steps, zone 2+ minutes), the Health Monitor, the
 cardio load, the weekly plan and the weekly assessment — no name, no account, no minute-by-minute heart rate. The
 report is kept until the WebApi restarts.
@@ -390,7 +393,7 @@ JSON, every call with the `x-api-key` header. `userId` is the account's id (32 h
 | `GET plan?userId=` | this week's plan |
 | `GET report?userId=&period=Week\|Month&date=` | weekly or monthly assessment |
 | `GET push?userId=`, `POST push/subscribe`, `POST push/unsubscribe`, `POST push/test?userId=` | notification devices |
-| `GET aicoach?userId=`, `POST aicoach/analyse?userId=` | the AI coach (runs in the background; poll GET) |
+| `GET aicoach?userId=&topic=&date=`, `POST aicoach/analyse?userId=&topic=&date=` | the AI coach for a screen (Overview, Recovery, Sleep, Strain, Age, Health, Plan, Trends, Report, Journal); runs in the background, poll GET |
 | `GET health` | status (no key needed) |
 
 ## Licences

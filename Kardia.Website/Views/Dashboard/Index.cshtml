@@ -103,13 +103,14 @@ else
             <div class="head-acts" style="margin-top:auto">
                 @if (Model.AiCoach is { Enabled: true })
                 {
-                    <a class="btn slp small" href="/coach">@Icons.Get("sparkle")Analyse with AI</a>
+                    <button class="btn slp small" type="button" data-ai-start>@Icons.Get("sparkle")Analyse with AI</button>
                 }
                 <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
             </div>
         </section>
     </div>
 
+    <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day")' />
     <div class="row">
         <section class="card rise" style="--d:3">
             <div class="card-head">

@@ -65,6 +65,7 @@
     </section>
 </div>
 
+<partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Health, Model.IsToday ? null : Model.Date, "What do my signs say?")' />
 <div class="grid-2">
     @foreach (var series in Model.History.Signs)
     {

@@ -183,12 +183,18 @@ public sealed class InsightModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
     /// <summary>The AI coach's state (for the page that waits for the report).</summary>
     /// <param name="userId">The account.</param>
     /// <returns>The state.</returns>
-    public Task<AjaxDataResult<AiCoachDTO>> AiCoachStateAsync(string userId) => CallAsync(() => ApiClient.AiCoachGetAsync(userId));
+    /// <param name="topic">What the report looks at.</param>
+    /// <param name="date">The day.</param>
+    public Task<AjaxDataResult<AiCoachDTO>> AiCoachStateAsync(string userId, AiCoachTopic topic = AiCoachTopic.Overview, DateOnly? date = null) =>
+        CallAsync(() => ApiClient.AiCoachGetAsync(userId, topic, date));
 
     /// <summary>Starts an analysis.</summary>
     /// <param name="userId">The account.</param>
     /// <returns>The state.</returns>
-    public Task<AjaxDataResult<AiCoachDTO>> AiCoachAnalyseAsync(string userId) => CallAsync(() => ApiClient.AiCoachAnalyseAsync(userId));
+    /// <param name="topic">What the report looks at.</param>
+    /// <param name="date">The day.</param>
+    public Task<AjaxDataResult<AiCoachDTO>> AiCoachAnalyseAsync(string userId, AiCoachTopic topic = AiCoachTopic.Overview, DateOnly? date = null) =>
+        CallAsync(() => ApiClient.AiCoachAnalyseAsync(userId, topic, date));
 
     private async Task<bool> OkAsync<T>(AppPageModel page, AjaxDataResult<T> result, string userId)
     {
