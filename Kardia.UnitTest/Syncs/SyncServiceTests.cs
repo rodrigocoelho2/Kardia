@@ -23,7 +23,7 @@ public sealed class SyncServiceTests
         Assert.StartsWith(Kardia.Library.Constants.ApiHeaders.SyncKeyPrefix, created.Key);
         Assert.True(status.HasKey);
         Assert.DoesNotContain(created.Key, status.KeyHint ?? string.Empty);
-        Assert.True(created.Key.EndsWith(status.KeyHint!.TrimStart('…'), StringComparison.Ordinal));
+        Assert.Equal("…" + created.Key[^4..], status.KeyHint);
     }
 
     [Fact]

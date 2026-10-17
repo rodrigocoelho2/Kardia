@@ -1,8 +1,21 @@
 @model AppPageModel
-@* Shown when nothing was synced for the day. *@
+@{
+    var path = Context.Request.Path.Value ?? "/";
+    var previous = Model.Date.AddDays(-1);
+}
+@* Shown when nothing was synced for the day: how to connect, or (already connected) that it's on its way. *@
 <section class="card empty rise">
     <span class="ico-chip rec">@Icons.Get("watch")</span>
-    <h2>@(Model.IsToday ? "Nothing from your Apple Watch yet today" : $"No Apple Watch data for {Fmt.ShortDate(Model.Date)}")</h2>
-    <p>Kardia works from what your Apple Watch records: sleep, heart rate, HRV and workouts. Connect Health Auto Export (or the Kardia Shortcut) once and every sync lands here.</p>
-    <a class="btn rec" href="/settings#apple-watch">@Icons.Get("sync")Connect Apple Watch</a>
+    @if (Model.LastSyncAt is { } synced)
+    {
+        <h2>@(Model.IsToday ? "Nothing for today yet" : $"No Apple Watch data for {Fmt.ShortDate(Model.Date)}")</h2>
+        <p>Your Apple Watch is connected (last sync @Fmt.Ago(synced)). @(Model.IsToday ? "Today's numbers arrive with the next sync from your iPhone; last night's sleep and this morning's recovery come first." : "Nothing was recorded for this day.")</p>
+        <a class="btn ghost" href="@path?date=@Fmt.Iso(previous)">@Icons.Get("left")@(Model.IsToday ? "See yesterday" : Fmt.ShortDate(previous))</a>
+    }
+    else
+    {
+        <h2>@(Model.IsToday ? "Nothing from your Apple Watch yet today" : $"No Apple Watch data for {Fmt.ShortDate(Model.Date)}")</h2>
+        <p>Kardia works from what your Apple Watch records: sleep, heart rate, HRV and workouts. Connect Health Auto Export (or the Kardia Shortcut) once and every sync lands here.</p>
+        <a class="btn rec" href="/settings#apple-watch">@Icons.Get("sync")Connect Apple Watch</a>
+    }
 </section>
