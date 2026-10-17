@@ -150,7 +150,6 @@
     var date = card.getAttribute("data-date");
     var query = "?topic=" + encodeURIComponent(topic) + (date ? "&date=" + date : "");
     var go = card.querySelector("[data-ai-go]");
-    var auto = card.getAttribute("data-auto") === "true";
     var q = function (sel) { return card.querySelector(sel); };
     var timer = null;
 
@@ -193,8 +192,6 @@
           paint(state);
           clearTimeout(timer);
           if (state && state.running) { timer = setTimeout(load, 3000); return; }
-          // Today writes its read by itself, once: no report yet, nothing running, no error.
-          if (auto && state && state.enabled && !state.report && !state.error) { auto = false; go.click(); }
         })
         .catch(function () { });
     };

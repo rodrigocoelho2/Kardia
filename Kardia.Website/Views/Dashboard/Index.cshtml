@@ -83,8 +83,8 @@ else
 
         @if (Model.AiCoach is { Enabled: true })
         {
-            @* With an AI provider set up, the AI coach takes the coach's place (and writes today's read by itself). *@
-            <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day", Visible: true, Auto: Model.IsToday)' />
+            @* With an AI provider set up, the AI coach takes the coach's place (it writes only when you tap Ask AI). *@
+            <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day", Visible: true)' />
         }
         else
         {

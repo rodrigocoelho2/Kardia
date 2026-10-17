@@ -1,6 +1,6 @@
 @model AiCardModel
 @* The AI coach for this screen. Hidden until /coach/state says a provider is set up (wwwroot/js/app.js fills it). *@
-<section class="card ai-card rise" data-ai-card data-topic="@Model.Topic" data-date="@(Model.Date is { } d ? Fmt.Iso(d) : "")" data-auto="@(Model.Auto ? "true" : null)" hidden="@(!Model.Visible)" aria-live="polite">
+<section class="card ai-card rise" data-ai-card data-topic="@Model.Topic" data-date="@(Model.Date is { } d ? Fmt.Iso(d) : "")" hidden="@(!Model.Visible)" aria-live="polite">
     <div class="ai-top">
         <span class="coach-ico">@Icons.Get("sparkle")</span>
         <div class="grow">
