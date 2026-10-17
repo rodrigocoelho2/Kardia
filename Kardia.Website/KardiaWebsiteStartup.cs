@@ -38,6 +38,12 @@ internal static class KardiaWebsiteStartup
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = static (context, _) =>
+            {
+                context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Kardia.Website.Sync")
+                    .LogWarning("Sync refused (429): more than 30 requests a minute from {Address}.", context.HttpContext.Connection.RemoteIpAddress);
+                return ValueTask.CompletedTask;
+            };
             options.AddPolicy(SyncRateLimit, context => RateLimitPartition.GetFixedWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 static _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));

@@ -29,6 +29,10 @@ public sealed class SyncController(KardiaClient apiClient, ILogger<SyncControlle
             : authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? authorization[7..].Trim()
             : null;
 
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var agent = Request.Headers.UserAgent.ToString();
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Sync request: {Length} bytes, key {Key}, from {Agent}", Request.ContentLength?.ToString() ?? "?", string.IsNullOrEmpty(key) ? "missing" : "…" + key[^Math.Min(4, key.Length)..], agent.Length > 80 ? agent[..80] : agent);
         try
         {
             // Read the whole export first, then hand it to the WebApi in one go (with its length), and don't cancel that hand-over
@@ -36,10 +40,14 @@ public sealed class SyncController(KardiaClient apiClient, ILogger<SyncControlle
             using var buffer = new MemoryStream();
             await Request.Body.CopyToAsync(buffer, HttpContext.RequestAborted);
             buffer.Position = 0;
-            return Json(await apiClient.SyncIngestAsync(key, buffer, CancellationToken.None));
+            var result = await apiClient.SyncIngestAsync(key, buffer, CancellationToken.None);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Sync answered 200 in {Elapsed} ms: {Summary}", watch.ElapsedMilliseconds, result.Summary);
+            return Json(result);
         }
         catch (KardiaApiException exception)
         {
+            logger.LogWarning("Sync answered {Status} in {Elapsed} ms: {Message}", (int)exception.StatusCode, watch.ElapsedMilliseconds, exception.Message);
             return StatusCode((int)exception.StatusCode, new { error = exception.ToValidationErrors().FirstOrDefault()?.Message ?? exception.Message });
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
