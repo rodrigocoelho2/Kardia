@@ -525,7 +525,7 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 .tabs-seg a.seg[aria-current="page"] { background: var(--text); color: var(--bg); font-weight: 700; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
 a.list-row { color: inherit; }
-a.list-row:hover .top span:first-child { color: var(--accent, var(--rec)); }
+@media (hover: hover) { a.list-row:hover .top span:first-child { color: var(--accent, var(--rec)); } }
 
 /* Status colours of the Health Monitor: in range, outside, far outside, not judged. */
 .in { --st: var(--rec); } .out { --st: var(--mid); } .far { --st: var(--str-2); } .none { --st: var(--dim); }

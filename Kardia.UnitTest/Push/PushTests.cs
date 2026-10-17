@@ -91,7 +91,7 @@ public sealed class PushTests
         var payload = PushSender.PayloadOf(new PushMessage("Title", new string('x', 10_000), "/", "t"));
 
         Assert.True(payload.Length <= WebPushCrypto.MaxPayloadBytes);
-        Assert.True(JsonDocument.Parse(payload).RootElement.GetProperty("body").GetString()!.EndsWith("…", StringComparison.Ordinal));
+        Assert.Equal('…', JsonDocument.Parse(payload).RootElement.GetProperty("body").GetString()![^1]);
     }
 
     [Fact]
