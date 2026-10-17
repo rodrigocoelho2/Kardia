@@ -66,6 +66,12 @@ internal interface IHealthDataRepository
     /// <returns>A task.</returns>
     Task WorkoutsSaveAsync(Guid userId, IReadOnlyList<WorkoutRow> rows);
 
+    /// <summary>Saves the heart-rate recovery of workouts (<see cref="WorkoutRow.Hrr1"/>, <see cref="WorkoutRow.Hrr2"/>).</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="rows">The workouts (by start) with their recovery.</param>
+    /// <returns>A task.</returns>
+    Task WorkoutsRecoverySaveAsync(Guid userId, IReadOnlyList<WorkoutRow> rows);
+
     /// <summary>Lists the workouts that started in a range of days.</summary>
     /// <param name="userId">The account.</param>
     /// <param name="from">First day.</param>

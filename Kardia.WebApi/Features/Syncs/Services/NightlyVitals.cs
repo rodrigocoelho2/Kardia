@@ -52,6 +52,23 @@ internal static class NightlyVitals
         return rows;
     }
 
+    /// <summary>
+    /// The day totals (steps, energy, exercise, daylight) from every timed reading received for those days.
+    /// </summary>
+    /// <param name="days">The days.</param>
+    /// <param name="samples">The readings of those days.</param>
+    /// <returns>One row per day and metric with readings.</returns>
+    public static List<DailyMetricRow> Totals(IEnumerable<DateOnly> days, IReadOnlyList<MetricSampleRow> samples)
+    {
+        var wanted = days.ToHashSet();
+        return samples
+            .Where(sample => HealthPayload.SummedMetrics.Contains((HealthMetric)sample.Metric) && wanted.Contains(DateOnly.FromDateTime(sample.SampleAt)))
+            .GroupBy(static sample => (Day: sample.SampleAt.Date, sample.Metric))
+            .Select(static group => new DailyMetricRow { DayDate = group.Key.Day, Metric = group.Key.Metric, Value = Math.Round(group.Sum(static s => s.Value), 3) })
+            .OrderBy(static row => row.DayDate).ThenBy(static row => row.Metric)
+            .ToList();
+    }
+
     /// <summary>The morning a reading belongs to: from 18:00 on, the next day's.</summary>
     /// <param name="at">When it was measured.</param>
     /// <returns>The day.</returns>

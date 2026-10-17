@@ -43,6 +43,94 @@ public sealed class DayDTO
 
     /// <summary>Gets or sets the coach's tips for the day, most useful first.</summary>
     public List<CoachTipDTO> Coach { get; set; } = [];
+
+    /// <summary>Gets or sets the stress monitor: heart rate above rest while you weren't moving, 0–3.</summary>
+    public StressDTO Stress { get; set; } = new();
+
+    /// <summary>Gets or sets the energy bank: the charge you woke up with and how the day spent it.</summary>
+    public EnergyDTO Energy { get; set; } = new();
+}
+
+/// <summary>The stress monitor of a day.</summary>
+public sealed class StressDTO
+{
+    /// <summary>Gets or sets a value indicating whether there was enough heart rate to judge (an hour of still blocks).</summary>
+    public bool Ready { get; set; }
+
+    /// <summary>Gets or sets the day's average stress, 0–3.</summary>
+    public double? Average { get; set; }
+
+    /// <summary>Gets or sets the latest stress level, 0–3 (null when you were moving).</summary>
+    public double? Current { get; set; }
+
+    /// <summary>Gets or sets the minutes of low stress (under 1).</summary>
+    public int LowMinutes { get; set; }
+
+    /// <summary>Gets or sets the minutes of medium stress (1–2).</summary>
+    public int MediumMinutes { get; set; }
+
+    /// <summary>Gets or sets the minutes of high stress (2–3).</summary>
+    public int HighMinutes { get; set; }
+
+    /// <summary>Gets or sets the minutes moving (left out of stress).</summary>
+    public int ActiveMinutes { get; set; }
+
+    /// <summary>Gets or sets the resting heart rate stress is measured from.</summary>
+    public int RestingBpm { get; set; }
+
+    /// <summary>Gets or sets the awake day in 10-minute blocks.</summary>
+    public List<StressBlockDTO> Blocks { get; set; } = [];
+}
+
+/// <summary>A 10-minute block of the stress monitor.</summary>
+public sealed class StressBlockDTO
+{
+    /// <summary>Gets or sets when it starts (local time).</summary>
+    public DateTime At { get; set; }
+
+    /// <summary>Gets or sets the average heart rate, or null when the Watch had nothing.</summary>
+    public int? Bpm { get; set; }
+
+    /// <summary>Gets or sets the stress, 0–3, or null when moving or without heart rate.</summary>
+    public double? Level { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether you were moving.</summary>
+    public bool Active { get; set; }
+}
+
+/// <summary>The energy bank of a day.</summary>
+public sealed class EnergyDTO
+{
+    /// <summary>Gets or sets a value indicating whether there's a curve to show.</summary>
+    public bool Ready { get; set; }
+
+    /// <summary>Gets or sets the charge you woke up with (your recovery), 0–100.</summary>
+    public int? Start { get; set; }
+
+    /// <summary>Gets or sets the charge now (or at the end of the day), 0–100.</summary>
+    public int? Now { get; set; }
+
+    /// <summary>Gets or sets the charge spent moving.</summary>
+    public int ActivityDrain { get; set; }
+
+    /// <summary>Gets or sets the charge spent on stress.</summary>
+    public int StressDrain { get; set; }
+
+    /// <summary>Gets or sets the charge spent just being awake.</summary>
+    public int BaseDrain { get; set; }
+
+    /// <summary>Gets or sets the charge through the day.</summary>
+    public List<TrendPointTimeDTO> Points { get; set; } = [];
+}
+
+/// <summary>A value at a time of day.</summary>
+public sealed class TrendPointTimeDTO
+{
+    /// <summary>Gets or sets the time (local).</summary>
+    public DateTime At { get; set; }
+
+    /// <summary>Gets or sets the value.</summary>
+    public double Value { get; set; }
 }
 
 /// <summary>Recovery and what went into it.</summary>
@@ -227,6 +315,28 @@ public sealed class StrainDTO
 
     /// <summary>Gets or sets the day's workouts.</summary>
     public List<WorkoutDTO> Workouts { get; set; } = [];
+
+    /// <summary>Gets or sets the heart-rate recovery of the workouts of the last 60 days, oldest first.</summary>
+    public List<HeartRecoveryDTO> RecoveryHistory { get; set; } = [];
+
+    /// <summary>Gets or sets the average one-minute heart-rate recovery of the last 60 days.</summary>
+    public double? RecoveryAverage { get; set; }
+}
+
+/// <summary>The heart-rate recovery of one workout.</summary>
+public sealed class HeartRecoveryDTO
+{
+    /// <summary>Gets or sets when the workout started (local time).</summary>
+    public DateTime StartedAt { get; set; }
+
+    /// <summary>Gets or sets the Watch's workout type.</summary>
+    public string Kind { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the bpm the heart rate fell in the first minute.</summary>
+    public int? OneMinute { get; set; }
+
+    /// <summary>Gets or sets the bpm the heart rate fell in the first two minutes.</summary>
+    public int? TwoMinutes { get; set; }
 }
 
 /// <summary>A workout.</summary>
@@ -255,6 +365,12 @@ public sealed class WorkoutDTO
 
     /// <summary>Gets or sets the workout's own strain (0–21).</summary>
     public double? Strain { get; set; }
+
+    /// <summary>Gets or sets how many bpm the heart rate fell in the first minute after the end (heart-rate recovery).</summary>
+    public int? RecoveryOneMinute { get; set; }
+
+    /// <summary>Gets or sets how many bpm the heart rate fell in the first two minutes after the end.</summary>
+    public int? RecoveryTwoMinutes { get; set; }
 
     /// <summary>Gets or sets its heart rate, one point a minute (for the small chart).</summary>
     public List<int> HeartRates { get; set; } = [];
@@ -311,6 +427,9 @@ public sealed class DaySummaryDTO
 
     /// <summary>Gets or sets the steps.</summary>
     public double? Steps { get; set; }
+
+    /// <summary>Gets or sets the minutes spent in daylight (Apple Watch "Time in Daylight").</summary>
+    public double? DaylightMinutes { get; set; }
 
     /// <summary>Gets or sets the minutes in heart-rate zone 2 or higher.</summary>
     public int ActiveMinutes { get; set; }

@@ -62,6 +62,7 @@ internal sealed class DemoSeeder(
         await healthDataRepository.HeartRatesSaveAsync(userId, data.HeartRates);
         await healthDataRepository.SleepsSaveAsync(userId, data.Sleeps);
         await healthDataRepository.WorkoutsSaveAsync(userId, data.Workouts);
+        await healthDataRepository.SamplesSaveAsync(userId, data.Samples);
         foreach (var (day, tag) in data.Journal)
         {
             await journalRepository.SetAsync(userId, day, tag.ToString(), true);
@@ -82,6 +83,7 @@ internal sealed class DemoSeeder(
         await healthDataRepository.HeartRatesSaveAsync(userId, [.. data.HeartRates.Where(row => DateOnly.FromDateTime(row.MinuteAt) >= from)]);
         await healthDataRepository.SleepsSaveAsync(userId, [.. data.Sleeps.Where(row => DateOnly.FromDateTime(row.NightDate) >= from)]);
         await healthDataRepository.WorkoutsSaveAsync(userId, [.. data.Workouts.Where(row => DateOnly.FromDateTime(row.StartedAt) >= from)]);
+        await healthDataRepository.SamplesSaveAsync(userId, [.. data.Samples.Where(row => DateOnly.FromDateTime(row.SampleAt) >= from)]);
         await dayLoadService.RecomputeAsync(userId, [from, today]);
         DataVersion.Bump(userId);
         await MarkSyncedAsync(userId, false);

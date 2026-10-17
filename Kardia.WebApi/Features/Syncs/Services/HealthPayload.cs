@@ -61,6 +61,13 @@ internal static partial class HealthPayload
     /// </summary>
     public static readonly HashSet<HealthMetric> SampledMetrics = [HealthMetric.Hrv, HealthMetric.RespiratoryRate, HealthMetric.BloodOxygen, HealthMetric.WristTemperature];
 
+    /// <summary>
+    /// Totals of the day (steps, energy, exercise, daylight). Their timed readings are kept too, so the day's total is the
+    /// sum of every reading ever received (a "since last sync" export carries only the new ones), and the stress monitor
+    /// knows when you were moving.
+    /// </summary>
+    public static readonly HashSet<HealthMetric> SummedMetrics = [HealthMetric.Steps, HealthMetric.ActiveEnergy, HealthMetric.BasalEnergy, HealthMetric.ExerciseMinutes, HealthMetric.Daylight];
+
     /// <summary>Gap between sleep segments that starts a new night.</summary>
     public static readonly TimeSpan NightGap = TimeSpan.FromHours(2);
 
@@ -103,6 +110,9 @@ internal static partial class HealthPayload
         ["appleexercisetime"] = (HealthMetric.ExerciseMinutes, true),
         ["exercisetime"] = (HealthMetric.ExerciseMinutes, true),
         ["exerciseminutes"] = (HealthMetric.ExerciseMinutes, true),
+        ["timeindaylight"] = (HealthMetric.Daylight, true),
+        ["daylight"] = (HealthMetric.Daylight, true),
+        ["daylightminutes"] = (HealthMetric.Daylight, true),
     };
 
     /// <summary>The range each metric must fall in (in Kardia's units) to be kept.</summary>
@@ -120,6 +130,7 @@ internal static partial class HealthPayload
         [HealthMetric.WalkingHeartRate] = (40, 200),
         [HealthMetric.BodyMass] = (25, 400),
         [HealthMetric.ExerciseMinutes] = (0, 1_440),
+        [HealthMetric.Daylight] = (0, 1_440),
     };
 
     /// <summary>
@@ -447,6 +458,11 @@ internal static partial class HealthPayload
                     continue;
                 }
 
+                if (at is { } when && target.Sum)
+                {
+                    SumSample(target.Metric, when, value);
+                }
+
                 Add(target.Metric, target.Sum, at?.Date ?? now.Date, value);
             }
         }
@@ -507,9 +523,14 @@ internal static partial class HealthPayload
                 MaxBpm = max is { } m and >= 30 and <= 250 ? (short)Math.Round(m) : null,
             };
 
-            // The workout's own heart-rate curve also feeds the day's minutes.
-            if (First(w, "heartratedata") is { ValueKind: JsonValueKind.Array } curve)
+            // The workout's own heart-rate curve, and the minutes after it (heart-rate recovery), also feed the day's minutes.
+            foreach (var key in new[] { "heartratedata", "heartraterecovery" })
             {
+                if (First(w, key) is not { ValueKind: JsonValueKind.Array } curve)
+                {
+                    continue;
+                }
+
                 foreach (var sample in curve.EnumerateArray().Where(static item => item.ValueKind == JsonValueKind.Object))
                 {
                     var f = Fields(sample);
@@ -663,6 +684,17 @@ internal static partial class HealthPayload
             {
                 _samples[(metric, new DateTime(at.Year, at.Month, at.Day, at.Hour, at.Minute, at.Second))] = Math.Round((decimal)kept, 3);
             }
+        }
+
+        private void SumSample(HealthMetric metric, DateTime at, double? value)
+        {
+            if (value is not { } number || !double.IsFinite(number) || number < 0 || number > 100_000)
+            {
+                return;
+            }
+
+            var key = (metric, new DateTime(at.Year, at.Month, at.Day, at.Hour, at.Minute, at.Second));
+            _samples[key] = Math.Round((_samples.TryGetValue(key, out var old) ? old : 0) + (decimal)number, 3);
         }
 
         private void Add(HealthMetric metric, bool sum, DateTime day, double? value)

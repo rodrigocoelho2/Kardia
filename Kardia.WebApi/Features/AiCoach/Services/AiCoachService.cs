@@ -130,7 +130,7 @@ internal sealed class AiCoachService(
             {
                 Topic = topic,
                 BiologicalAge = topic is AiCoachTopic.Age or AiCoachTopic.Overview ? (await ageService.GetAsync(userId)).Result : null,
-                Journal = topic is AiCoachTopic.Journal or AiCoachTopic.Recovery or AiCoachTopic.Health or AiCoachTopic.Sleep ? (await journalService.GetAsync(userId, date)).Result : null,
+                Journal = topic is AiCoachTopic.Journal or AiCoachTopic.Recovery or AiCoachTopic.Health or AiCoachTopic.Sleep or AiCoachTopic.Stress ? (await journalService.GetAsync(userId, date)).Result : null,
                 HealthMonth = topic is AiCoachTopic.Health ? (await dayService.HealthReportAsync(userId, 30)).Result : null,
                 Month = topic is AiCoachTopic.Report or AiCoachTopic.Trends ? (await reportService.GetAsync(userId, ReportPeriod.Month, date)).Result : null,
             };

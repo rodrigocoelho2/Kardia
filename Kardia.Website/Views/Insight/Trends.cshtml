@@ -30,6 +30,7 @@
         ("strain", "Strain", "", 1, "ser-str", true, static d => d.Strain, 0),
         ("active", "Zone 2+ minutes", "min", 0, "ser-str", true, static d => d.Strain is null && d.ActiveMinutes == 0 ? null : d.ActiveMinutes, 0),
         ("steps", "Steps", "", 0, "ser-sky", true, static d => d.Steps, 0),
+        ("daylight", "Time in daylight", "min", 0, "ser-mid", true, static d => d.DaylightMinutes, 0),
         ("vo2max", "VO₂ max", "ml/kg/min", 1, "ser-age", true, static d => d.Vo2Max, null),
     };
 }

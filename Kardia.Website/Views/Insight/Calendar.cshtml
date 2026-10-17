@@ -1,0 +1,106 @@
+@model Kardia.Website.Model.Insights.CalendarPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Calendar";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var month = Model.Month;
+    var previous = month.AddMonths(-1);
+    var next = month.AddMonths(1);
+    var isCurrent = month.Year == Model.Today.Year && month.Month == Model.Today.Month;
+    var byDate = Model.Summaries.ToDictionary(static s => s.Date);
+    var lead = ((int)month.DayOfWeek + 6) % 7;   // Monday first
+    var length = DateTime.DaysInMonth(month.Year, month.Month);
+    var scored = Model.Summaries.Where(static s => s.Recovery is not null).ToList();
+    var green = scored.Count(static s => s.Zone == RecoveryZone.High);
+    var yellow = scored.Count(static s => s.Zone == RecoveryZone.Medium);
+    var red = scored.Count(static s => s.Zone == RecoveryZone.Low);
+    var average = scored.Count > 0 ? scored.Average(static s => s.Recovery!.Value) : (double?)null;
+    var strains = Model.Summaries.Where(static s => s.Strain is not null).Select(static s => s.Strain!.Value).ToList();
+    var sleeps = Model.Summaries.Where(static s => s.AsleepMinutes is not null).Select(static s => s.AsleepMinutes!.Value).ToList();
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">Recovery calendar · @scored.Count days scored</div>
+        <h1>@month.ToString("MMMM yyyy", inv)</h1>
+    </div>
+    <div class="head-acts">
+        <nav class="datenav" aria-label="Month">
+            <a href="/calendar?month=@Fmt.Iso(previous)" aria-label="Previous month, @previous.ToString("MMMM", inv)">@Icons.Get("left")</a>
+            <span class="label">@month.ToString("MMM yyyy", inv)</span>
+            @if (isCurrent)
+            {
+                <span class="off" aria-hidden="true">@Icons.Get("right")</span>
+            }
+            else
+            {
+                <a href="/calendar@(next.Year == Model.Today.Year && next.Month == Model.Today.Month ? string.Empty : "?month=" + Fmt.Iso(next))" aria-label="Next month, @next.ToString("MMMM", inv)">@Icons.Get("right")</a>
+            }
+        </nav>
+    </div>
+</header>
+
+<div class="row">
+    <section class="card w2 rise" style="--d:1">
+        <div class="cal" role="grid" aria-label="Recovery each day of @month.ToString("MMMM yyyy", inv)">
+            @foreach (var name in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
+            {
+                <span class="cal-wd" role="columnheader">@name</span>
+            }
+            @for (var i = 0; i < lead; i++)
+            {
+                <span class="cal-day blank" aria-hidden="true"></span>
+            }
+            @for (var d = 1; d <= length; d++)
+            {
+                var date = new DateOnly(month.Year, month.Month, d);
+                var future = date > Model.Today;
+                byDate.TryGetValue(date, out var item);
+                var zone = item?.Recovery is null ? "None" : item.Zone.ToString();
+                if (future)
+                {
+                    <span class="cal-day future" role="gridcell"><b>@d</b></span>
+                    continue;
+                }
+
+                <a class="cal-day z-@zone @(date == Model.Today ? "today" : "")" role="gridcell" href="/@(date == Model.Today ? string.Empty : "?date=" + Fmt.Iso(date))"
+                   title="@Fmt.ShortDate(date): recovery @(item?.Recovery?.ToString() ?? "—")%, strain @Fmt.One(item?.Strain), asleep @Fmt.Duration(item?.AsleepMinutes)" style="--i:@(d % 31)">
+                    <b>@d</b>
+                    <span class="cal-rec num">@(item?.Recovery?.ToString() ?? "")</span>
+                    <span class="cal-meta">
+                        @if (item?.Strain is { } s) { <i class="cal-str" style="width:@((Math.Clamp(s / 21, 0.05, 1) * 100).ToString("0", inv))%"></i> }
+                    </span>
+                </a>
+            }
+        </div>
+        <div class="legend" style="margin-top:10px">
+            <span><i class="swatch zbg-High"></i>67–100%</span>
+            <span><i class="swatch zbg-Medium"></i>34–66%</span>
+            <span><i class="swatch zbg-Low"></i>0–33%</span>
+            <span><i class="swatch" style="background:var(--str);height:3px;width:14px"></i>Strain</span>
+        </div>
+    </section>
+
+    <section class="card rise" style="--d:2">
+        <div class="card-head">
+            <h2>The month</h2>
+            <span class="side-note">@(isCurrent ? "so far" : Fmt.Range(month, month.AddMonths(1).AddDays(-1)))</span>
+        </div>
+        <div class="tiles">
+            <div class="tile"><span class="k">Average recovery</span><span class="v">@(average?.ToString("0", inv) ?? "—")<small>%</small></span></div>
+            <div class="tile"><span class="k">Average strain</span><span class="v">@(strains.Count > 0 ? Fmt.One(strains.Average()) : "—")</span></div>
+            <div class="tile"><span class="k">Average sleep</span><span class="v">@(sleeps.Count > 0 ? Fmt.Duration((int)Math.Round(sleeps.Average())) : "—")</span></div>
+            <div class="tile"><span class="k">Green days</span><span class="v">@green<small>/@scored.Count</small></span></div>
+        </div>
+        <div class="zone-split" aria-hidden="true">
+            @if (green > 0) { <i class="zbg-High" style="flex:@green"></i> }
+            @if (yellow > 0) { <i class="zbg-Medium" style="flex:@yellow"></i> }
+            @if (red > 0) { <i class="zbg-Low" style="flex:@red"></i> }
+            @if (scored.Count == 0) { <i class="zbg-None" style="flex:1"></i> }
+        </div>
+        <small class="dim">@green green · @yellow yellow · @red red</small>
+        <div class="head-acts" style="margin-top:auto">
+            <a class="btn ghost small" href="/report?period=month&date=@Fmt.Iso(month)">@Icons.Get("check")Monthly report</a>
+        </div>
+    </section>
+</div>

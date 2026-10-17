@@ -155,4 +155,42 @@ else
             </div>
         </section>
     </div>
+
+    var light = day.Recent.TakeLast(7).ToList();
+    var lightToday = day.Recent.LastOrDefault()?.DaylightMinutes;
+    var lightKnown = light.Where(static d => d.DaylightMinutes is not null).Select(static d => d.DaylightMinutes!.Value).ToList();
+    var lightMax = Math.Max(60, lightKnown.DefaultIfEmpty(0).Max()) * 1.1;
+    <section class="card rise" style="--d:5" id="daylight">
+        <div class="card-head">
+            <h2>@Icons.Get("sun", "dl-ico")Time in daylight</h2>
+            <span class="side-note">aim for 30 min, ideally in the morning</span>
+        </div>
+        @if (lightKnown.Count == 0)
+        {
+            <p class="muted" style="font-size:14px">Your Apple Watch measures the minutes you spend in daylight (watchOS 10 or later). Add <b>Time in Daylight</b> to the metrics Health Auto Export sends and it shows up here. Morning light sets your body clock, so you fall asleep earlier and more easily.</p>
+        }
+        else
+        {
+            <div class="row" style="margin:0">
+                <div class="tiles t3 w2" style="align-self:center">
+                    <div class="tile"><span class="k">@(Model.IsToday ? "Today" : "This day")</span><span class="v">@(lightToday?.ToString("0", inv) ?? "—")<small> min</small></span></div>
+                    <div class="tile"><span class="k">7-day average</span><span class="v">@lightKnown.Average().ToString("0", inv)<small> min</small></span></div>
+                    <div class="tile"><span class="k">Days over 30 min</span><span class="v">@lightKnown.Count(static m => m >= 30)<small>/@lightKnown.Count</small></span></div>
+                </div>
+                <div class="week-bars dl">
+                    <span class="avg" style="bottom:calc(@((30 / lightMax * 82).ToString("0.0", inv))% + 24px)" title="30 minutes"></span>
+                    @for (var i = 0; i < light.Count; i++)
+                    {
+                        var item = light[i];
+                        <div class="col @(item.Date == Model.Date ? "on" : "")">
+                            <span class="num" style="color:var(--text-2)">@(item.DaylightMinutes?.ToString("0", inv) ?? "—")</span>
+                            <div class="b" style="height:@(((item.DaylightMinutes ?? 0) / lightMax * 82).ToString("0.0", inv))%;--i:@i"></div>
+                            <span>@(item.Date == Model.Today ? "Today" : Fmt.Weekday(item.Date))</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            <p class="muted small-note">Daylight in the first hours after waking moves your body clock earlier: you get sleepy at a sensible time and wake up more easily. Even a cloudy day outside is many times brighter than indoors.</p>
+        }
+    </section>
 }

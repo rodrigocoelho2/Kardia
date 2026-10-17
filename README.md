@@ -75,6 +75,19 @@
 - A **30-day or 6-month report** with every night, the range and the days outside, to **print or save as PDF** for a
   conversation with your doctor. It shows numbers, never a diagnosis.
 
+**Stress monitor and energy bank** (like WHOOP's and Bevel's)
+
+- **Stress, 0–3, through the day**: your heart rate above its resting level in 10-minute blocks while you're **still**
+  — workouts, walking (timed steps) and the minutes your heart settles after them are left out. Low, medium and high
+  minutes, the day's average and the stress right now.
+- **Energy bank, 0–100**: you wake up with your recovery; being awake, moving and stress spend it through the day —
+  with what went where.
+
+**Heart-rate recovery**
+
+- After every workout that gets your heart above 110 bpm, how many beats it falls in the **first one and two minutes**
+  (using the Watch's minutes after you stop), on each workout and over 60 days. It climbs as your fitness builds.
+
 **Cardio load** (like Bevel's)
 
 - The last **7 days of heart load against the last 28**: detraining below 0.8, maintaining, **productive 1.0–1.3**,
@@ -86,11 +99,15 @@
   your usual bedtime), **zone 2+ minutes** and **steps a day** — progress day by day, what it takes from here, last
   week's recap, and the targets your last four weeks suggest (one tap to take them).
 - **Sleep goal Peak 100 % · Perform 85 % · Get by 70 %**: tonight's bedtime is planned for it.
+- **Time in daylight** (Apple Watch, watchOS 10+) on the Sleep screen and in Trends, against 30 minutes a day: morning
+  light sets your body clock.
 
 **Trends and reports**
 
 - **Trends** over 30 days, 90 days (with a 7-day average) or a year (weekly): recovery, HRV, resting heart rate, time
-  asleep, sleep performance, strain, zone 2+ minutes, steps and VO₂ max.
+  asleep, sleep performance, strain, zone 2+ minutes, steps, time in daylight and VO₂ max.
+- A **recovery calendar**: every day of the month coloured green, yellow or red, with its strain, and the month's
+  averages.
 - A **weekly and monthly performance assessment**: a 0–100 score (strain matched to recovery, sleep against need,
   consistency) — Peak, Strong, Fair or Off track — what stood out, every number against the period before, and the
   days one by one.
@@ -106,8 +123,14 @@
 - One tap and an AI reads your last 30 days and writes a short report: how you're doing, what went well, what to watch
   and **three things to do this week**. **Every screen has its own**: Recovery explains what moved it, Sleep the night
   and tonight, Strain how hard to go, Age which factors to work on, Health Monitor what the signs say, the plan how to
-  hit it, Trends the last 90 days, the report why it scored as it did, and the Journal which habits matter. Bring a **Claude** or **Gemini** API key, or run a **local model with Ollama** so nothing
+  hit it, Trends the last 90 days, the report why it scored as it did, Stress what raised it, and the Journal which habits
+  matter. Bring a **Claude** or **Gemini** API key, or run a **local model with Ollama** so nothing
   leaves your network. Only numbers are sent — never your name or account.
+
+**Breathe**
+
+- **Guided breathing** for 1, 3 or 5 minutes — coherent (5½ breaths a minute), box (4-4-4-4) or 4-7-8 — with an orb
+  that grows and shrinks with your breath; one tap logs it as meditation in the journal.
 
 **Journal**
 
@@ -139,6 +162,9 @@
 ### Insights
 <img src="docs/images/insights.png" alt="Phone: Health Monitor, weekly plan, weekly report and the AI coach">
 
+### Stress, calendar and breathing
+<img src="docs/images/everyday.png" alt="Phone: stress and energy, the recovery calendar, guided breathing and trends">
+
 ### On the computer
 <table>
 <tr>
@@ -156,6 +182,10 @@
 <tr>
 <td width="50%"><b>Trends</b><br><img src="docs/images/desktop-trends.png" alt="Trends: 90 days of recovery, HRV, resting heart rate, sleep, strain, steps and VO2 max"></td>
 <td width="50%"><b>Weekly report</b><br><img src="docs/images/desktop-report.png" alt="Weekly report: the assessment, what stood out, every number against the week before"></td>
+</tr>
+<tr>
+<td width="50%"><b>Stress &amp; energy</b><br><img src="docs/images/desktop-stress.png" alt="Stress and energy: stress through the day in 10-minute blocks and the energy bank"></td>
+<td width="50%"><b>Recovery calendar</b><br><img src="docs/images/desktop-calendar.png" alt="Recovery calendar: every day of the month coloured by recovery"></td>
 </tr>
 <tr>
 <td width="50%"><b>AI coach</b> (an example report on the demo data)<br><img src="docs/images/desktop-coach.png" alt="AI coach: a short report on the last 30 days and three things to do this week"></td>
@@ -246,7 +276,8 @@ background; REST API automations are part of its premium plan.
 3. **Export format: JSON**, **Export version: 2**, data **Health metrics** and **Workouts**, **Time grouping: Minutes**
    (so heart rate comes minute by minute).
 4. Metrics: heart rate, heart rate variability, resting heart rate, respiratory rate, blood oxygen, sleep analysis,
-   sleeping wrist temperature, step count, active and resting energy, VO₂ max, weight.
+   sleeping wrist temperature, step count, active and resting energy, **time in daylight**, VO₂ max, weight.
+   Workouts bring their heart-rate recovery with them (Export version 2).
 5. **Date range: Since last sync**, every 15–60 minutes. Run a **Manual export** of the last 30 days once to fill
    your baselines.
 
@@ -261,8 +292,10 @@ What a sync does: values are converted to the app's time zone and metric units, 
 segments (naps are skipped) and **joined** with what was already saved for it, so a partial "since last sync" export
 never shortens a night. **HRV, respiratory rate and blood oxygen** are kept as timed readings and the day's value is the
 average of those taken **during that night** (like WHOOP), so readings from later in the day never move the morning's
-recovery. Other values sent again replace the old ones (totals like steps keep the larger one), and the heart load of
-each touched day is worked out again. The answer says what it brought:
+recovery. **Steps, energy, exercise minutes and daylight** sent with times are kept per reading too and the day's total
+is their sum, so overlapping exports never count twice (and timed steps tell the stress monitor when you were walking).
+Other values sent again replace the old ones (totals keep the larger one), and the heart load of each touched day and
+the heart-rate recovery of its workouts are worked out again. The answer says what it brought:
 `1 day · 1 440 heart-rate minutes · 1 night · 1 workout · 9 daily values`.
 
 ## Notifications and the AI coach
@@ -298,7 +331,8 @@ KARDIA_AI_MODEL=llama3.1:8b
 
 Then an **AI coach** card appears on every screen (and **Analyse with AI** on Today), each with a report about that
 screen and that day. What's sent: the day's scores, the last 30 days as one line
-each (recovery, strain, hours asleep, bedtime, HRV, resting heart rate, steps, zone 2+ minutes), the Health Monitor, the
+each (recovery, strain, hours asleep, bedtime, HRV, resting heart rate, steps, zone 2+ minutes, daylight), the day's
+stress and energy bank, workouts' heart-rate recovery, the Health Monitor, the
 cardio load, the weekly plan and the weekly assessment — no name, no account, no minute-by-minute heart rate. The
 report is kept until the WebApi restarts.
 
@@ -316,6 +350,9 @@ until then, typical values for adults).
 | **Sleep** | performance = asleep / need; efficiency = asleep / in bed; consistency = 100 − 0.85 × the spread (in minutes) of your bed and wake times. Bedtime = your usual wake-up − need − 15 min to fall asleep. |
 | **Biological age** | each factor adds or takes off years against the typical value for your age and sex (e.g. VO₂ max: 0.45 years per ml/kg/min, up to ±5), the total is damped (× 0.85) and capped at ±12 years. Pace compares now with 90 days ago. |
 | **Health Monitor** | each sign against your last 30 days: mean ± 1.5 standard deviations is your typical range (blood oxygen only counts when low); beyond 2.5 is far outside. Needs 7 nights of your own values. |
+| **Stress** | 10-minute blocks from waking up: share of the heart-rate reserve above resting, `(HR − rest) / (max − rest)`, mapped from 6% (0, calm) to 34% (3, high). Blocks overlapping a workout, with 150+ steps or above 40% of the reserve are movement and skipped, and so is the block after. |
+| **Energy bank** | starts at recovery (50 without one); every awake minute spends 0.03 (0.015 when calm), stress 0.015 × level more, moving 0.03 + 0.35 × the share of the reserve. |
+| **Heart-rate recovery** | the higher of the last two minutes of the workout minus the heart rate one and two minutes after the end (workouts ending above 110 bpm). |
 | **Cardio load** | mean daily TRIMP of the last 7 days ÷ that of the last 28 (needs 21 days with heart rate). Productive strain = the strain of 1.0–1.3 × your 28-day daily load. |
 | **Weekly plan** | Monday to Sunday. Sleep: asleep ≥ goal % × the night's need. On time: in bed within 30 min of the median bedtime of the 14 nights before. Suggested targets: your last four weeks, one step up. |
 | **Assessment** | 40 % strain on target (within the day's target ± 1, finished days), 40 % sleep performance, 20 % sleep consistency. 85+ Peak, 70+ Strong, 55+ Fair. |

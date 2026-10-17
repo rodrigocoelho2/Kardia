@@ -32,4 +32,7 @@ public enum AiCoachTopic
 
     /// <summary>The journal: which habits help or hurt.</summary>
     Journal,
+
+    /// <summary>The stress monitor and energy bank.</summary>
+    Stress,
 }

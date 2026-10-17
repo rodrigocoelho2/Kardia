@@ -1,0 +1,128 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Stress & energy";
+    var day = Model.Day;
+    var stress = day.Stress;
+    var energy = day.Energy;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var judged = Math.Max(1, stress.LowMinutes + stress.MediumMinutes + stress.HighMinutes);
+    var shown = Model.IsToday ? stress.Current ?? stress.Average : stress.Average;
+    var palette = (energy.Now ?? 0) switch { >= 60 => "rec", >= 30 => "mid", _ => "low" };
+    var drained = Math.Max(1, energy.ActivityDrain + energy.StressDrain + energy.BaseDrain);
+    var lead = !stress.Ready ? "The stress monitor needs an hour or more of heart rate while you're awake and still."
+        : stress.Average >= 2 ? "A tense day: your heart rate sat well above its resting level for long stretches while you weren't moving. A few minutes of slow breathing brings it down."
+        : stress.Average >= 1 ? "A busy day: some stretches with your heart rate up while you were sitting still. Normal for work and errands; keep an eye on the evening."
+        : "A calm day: with you still, your heart rate stayed close to its resting level.";
+}
+
+<partial name="_PageHead" model="Model" />
+
+@if (!day.HasData)
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="row">
+        <section class="card hero rise" style="--d:1">
+            <div class="ambient" aria-hidden="true" style="--amb: rgba(124,199,255,0.18)"></div>
+            <div class="ring-box">
+                @Charts.Ring((shown ?? 0) / 3, (shown ?? 0) >= 2 ? "low" : (shown ?? 0) >= 1 ? "mid" : "rec")
+                <div class="center">
+                    <span class="big num">@(shown?.ToString("0.0", inv) ?? "—")</span>
+                    <span class="lbl">@(Model.IsToday && stress.Current is not null ? "Stress now" : "Day's stress")</span>
+                </div>
+            </div>
+            <h2 style="font-size:22px" class="@Fmt.StressClass(shown)-t">@(stress.Ready ? Fmt.StressWord(shown) : "Not enough heart rate yet")</h2>
+            <p class="lead">@lead</p>
+            <div class="tiles t3" style="align-self:stretch">
+                <div class="tile center"><span class="k">Average</span><span class="v">@(stress.Average?.ToString("0.0", inv) ?? "—")<small>/3</small></span></div>
+                <div class="tile center"><span class="k">High stress</span><span class="v">@Fmt.Duration(stress.HighMinutes)</span></div>
+                <div class="tile center"><span class="k">Moving</span><span class="v">@Fmt.Duration(stress.ActiveMinutes)</span></div>
+            </div>
+            <a class="btn rec small" href="/breathe">@Icons.Get("wind")Breathe for a minute</a>
+        </section>
+
+        <section class="card w2 rise" style="--d:2">
+            <div class="card-head">
+                <h2>Through the day</h2>
+                <div class="legend">
+                    <span><i class="swatch st-low"></i>Low</span>
+                    <span><i class="swatch st-mid"></i>Medium</span>
+                    <span><i class="swatch st-high"></i>High</span>
+                    <span><i class="swatch st-active"></i>Moving</span>
+                </div>
+            </div>
+            @if (stress.Blocks.Count == 0)
+            {
+                <p class="muted small-note">No heart rate since you woke up yet. It shows up after the next sync.</p>
+            }
+            else
+            {
+                <div class="chart-wide">@Charts.Stress(Model.Date, stress.Blocks, "Stress in 10-minute blocks through the day", 640)</div>
+                <div class="chart-narrow">@Charts.Stress(Model.Date, stress.Blocks, "Stress in 10-minute blocks through the day", 360)</div>
+            }
+            <div class="zone-split" aria-hidden="true" style="margin-top:4px">
+                @if (stress.LowMinutes > 0) { <i class="st-low" style="flex:@stress.LowMinutes"></i> }
+                @if (stress.MediumMinutes > 0) { <i class="st-mid" style="flex:@stress.MediumMinutes"></i> }
+                @if (stress.HighMinutes > 0) { <i class="st-high" style="flex:@stress.HighMinutes"></i> }
+                @if (stress.LowMinutes + stress.MediumMinutes + stress.HighMinutes == 0) { <i class="zbg-None" style="flex:1"></i> }
+            </div>
+            <div class="tiles t3">
+                <div class="tile"><span class="k"><span><i class="swatch st-low"></i> Low</span></span><span class="v">@Fmt.Duration(stress.LowMinutes)</span><small class="dim">@(stress.LowMinutes * 100 / judged)%</small></div>
+                <div class="tile"><span class="k"><span><i class="swatch st-mid"></i> Medium</span></span><span class="v">@Fmt.Duration(stress.MediumMinutes)</span><small class="dim">@(stress.MediumMinutes * 100 / judged)%</small></div>
+                <div class="tile"><span class="k"><span><i class="swatch st-high"></i> High</span></span><span class="v">@Fmt.Duration(stress.HighMinutes)</span><small class="dim">@(stress.HighMinutes * 100 / judged)%</small></div>
+            </div>
+        </section>
+    </div>
+
+    <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Stress, Model.IsToday ? null : Model.Date, "Why was I stressed today?")' />
+    <div class="row">
+        <section class="card rise" style="--d:3" id="energy">
+            <div class="card-head">
+                <h2>Energy bank</h2>
+                <span class="side-note">woke up with @(energy.Start?.ToString() ?? "—")</span>
+            </div>
+            <div class="energy-top">
+                <div class="ring-box" style="--size:120px">
+                    @Charts.Ring((energy.Now ?? 0) / 100.0, palette, thin: true)
+                    <div class="center"><span class="big num" style="font-size:34px">@(energy.Now?.ToString() ?? "—")</span><span class="lbl">@(Model.IsToday ? "left now" : "left at night")</span></div>
+                </div>
+                <div class="grow">
+                    @foreach (var (name, value, css) in new[] { ("Moving", energy.ActivityDrain, "var(--str)"), ("Stress", energy.StressDrain, "var(--mid)"), ("Being awake", energy.BaseDrain, "var(--sky)") })
+                    {
+                        <div class="list-row" style="padding:6px 0">
+                            <div class="grow">
+                                <span class="top"><span>@name</span><span class="num">−@value</span></span>
+                                <div class="meter" style="--fill:@css"><i style="width:@((value * 100.0 / drained).ToString("0.0", inv))%"></i></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <p class="muted small-note">You start the day with your recovery. Every awake minute spends a little, moving and stress spend more, and a good night fills it again.</p>
+        </section>
+
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>Energy through the day</h2>
+                <span class="side-note">0–100</span>
+            </div>
+            @if (energy.Ready)
+            {
+                <div class="chart-wide">@Charts.Energy(Model.Date, energy.Points, "Energy bank through the day", 640)</div>
+                <div class="chart-narrow">@Charts.Energy(Model.Date, energy.Points, "Energy bank through the day", 360)</div>
+            }
+            else
+            {
+                <p class="muted small-note">The curve starts when you wake up and fills in as the Watch's heart rate syncs.</p>
+            }
+        </section>
+    </div>
+
+    <div class="notice rise" style="--d:4">
+        @Icons.Get("info")
+        <p>Stress compares your heart rate with its resting level (@stress.RestingBpm bpm) in 10-minute blocks while you're awake. Blocks with a workout, more than 150 steps or a heart rate only exercise explains count as moving and are left out, and so is the block after, while your heart settles. It reads your body's arousal, not your mood: caffeine, heat and a coming cold raise it too.</p>
+    </div>
+}

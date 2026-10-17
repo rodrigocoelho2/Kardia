@@ -63,6 +63,18 @@ public sealed class InsightController(KardiaClient apiClient) : WebsiteBaseContr
         return Redirect("/plan?saved=targets");
     }
 
+    /// <summary>The recovery calendar: a month of days, coloured by recovery.</summary>
+    /// <param name="month">A day in the month (this month when empty).</param>
+    /// <returns>The view.</returns>
+    [HttpGet("/calendar")]
+    public async Task<IActionResult> Calendar(DateOnly? month = null) =>
+        View("Calendar", await new InsightModel(ApiClient).CalendarAsync(Shell(new CalendarPageModel(), AppSection.Calendar, month), UserId));
+
+    /// <summary>Guided breathing.</summary>
+    /// <returns>The view.</returns>
+    [HttpGet("/breathe")]
+    public IActionResult Breathe() => View("Breathe", Shell(new AppPageModel(), AppSection.Breathe));
+
     /// <summary>The AI coach.</summary>
     /// <returns>The view.</returns>
     [HttpGet("/coach")]

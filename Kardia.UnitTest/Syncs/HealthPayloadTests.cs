@@ -49,7 +49,7 @@ public sealed class HealthPayloadTests
         var data = Parse(HealthAutoExport);
 
         Assert.Null(data.Error);
-        var hrv = Assert.Single(data.Samples);
+        var hrv = Assert.Single(data.Samples, static s => s.Metric == (int)HealthMetric.Hrv);
         Assert.Equal(((int)HealthMetric.Hrv, new DateTime(2026, 10, 16, 6, 58, 0), 68m), (hrv.Metric, hrv.SampleAt, hrv.Value));
         Assert.DoesNotContain(data.Metrics, m => m.Metric == (int)HealthMetric.Hrv);
         Assert.Equal(52m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.RestingHeartRate).Value);

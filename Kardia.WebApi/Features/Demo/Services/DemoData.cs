@@ -16,7 +16,11 @@ internal sealed record DemoDataSet(
     List<HeartRateRow> HeartRates,
     List<SleepNightRow> Sleeps,
     List<WorkoutRow> Workouts,
-    List<(DateOnly Day, JournalTag Tag)> Journal);
+    List<(DateOnly Day, JournalTag Tag)> Journal)
+{
+    /// <summary>Gets the timed step counts of the last 30 days (10-minute totals), for the stress monitor.</summary>
+    public List<MetricSampleRow> Samples { get; init; } = [];
+}
 
 /// <summary>
 /// Generates believable Apple Watch data: a fit 30-year-old getting fitter over four months (VO2 max 45 → 48,
@@ -48,6 +52,7 @@ internal static class DemoData
         var sleeps = new List<SleepNightRow>();
         var workouts = new List<WorkoutRow>();
         var journal = new List<(DateOnly, JournalTag)>();
+        var stepBlocks = new SortedDictionary<DateTime, double>();
 
         var first = today.AddDays(-(Days - 1));
         var hardDayBefore = false;
@@ -129,6 +134,8 @@ internal static class DemoData
             Metric(HealthMetric.BasalEnergy, Math.Round((1_860 + Noise(25)) * fraction));
             Metric(HealthMetric.WalkingHeartRate, 98 - 4 * progress + Noise(3));
             Metric(HealthMetric.ExerciseMinutes, sessions.Sum(static session => session.Minutes) + random.Next(5, 20));
+            var outdoors = sessions.Where(static session => session.Kind.StartsWith("Outdoor", StringComparison.Ordinal)).Sum(static session => session.Minutes);
+            Metric(HealthMetric.Daylight, Math.Round((random.Next(12, 40) + outdoors * 0.8 + (weekend ? 35 : 0)) * (isToday ? Math.Min(1, fraction * 1.6) : 1)));
             if (index % 3 == 0 || isToday)
             {
                 Metric(HealthMetric.Vo2Max, 45.4 + 2.8 * progress + Noise(0.3));
@@ -163,14 +170,31 @@ internal static class DemoData
                 }
                 else
                 {
-                    var after = sessions.Where(s => clock >= s.StartMinute + s.Minutes).Select(s => clock - (s.StartMinute + s.Minutes)).DefaultIfEmpty(999).Min();
-                    var cooldown = after < 30 ? 25 * Math.Exp(-after / 8) : 0;
+                    var last = sessions.Where(s => clock >= s.StartMinute + s.Minutes).OrderByDescending(static s => s.StartMinute).FirstOrDefault();
+                    var after = last is null ? 999 : clock - (last.StartMinute + last.Minutes);
                     var errand = errands.FirstOrDefault(e => clock >= e.Start && clock < e.Start + e.Minutes);
                     var walking = errand.Minutes > 0 ? errand.Lift : 0;
-                    bpm = resting + 16 + 8 * Math.Sin(clock / 47) + cooldown + walking + Noise(5);
+                    // A tense stretch on weekday afternoons (meetings, a deadline): heart rate up without moving.
+                    var tense = !weekend && clock >= 15 * 60 + (back % 3) * 20 && clock < 16 * 60 + 10 + (back % 3) * 20 ? 14 + 4 * Math.Sin(clock / 9) : 0;
+                    bpm = resting + 14 + 7 * Math.Sin(clock / 47) + walking + tense + Noise(4);
+                    if (last is not null && after < 40)
+                    {
+                        // Heart-rate recovery: a fast fall in the first minutes, quicker as fitness builds.
+                        var peak = last.Bpm + 6.0;
+                        bpm = Math.Max(bpm, bpm + (peak - bpm) * Math.Exp(-(after + 0.5) / (3.6 - 0.9 * progress)) + 12 * Math.Exp(-after / 14));
+                    }
                 }
 
                 heartRates.Add(new HeartRateRow { MinuteAt = minute, Bpm = (short)Math.Clamp(Math.Round(bpm), 38, 200) });
+
+                // Steps the Watch counted (errands and walks or runs), in 10-minute totals, for the last 30 days.
+                var stepsNow = session is { Steps: > 0 } ? session.Steps / (double)session.Minutes
+                    : minute >= wake && minute < tonightBed && errands.Any(e => clock >= e.Start && clock < e.Start + e.Minutes) ? 95 + Noise(10) : 0;
+                if (stepsNow > 0 && back <= 30)
+                {
+                    var block = new DateTime(minute.Year, minute.Month, minute.Day, minute.Hour, minute.Minute / 10 * 10, 0);
+                    stepBlocks[block] = (stepBlocks.TryGetValue(block, out var sum) ? sum : 0) + stepsNow;
+                }
             }
 
             foreach (var session in sessions)
@@ -199,7 +223,10 @@ internal static class DemoData
             lateBefore = day.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday;
         }
 
-        return new DemoDataSet(metrics, heartRates, sleeps, workouts, journal);
+        return new DemoDataSet(metrics, heartRates, sleeps, workouts, journal)
+        {
+            Samples = stepBlocks.Select(static pair => new MetricSampleRow { Metric = (int)HealthMetric.Steps, SampleAt = pair.Key, Value = Math.Round((decimal)pair.Value) }).ToList(),
+        };
     }
 
     /// <summary>The week's plan, by days before today (today is a run day).</summary>

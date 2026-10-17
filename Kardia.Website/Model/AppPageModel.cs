@@ -41,6 +41,15 @@ public enum AppSection
 
     /// <summary>Everything else (the phone's menu).</summary>
     More,
+
+    /// <summary>The stress monitor and energy bank.</summary>
+    Stress,
+
+    /// <summary>The recovery calendar.</summary>
+    Calendar,
+
+    /// <summary>Guided breathing.</summary>
+    Breathe,
 }
 
 /// <summary>
@@ -52,7 +61,7 @@ public class AppPageModel
     public const string ProductName = "Kardia";
 
     /// <summary>The version shown in the app.</summary>
-    public const string CurrentVersion = "v1.1";
+    public const string CurrentVersion = "v1.2";
 
     /// <summary>Gets or sets the signed-in user name.</summary>
     public string UserName { get; set; } = string.Empty;

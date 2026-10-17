@@ -10,7 +10,8 @@ namespace Kardia.WebApi.Features.Days.Services;
 
 /// <summary>
 /// Works out each day's cardiovascular load (dbo.DayLoad) from its heart-rate minutes, so the screens never have to
-/// read a whole day of heart rate to show strain. Runs after every sync for the days it touched.
+/// read a whole day of heart rate to show strain, and the heart-rate recovery of the days' workouts. Runs after every sync
+/// for the days it touched.
 /// </summary>
 internal interface IDayLoadService
 {
@@ -50,9 +51,22 @@ internal sealed class DayLoadService(IHealthDataRepository healthDataRepository,
             .ToDictionary(static row => DateOnly.FromDateTime(row.DayDate), static row => (double)row.Value);
 
         var loads = new List<DayLoadRow>();
+        var recoveries = new List<WorkoutRow>();
+        var workouts = await _healthDataRepository.WorkoutsListAsync(userId, list[0], list[^1]);
         foreach (var day in list)
         {
-            var samples = await _healthDataRepository.HeartRatesListAsync(userId, day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.MinValue));
+            var samples = await _healthDataRepository.HeartRatesListAsync(userId, day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(5))));
+            samples = samples.Where(sample => DateOnly.FromDateTime(sample.MinuteAt) == day || workouts.Any(w => DateOnly.FromDateTime(w.StartedAt) == day && sample.MinuteAt <= w.EndedAt.AddMinutes(3))).ToList();
+            foreach (var workout in workouts.Where(w => DateOnly.FromDateTime(w.StartedAt) == day))
+            {
+                var (one, two) = DayStress.Recovery(samples, workout);
+                if (one != workout.Hrr1 || two != workout.Hrr2)
+                {
+                    recoveries.Add(new WorkoutRow { StartedAt = workout.StartedAt, EndedAt = workout.EndedAt, Kind = workout.Kind, Hrr1 = (short?)one, Hrr2 = (short?)two });
+                }
+            }
+
+            samples = samples.Where(sample => DateOnly.FromDateTime(sample.MinuteAt) == day).ToList();
             if (samples.Count == 0)
             {
                 continue;
@@ -73,6 +87,7 @@ internal sealed class DayLoadService(IHealthDataRepository healthDataRepository,
         }
 
         await _healthDataRepository.LoadsSaveAsync(userId, loads);
+        await _healthDataRepository.WorkoutsRecoverySaveAsync(userId, recoveries);
         DataVersion.Bump(userId);
         return loads;
     }

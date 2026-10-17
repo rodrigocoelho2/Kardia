@@ -41,4 +41,7 @@ public enum HealthMetric
 
     /// <summary>Apple exercise minutes.</summary>
     ExerciseMinutes = 12,
+
+    /// <summary>Time in daylight, in minutes (Apple Watch, watchOS 10+).</summary>
+    Daylight = 13,
 }

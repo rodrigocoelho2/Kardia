@@ -12,7 +12,7 @@ namespace Kardia.WebApi.Features.Syncs.Repositories;
 internal sealed class HealthDataRepository(ISqlConnectionFactory connectionFactory) : RepositoryBase(connectionFactory), IHealthDataRepository
 {
     /// <summary>The metrics whose daily value is a total (the larger one is kept).</summary>
-    private static readonly string SummedMetrics = string.Join(',', new[] { HealthMetric.Steps, HealthMetric.ActiveEnergy, HealthMetric.BasalEnergy, HealthMetric.ExerciseMinutes }.Select(static metric => (int)metric));
+    private static readonly string SummedMetrics = string.Join(',', new[] { HealthMetric.Steps, HealthMetric.ActiveEnergy, HealthMetric.BasalEnergy, HealthMetric.ExerciseMinutes, HealthMetric.Daylight }.Select(static metric => (int)metric));
 
     /// <inheritdoc />
     public Task MetricsSaveAsync(Guid userId, IReadOnlyList<DailyMetricRow> rows) => rows.Count == 0 ? Task.CompletedTask
@@ -105,6 +105,14 @@ internal sealed class HealthDataRepository(ISqlConnectionFactory connectionFacto
     /// <inheritdoc />
     public Task<List<WorkoutRow>> WorkoutsListAsync(Guid userId, DateOnly from, DateOnly to) =>
         QueryAsync<WorkoutRow>("[dbo].[WorkoutList]", new { UserUniqueID = userId, From = Date(from), To = Date(to) });
+
+    /// <inheritdoc />
+    public Task WorkoutsRecoverySaveAsync(Guid userId, IReadOnlyList<WorkoutRow> rows) => rows.Count == 0 ? Task.CompletedTask
+        : ExecuteAsync("[dbo].[WorkoutRecoverySave]", new
+        {
+            UserUniqueID = userId,
+            Rows = Json(rows.Select(static row => new { s = row.StartedAt.ToString("yyyy-MM-ddTHH:mm:ss"), h1 = row.Hrr1, h2 = row.Hrr2 })),
+        });
 
     /// <inheritdoc />
     public Task LoadsSaveAsync(Guid userId, IReadOnlyList<DayLoadRow> rows) => rows.Count == 0 ? Task.CompletedTask

@@ -100,7 +100,10 @@ internal sealed class DayService(
         var recent = scores.TakeLast(31).SkipLast(1).ToList();
 
         var samples = await _healthDataRepository.HeartRatesListAsync(id, day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.MinValue));
-        var workouts = await _healthDataRepository.WorkoutsListAsync(id, day, day);
+        var history = await _healthDataRepository.WorkoutsListAsync(id, day.AddDays(-59), day);
+        var workouts = history.Where(workout => DateOnly.FromDateTime(workout.StartedAt) == day).ToList();
+        var steps = (await _healthDataRepository.SamplesListAsync(id, day.ToDateTime(TimeOnly.MinValue), day.AddDays(1).ToDateTime(TimeOnly.MinValue)))
+            .Where(static sample => sample.Metric == (int)HealthMetric.Steps).ToList();
         var key = await _syncKeyRepository.GetAsync(id);
         var journal = await _journalRepository.ListAsync(id, first, day);
         var impact = JournalImpacts.Calculate(journal.Select(static entry => (DateOnly.FromDateTime(entry.DayDate), entry.Tag)), scores).FirstOrDefault();
@@ -123,7 +126,7 @@ internal sealed class DayService(
             LastSyncAt = key?.LastUsedAt is { } used ? new DateTimeOffset(DateTime.SpecifyKind(used, DateTimeKind.Utc)) : null,
             Recovery = Recovery(score),
             Sleep = sleep,
-            Strain = Strain(score, facts, samples, workouts, isToday ? now : null),
+            Strain = Strain(score, facts, samples, workouts, history, isToday ? now : null),
             HeartRates = Curve(samples),
             Recent = scores.TakeLast(14).Select(Summary).ToList(),
             Health = Health(score),
@@ -131,6 +134,10 @@ internal sealed class DayService(
             HrvTrend = scores.TakeLast(30).Select(static s => new TrendPointDTO { Date = s.Date, Value = s.Value(HealthMetric.Hrv) }).ToList(),
             Coach = CoachWriter.Write(new CoachContext(score, recent, isToday, now, tonight, bedtime?.Bedtime, impact)),
         };
+        var stress = DayStress.Compute(day, samples, steps, workouts, score.Night?.BedEnd, score.Value(HealthMetric.RestingHeartRate) ?? score.RestingBaseline.Mean,
+            facts.MaxHeartRate, score.Recovery.Score, isToday ? now : null);
+        dto.Stress = Stress(stress, score.Value(HealthMetric.RestingHeartRate) ?? score.RestingBaseline.Mean);
+        dto.Energy = Energy(stress);
         return ServiceApiResponse<DayDTO>.Success(dto);
     }
 
@@ -315,7 +322,42 @@ internal sealed class DayService(
         return sleep;
     }
 
-    private static StrainDTO Strain(DayScore score, ProfileFacts facts, List<HeartRateRow> samples, List<WorkoutRow> workouts, DateTime? now)
+    /// <summary>The stress monitor for the screens.</summary>
+    /// <param name="result">The day's stress and energy.</param>
+    /// <param name="rest">The resting heart rate it was measured from.</param>
+    /// <returns>The DTO.</returns>
+    internal static StressDTO Stress(DayStressResult result, double rest)
+    {
+        var (low, medium, high) = result.Minutes();
+        return new StressDTO
+        {
+            Ready = result.Average is not null,
+            Average = result.Average,
+            Current = result.Current,
+            LowMinutes = low,
+            MediumMinutes = medium,
+            HighMinutes = high,
+            ActiveMinutes = result.Blocks.Count(static block => block.Active) * DayStress.BlockMinutes,
+            RestingBpm = (int)Math.Round(rest),
+            Blocks = result.Blocks.Select(static block => new StressBlockDTO { At = block.At, Bpm = block.Bpm, Level = block.Level, Active = block.Active }).ToList(),
+        };
+    }
+
+    /// <summary>The energy bank for the screens.</summary>
+    /// <param name="result">The day's stress and energy.</param>
+    /// <returns>The DTO.</returns>
+    internal static EnergyDTO Energy(DayStressResult result) => new()
+    {
+        Ready = result.Energy.Count >= 7,
+        Start = result.EnergyStart is { } start ? (int)Math.Round(start) : null,
+        Now = result.EnergyNow is { } charge ? (int)Math.Round(charge) : null,
+        ActivityDrain = (int)result.ActivityDrain,
+        StressDrain = (int)result.StressDrain,
+        BaseDrain = (int)result.BaseDrain,
+        Points = result.Energy.Select(static point => new TrendPointTimeDTO { At = point.At, Value = point.Value }).ToList(),
+    };
+
+    private static StrainDTO Strain(DayScore score, ProfileFacts facts, List<HeartRateRow> samples, List<WorkoutRow> workouts, List<WorkoutRow> history, DateTime? now)
     {
         var zones = (score.Load?.ZoneSeconds ?? "0,0,0,0,0").Split(',').Select(static part => int.TryParse(part, out var seconds) ? (int)Math.Round(seconds / 60.0) : 0).ToList();
         while (zones.Count < 5)
@@ -358,9 +400,17 @@ internal sealed class DayService(
                     AvgBpm = workout.AvgBpm ?? load.AvgBpm,
                     MaxBpm = workout.MaxBpm ?? load.MaxBpm,
                     Strain = inside.Count > 0 ? StrainScore.FromTrimp(load.Trimp) : null,
+                    RecoveryOneMinute = workout.Hrr1 ?? DayStress.Recovery(samples, workout).One,
+                    RecoveryTwoMinutes = workout.Hrr2 ?? DayStress.Recovery(samples, workout).Two,
                     HeartRates = Thin(inside.Select(static sample => (int)sample.Bpm).ToList(), 90),
                 };
             }).ToList(),
+            RecoveryHistory = history.Where(static workout => workout.Hrr1 is not null || workout.Hrr2 is not null)
+                .Select(static workout => new HeartRecoveryDTO { StartedAt = workout.StartedAt, Kind = workout.Kind, OneMinute = workout.Hrr1, TwoMinutes = workout.Hrr2 })
+                .ToList(),
+            RecoveryAverage = history.Any(static workout => workout.Hrr1 is not null)
+                ? Math.Round(history.Where(static workout => workout.Hrr1 is not null).Average(static workout => (double)workout.Hrr1!.Value), 0)
+                : null,
         };
     }
 
@@ -401,6 +451,7 @@ internal sealed class DayService(
             : null,
         Vo2Max = Round(score.Value(HealthMetric.Vo2Max), 1),
         Steps = Round(score.Value(HealthMetric.Steps), 0),
+        DaylightMinutes = Round(score.Value(HealthMetric.Daylight), 0),
         ActiveMinutes = ActiveMinutes(score),
         NeedMinutes = score.Need.TotalMinutes,
         BedStart = score.Night?.BedStart,

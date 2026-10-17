@@ -13,7 +13,7 @@ BEGIN
 
     DECLARE @UserID BIGINT = (SELECT [UserID] FROM [dbo].[User] WHERE [UserUniqueID] = @UserUniqueID);
 
-    SELECT w.[StartedAt], w.[EndedAt], w.[Kind], w.[ActiveKcal], w.[DistanceKm], w.[AvgBpm], w.[MaxBpm]
+    SELECT w.[StartedAt], w.[EndedAt], w.[Kind], w.[ActiveKcal], w.[DistanceKm], w.[AvgBpm], w.[MaxBpm], w.[Hrr1], w.[Hrr2]
     FROM [dbo].[Workout] w
     WHERE w.[UserID] = @UserID AND w.[StartedAt] >= CAST(@From AS DATETIME2 (0)) AND w.[StartedAt] < DATEADD(DAY, 1, CAST(@To AS DATETIME2 (0)))
     ORDER BY w.[StartedAt];

@@ -34,6 +34,16 @@ public sealed class TrendsPageModel : AppPageModel
     public List<DaySummaryDTO> Summaries { get; set; } = [];
 }
 
+/// <summary>The recovery calendar.</summary>
+public sealed class CalendarPageModel : AppPageModel
+{
+    /// <summary>Gets or sets the first day of the month shown.</summary>
+    public DateOnly Month { get; set; }
+
+    /// <summary>Gets or sets one summary per day of the month (up to today), oldest first.</summary>
+    public List<DaySummaryDTO> Summaries { get; set; } = [];
+}
+
 /// <summary>The weekly or monthly assessment.</summary>
 public sealed class ReportPageModel : AppPageModel
 {
@@ -107,6 +117,23 @@ public sealed class InsightModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
     {
         page.Days = page.Days switch { >= 180 => 365, >= 60 => 90, _ => 30 };
         var range = await CallAsync(() => ApiClient.DayRangeAsync(userId, page.Today.AddDays(-(page.Days - 1)), page.Today));
+        if (await OkAsync(page, range, userId))
+        {
+            page.Summaries = range.Data!;
+        }
+
+        return page;
+    }
+
+    /// <summary>Builds the recovery calendar.</summary>
+    /// <param name="page">The page with the shell filled in (its date is a day in the month).</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<CalendarPageModel> CalendarAsync(CalendarPageModel page, string userId)
+    {
+        page.Month = new DateOnly(page.Date.Year, page.Date.Month, 1);
+        var last = page.Month.AddMonths(1).AddDays(-1);
+        var range = await CallAsync(() => ApiClient.DayRangeAsync(userId, page.Month, last < page.Today ? last : page.Today));
         if (await OkAsync(page, range, userId))
         {
             page.Summaries = range.Data!;

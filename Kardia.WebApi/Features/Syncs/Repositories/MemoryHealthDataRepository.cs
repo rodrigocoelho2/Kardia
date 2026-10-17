@@ -10,7 +10,7 @@ namespace Kardia.WebApi.Features.Syncs.Repositories;
 /// <param name="store">The in-memory tables.</param>
 internal sealed class MemoryHealthDataRepository(MemoryStore store) : IHealthDataRepository
 {
-    private static readonly HashSet<int> Summed = [(int)HealthMetric.Steps, (int)HealthMetric.ActiveEnergy, (int)HealthMetric.BasalEnergy, (int)HealthMetric.ExerciseMinutes];
+    private static readonly HashSet<int> Summed = [(int)HealthMetric.Steps, (int)HealthMetric.ActiveEnergy, (int)HealthMetric.BasalEnergy, (int)HealthMetric.ExerciseMinutes, (int)HealthMetric.Daylight];
 
     /// <inheritdoc />
     public Task MetricsSaveAsync(Guid userId, IReadOnlyList<DailyMetricRow> rows)
@@ -132,6 +132,12 @@ internal sealed class MemoryHealthDataRepository(MemoryStore store) : IHealthDat
             var table = MemoryStore.For(store.Workouts, userId);
             foreach (var row in rows)
             {
+                if (table.TryGetValue(row.StartedAt, out var old))
+                {
+                    row.Hrr1 ??= old.Hrr1;
+                    row.Hrr2 ??= old.Hrr2;
+                }
+
                 table[row.StartedAt] = row;
             }
         }
@@ -148,6 +154,25 @@ internal sealed class MemoryHealthDataRepository(MemoryStore store) : IHealthDat
         {
             return Task.FromResult(MemoryStore.For(store.Workouts, userId).Values.Where(row => row.StartedAt >= start && row.StartedAt < end).ToList());
         }
+    }
+
+    /// <inheritdoc />
+    public Task WorkoutsRecoverySaveAsync(Guid userId, IReadOnlyList<WorkoutRow> rows)
+    {
+        lock (store.Gate)
+        {
+            var table = MemoryStore.For(store.Workouts, userId);
+            foreach (var row in rows)
+            {
+                if (table.TryGetValue(row.StartedAt, out var workout))
+                {
+                    workout.Hrr1 = row.Hrr1;
+                    workout.Hrr2 = row.Hrr2;
+                }
+            }
+        }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />

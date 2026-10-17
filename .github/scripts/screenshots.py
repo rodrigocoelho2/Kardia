@@ -42,6 +42,9 @@ SCREENS = [
     ("trends", "/trends?days=90"),
     ("report", "/report"),
     ("coach", "/coach"),
+    ("stress", "/stress"),
+    ("calendar", "/calendar"),
+    ("breathe", "/breathe"),
 ]
 
 

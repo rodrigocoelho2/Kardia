@@ -188,9 +188,40 @@ else
                         @if (workout.AvgBpm is { } avg) { <span>avg <b>@avg</b> bpm</span> }
                         @if (workout.MaxBpm is { } max) { <span>max <b>@max</b> bpm</span> }
                         @if (workout.ActiveKcal is { } kcal) { <span><b>@kcal.ToString("0")</b> kcal</span> }
+                        @if (workout.RecoveryOneMinute is { } hrr) { <span title="How far your heart rate fell in the first minute after the workout">recovery <b>−@hrr</b> bpm/min</span> }
                     </div>
                 </div>
             }
         </section>
     </div>
+
+    var recoveries = strain.RecoveryHistory;
+    var latest = strain.Workouts.Where(static w => w.RecoveryOneMinute is not null).MaxBy(static w => w.MaxBpm ?? 0);
+    <section class="card rise" style="--d:5" id="heart-recovery">
+        <div class="card-head">
+            <h2>Heart-rate recovery</h2>
+            <span class="side-note">how far your heart rate falls after a workout · last 60 days</span>
+        </div>
+        @if (recoveries.Count == 0 && latest is null)
+        {
+            <p class="muted" style="font-size:14px">After each workout that gets your heart rate above 110 bpm, Kardia measures how many beats it drops in the first one and two minutes. It needs the Watch's heart rate in the minutes after you stop, so keep it on and end the workout on the Watch.</p>
+        }
+        else
+        {
+            var one = latest?.RecoveryOneMinute ?? recoveries.LastOrDefault(static r => r.OneMinute is not null)?.OneMinute;
+            var two = latest?.RecoveryTwoMinutes ?? recoveries.LastOrDefault(static r => r.TwoMinutes is not null)?.TwoMinutes;
+            <div class="tiles t3">
+                <div class="tile"><span class="k">1 minute@(latest is not null ? " · " + Fmt.WorkoutName(latest.Kind).ToLowerInvariant() : "")</span><span class="v">@(one is { } o ? "−" + o : "—")<small> bpm</small></span><small class="dim">@Fmt.RecoveryWord(one)</small></div>
+                <div class="tile"><span class="k">2 minutes</span><span class="v">@(two is { } t ? "−" + t : "—")<small> bpm</small></span></div>
+                <div class="tile"><span class="k">60-day average</span><span class="v">@(strain.RecoveryAverage is { } a ? "−" + a.ToString("0", inv) : "—")<small> bpm</small></span></div>
+            </div>
+            @if (recoveries.Count(static r => r.OneMinute is not null) >= 2)
+            {
+                var points = recoveries.Where(static r => r.OneMinute is not null).Select(static r => new Charts.SeriesPoint(DateOnly.FromDateTime(r.StartedAt), r.OneMinute)).ToList();
+                <div class="chart-wide">@Charts.Series(points, "ser-rec", "One-minute heart-rate recovery after each workout of the last 60 days", 0, 900, 160, dots: true)</div>
+                <div class="chart-narrow">@Charts.Series(points, "ser-rec", "One-minute heart-rate recovery after each workout of the last 60 days", 0, 360, 150, dots: true)</div>
+            }
+            <p class="muted small-note">A bigger drop means a fitter heart that switches off quickly: over 30 bpm in the first minute is excellent, 20–30 good, 12–20 fair. It rises as your fitness builds, and dips when you're tired or getting ill.</p>
+        }
+    </section>
 }

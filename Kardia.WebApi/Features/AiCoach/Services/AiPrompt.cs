@@ -43,6 +43,7 @@ internal static class AiPrompt
 {
     /// <summary>The instructions the model gets.</summary>
     /// <param name="language">The language to write in.</param>
+    /// <param name="topic">The screen the report is for.</param>
     /// <returns>The system prompt.</returns>
     public static string System(string language, AiCoachTopic topic = AiCoachTopic.Overview) => Base(language) + Focus(topic);
 
@@ -60,6 +61,7 @@ internal static class AiPrompt
         AiCoachTopic.Trends => "this report is for the Trends screen, with 90 days of data. Describe the trends: what improved, what declined, any change of pace, and what explains them.",
         AiCoachTopic.Report => "this report is for the weekly and monthly assessment. Explain why the assessment came out as it did, the biggest differences with the period before, and what would raise it next week.",
         AiCoachTopic.Journal => "this report is for the Journal screen. Use the habits' effect on next-morning recovery: which help, which hurt, how confident that is (days logged), and which to change first.",
+        AiCoachTopic.Stress => "this report is for the Stress & energy screen. Look at when in the day stress (heart rate above rest while still, 0-3) was high, how long, what may explain it (caffeine, work hours, short sleep, training the day before), how the energy bank was spent, and one or two ways to calm the evening (slow breathing, a walk, an earlier night).",
         _ => "an overview of how the person is doing across recovery, sleep, strain and health.",
     } + "\n";
 
@@ -102,6 +104,22 @@ internal static class AiPrompt
 
         text.AppendLine(inv, $"Tonight: needs {H(sleep.TonightNeedMinutes)}; sleep goal {sleep.GoalPercent} % = {H(sleep.TonightGoalMinutes)}{(sleep.Bedtime is { } bed ? $", bedtime {bed:HH:mm}" : string.Empty)}.");
         text.AppendLine(inv, $"Strain today so far: {N(today.Strain.Score, 1)} (target {today.Strain.TargetLow:0.0}-{today.Strain.TargetHigh:0.0}), zone 2+ {today.Strain.ZoneMinutes.Skip(1).Sum()} min, steps {N(today.Strain.Steps)}.");
+        if (today.Stress.Ready)
+        {
+            var highs = today.Stress.Blocks.Where(static b => b.Level >= 2).Select(static b => b.At.ToString("HH:mm", CultureInfo.InvariantCulture)).ToList();
+            text.AppendLine(inv, $"Stress (0-3, heart rate above rest {today.Stress.RestingBpm} bpm while still): average {N(today.Stress.Average, 1)}, low {today.Stress.LowMinutes} min, medium {today.Stress.MediumMinutes} min, high {today.Stress.HighMinutes} min{(highs.Count > 0 ? ", high at " + string.Join(" ", highs.Take(24)) : string.Empty)}; moving {today.Stress.ActiveMinutes} min.");
+        }
+
+        if (today.Energy.Ready)
+        {
+            text.AppendLine(inv, $"Energy bank (0-100): woke with {N(today.Energy.Start)}, now {N(today.Energy.Now)}; spent moving {today.Energy.ActivityDrain}, on stress {today.Energy.StressDrain}, being awake {today.Energy.BaseDrain}.");
+        }
+
+        if (today.Strain.Workouts.Any(static w => w.RecoveryOneMinute is not null) || today.Strain.RecoveryAverage is not null)
+        {
+            var hrr = string.Join("; ", today.Strain.Workouts.Where(static w => w.RecoveryOneMinute is not null).Select(w => $"{w.Kind} -{w.RecoveryOneMinute} bpm after 1 min, -{N(w.RecoveryTwoMinutes)} after 2"));
+            text.AppendLine(inv, $"Heart-rate recovery after workouts: {(hrr.Length > 0 ? hrr : "none today")}; 60-day average {N(today.Strain.RecoveryAverage)} bpm after 1 min.");
+        }
 
         if (today.Health.Ready)
         {
@@ -162,10 +180,10 @@ internal static class AiPrompt
         }
 
         text.AppendLine();
-        text.AppendLine($"Last {input.Days.Count} days (date, recovery %, strain, asleep h, sleep %, bedtime, HRV ms, resting HR, steps, zone 2+ min, Health Monitor flags):");
+        text.AppendLine($"Last {input.Days.Count} days (date, recovery %, strain, asleep h, sleep %, bedtime, HRV ms, resting HR, steps, zone 2+ min, daylight min, Health Monitor flags):");
         foreach (var day in input.Days.Where(static d => d.Recovery is not null || d.Strain is not null || d.AsleepMinutes is not null))
         {
-            text.AppendLine(inv, $"{day.Date:MM-dd},{N(day.Recovery)},{N(day.Strain, 1)},{(day.AsleepMinutes is { } asleep ? (asleep / 60.0).ToString("0.0", inv) : "-")},{N(day.SleepPerformance)},{(day.BedStart is { } start ? start.ToString("HH:mm", inv) : "-")},{N(day.Hrv)},{N(day.RestingHeartRate)},{N(day.Steps)},{day.ActiveMinutes},{(day.HealthFlags.Count > 0 ? string.Join("+", day.HealthFlags) : "-")}");
+            text.AppendLine(inv, $"{day.Date:MM-dd},{N(day.Recovery)},{N(day.Strain, 1)},{(day.AsleepMinutes is { } asleep ? (asleep / 60.0).ToString("0.0", inv) : "-")},{N(day.SleepPerformance)},{(day.BedStart is { } start ? start.ToString("HH:mm", inv) : "-")},{N(day.Hrv)},{N(day.RestingHeartRate)},{N(day.Steps)},{day.ActiveMinutes},{N(day.DaylightMinutes)},{(day.HealthFlags.Count > 0 ? string.Join("+", day.HealthFlags) : "-")}");
         }
 
         return text.ToString();

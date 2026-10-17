@@ -249,4 +249,38 @@ public static class Fmt
     public static string Range(DateOnly from, DateOnly to) => from.Month == to.Month
         ? $"{from.Day}–{to.ToString("d MMM", English)}"
         : $"{from.ToString("d MMM", English)} – {to.ToString("d MMM", English)}";
+
+    /// <summary>The word for a one-minute heart-rate recovery.</summary>
+    /// <param name="bpm">The fall in bpm.</param>
+    /// <returns>Excellent, good, fair or low.</returns>
+    public static string RecoveryWord(int? bpm) => bpm switch
+    {
+        null => string.Empty,
+        >= 30 => "Excellent",
+        >= 20 => "Good",
+        >= 12 => "Fair",
+        _ => "Low",
+    };
+
+    /// <summary>The word for a stress level.</summary>
+    /// <param name="level">0–3.</param>
+    /// <returns>Low, medium or high.</returns>
+    public static string StressWord(double? level) => level switch
+    {
+        null => "—",
+        >= 2 => "High",
+        >= 1 => "Medium",
+        _ => "Low",
+    };
+
+    /// <summary>The CSS class of a stress level.</summary>
+    /// <param name="level">0–3.</param>
+    /// <returns>st-low, st-mid or st-high.</returns>
+    public static string StressClass(double? level) => level switch
+    {
+        null => "st-none",
+        >= 2 => "st-high",
+        >= 1 => "st-mid",
+        _ => "st-low",
+    };
 }

@@ -158,6 +158,100 @@ public static class Charts
     }
 
     /// <summary>
+    /// The stress monitor: one bar per 10-minute block from waking up, as tall as the stress (0–3) and coloured low,
+    /// medium or high; blocks you were moving show as a short striped bar.
+    /// </summary>
+    /// <param name="day">The day.</param>
+    /// <param name="blocks">The blocks.</param>
+    /// <param name="label">What a screen reader hears.</param>
+    /// <param name="width">The drawing width.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Stress(DateOnly day, IReadOnlyList<StressBlockDTO> blocks, string label, double width = 520)
+    {
+        const double top = 8, bottom = 104, height = 124;
+        var start = day.ToDateTime(TimeOnly.MinValue);
+        var from = blocks.Count > 0 ? Math.Min(6, blocks[0].At.Hour) : 6;
+        double X(DateTime time) => Math.Clamp(((time - start).TotalMinutes - from * 60) / ((24 - from) * 60) * width, 0, width);
+        double Y(double level) => bottom - level / 3 * (bottom - top);
+        var bar = Math.Max(1.2, X(start.AddHours(from).AddMinutes(10)) - X(start.AddHours(from)) - 0.8);
+
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-stress\" viewBox=\"0 0 {width:0} {height:0}\" role=\"img\" aria-label=\"{Escape(label)}\">");
+        foreach (var level in new[] { 1, 2, 3 })
+        {
+            svg.Append(Invariant, $"<line x1=\"0\" y1=\"{Y(level):0.0}\" x2=\"{width:0}\" y2=\"{Y(level):0.0}\" class=\"lane\"/>");
+        }
+
+        var index = 0;
+        foreach (var block in blocks)
+        {
+            var x = X(block.At);
+            if (block.Active)
+            {
+                svg.Append(Invariant, $"<rect x=\"{x:0.0}\" y=\"{bottom - 10:0.0}\" width=\"{bar:0.0}\" height=\"10\" rx=\"1.5\" class=\"st-active\"/>");
+            }
+            else if (block.Level is { } level)
+            {
+                var y = Y(Math.Max(0.12, level));
+                var css = level >= 2 ? "st-high" : level >= 1 ? "st-mid" : "st-low";
+                svg.Append(Invariant, $"<rect x=\"{x:0.0}\" y=\"{y:0.0}\" width=\"{bar:0.0}\" height=\"{bottom - y:0.0}\" rx=\"1.5\" class=\"{css}\" style=\"--i:{index++ % 60}\"><title>{block.At:HH:mm} · {level.ToString("0.0", Invariant)}{(block.Bpm is { } bpm ? $" · {bpm} bpm" : string.Empty)}</title></rect>");
+            }
+        }
+
+        svg.Append(Invariant, $"<line x1=\"0\" y1=\"{bottom:0}\" x2=\"{width:0}\" y2=\"{bottom:0}\" class=\"lane\"/>");
+        for (var hour = from; hour <= 24; hour += 3)
+        {
+            var x = X(start.AddHours(hour));
+            var anchor = hour == from ? "start" : hour >= 24 ? "end" : "middle";
+            svg.Append(Invariant, $"<text x=\"{x:0.0}\" y=\"{height - 4:0}\" text-anchor=\"{anchor}\" class=\"axis\">{hour:00}h</text>");
+        }
+
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>The energy bank through the day: the charge from waking up, 0–100.</summary>
+    /// <param name="day">The day.</param>
+    /// <param name="points">The charge.</param>
+    /// <param name="label">What a screen reader hears.</param>
+    /// <param name="width">The drawing width.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Energy(DateOnly day, IReadOnlyList<TrendPointTimeDTO> points, string label, double width = 520)
+    {
+        const double top = 10, bottom = 104, height = 124;
+        var start = day.ToDateTime(TimeOnly.MinValue);
+        var from = points.Count > 0 ? Math.Min(6, points[0].At.Hour) : 6;
+        double X(DateTime time) => Math.Clamp(((time - start).TotalMinutes - from * 60) / ((24 - from) * 60) * width, 0, width);
+        double Y(double value) => bottom - value / 100 * (bottom - top);
+
+        var id = NextId();
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-series ser-sky chart-energy\" viewBox=\"0 0 {width:0} {height:0}\" role=\"img\" aria-label=\"{Escape(label)}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" class=\"stop-a\"/><stop offset=\"1\" class=\"stop-b\"/></linearGradient></defs>");
+        foreach (var value in new[] { 25, 50, 75 })
+        {
+            svg.Append(Invariant, $"<line x1=\"0\" y1=\"{Y(value):0.0}\" x2=\"{width - 22:0}\" y2=\"{Y(value):0.0}\" class=\"lane\"/><text x=\"{width - 2:0}\" y=\"{Y(value) + 3.5:0.0}\" text-anchor=\"end\" class=\"axis\">{value}</text>");
+        }
+
+        if (points.Count > 1)
+        {
+            var line = string.Join(" L", points.Select(p => string.Create(Invariant, $"{X(p.At):0.0},{Y(p.Value):0.0}")));
+            svg.Append(Invariant, $"<path d=\"M{X(points[0].At):0.0},{bottom} L{line} L{X(points[^1].At):0.0},{bottom} Z\" fill=\"url(#{id})\"/>");
+            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"series-line draw\" pathLength=\"1\"/>");
+            svg.Append(Invariant, $"<circle cx=\"{X(points[^1].At):0.0}\" cy=\"{Y(points[^1].Value):0.0}\" r=\"4.5\" class=\"series-dot last\"/>");
+        }
+
+        for (var hour = from; hour <= 24; hour += 3)
+        {
+            var x = X(start.AddHours(hour));
+            var anchor = hour == from ? "start" : hour >= 24 ? "end" : "middle";
+            svg.Append(Invariant, $"<text x=\"{x:0.0}\" y=\"{height - 4:0}\" text-anchor=\"{anchor}\" class=\"axis\">{hour:00}h</text>");
+        }
+
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>
     /// The hypnogram: one lane per stage, the night from bedtime to getting up.
     /// </summary>
     /// <param name="sleep">The night.</param>

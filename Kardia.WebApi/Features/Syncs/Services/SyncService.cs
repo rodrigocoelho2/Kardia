@@ -272,6 +272,10 @@ internal sealed class SyncService(
         var nights = await _healthDataRepository.SleepsListAsync(id, days[0], days[^1]);
         var samples = await _healthDataRepository.SamplesListAsync(id, days[0].AddDays(-1).ToDateTime(new TimeOnly(12, 0)), days[^1].AddDays(1).ToDateTime(TimeOnly.MinValue));
         var rows = NightlyVitals.Compute(days, nights, samples);
+
+        // Day totals from every reading received (the totals only grow: the larger value is kept).
+        rows.AddRange(NightlyVitals.Totals(data.Samples.Where(static sample => HealthPayload.SummedMetrics.Contains((HealthMetric)sample.Metric))
+            .Select(static sample => DateOnly.FromDateTime(sample.SampleAt)).Distinct(), samples));
         if (rows.Count > 0)
         {
             await _healthDataRepository.MetricsSaveAsync(id, rows);

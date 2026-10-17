@@ -52,6 +52,7 @@
     <Build Include="StoredProcedures\Health\dbo.SleepNightList.sql" />
     <Build Include="StoredProcedures\Health\dbo.SleepNightSave.sql" />
     <Build Include="StoredProcedures\Health\dbo.WorkoutList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.WorkoutRecoverySave.sql" />
     <Build Include="StoredProcedures\Health\dbo.WorkoutSave.sql" />
     <Build Include="StoredProcedures\Journals\dbo.JournalList.sql" />
     <Build Include="StoredProcedures\Journals\dbo.JournalSet.sql" />

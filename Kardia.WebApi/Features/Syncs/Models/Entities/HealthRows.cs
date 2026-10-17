@@ -115,6 +115,12 @@ public sealed class WorkoutRow
 
     /// <summary>Gets or sets the maximum heart rate.</summary>
     public short? MaxBpm { get; set; }
+
+    /// <summary>Gets or sets how many bpm the heart rate fell in the first minute after the workout (worked out from the minutes).</summary>
+    public short? Hrr1 { get; set; }
+
+    /// <summary>Gets or sets how many bpm the heart rate fell in the first two minutes after the workout.</summary>
+    public short? Hrr2 { get; set; }
 }
 
 /// <summary>The cardiovascular load of one day (dbo.DayLoad), worked out from its heart rate after every sync.</summary>
