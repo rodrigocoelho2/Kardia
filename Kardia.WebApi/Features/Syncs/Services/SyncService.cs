@@ -129,9 +129,19 @@ internal sealed class SyncService(
         var data = HealthPayload.Parse(body, _clock.Zone, _clock.Now);
         if (data.IsEmpty)
         {
-            var message = await _globalizationHelper.TranslateAsync(body.ValueKind == JsonValueKind.Object ? nameof(TranslationKeys.SyncNothingToImport) : nameof(TranslationKeys.SyncPayloadInvalid));
-            await _syncKeyRepository.MarkAsync(id, message);
-            return ServiceApiResponse<SyncIngestResultDTO>.ValidationProblems(message).AddError("Body", message);
+            if (body.ValueKind != JsonValueKind.Object)
+            {
+                var invalid = await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncPayloadInvalid));
+                await _syncKeyRepository.MarkAsync(id, invalid);
+                return ServiceApiResponse<SyncIngestResultDTO>.ValidationProblems(invalid).AddError("Body", invalid);
+            }
+
+            // "Since last sync" with nothing new is a normal sync: answer 200, or Health Auto Export reports a failure.
+            // What arrived is logged, so a format Kardia doesn't read yet shows up in the container log.
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("Sync for {UserId} had nothing to import: {Shape}", id, Describe(body));
+            await _syncKeyRepository.MarkAsync(id, await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.SyncNothingToImport)));
+            return ServiceApiResponse<SyncIngestResultDTO>.Success(new SyncIngestResultDTO { Summary = "Nothing new" });
         }
 
         await _healthDataRepository.MetricsSaveAsync(id, data.Metrics);
@@ -161,6 +171,43 @@ internal sealed class SyncService(
             _logger.LogInformation("Sync for {UserId}: {Summary}", id, result.Summary);
 
         return ServiceApiResponse<SyncIngestResultDTO>.Success(result);
+    }
+
+    /// <summary>
+    /// A short description of an export's shape for the log: each metric's name, sample count and the fields of its
+    /// first sample, the number of workouts, and any other top-level fields. No values.
+    /// </summary>
+    /// <param name="body">The JSON body.</param>
+    /// <returns>The description.</returns>
+    internal static string Describe(JsonElement body)
+    {
+        var parts = new List<string>();
+        var data = body.TryGetProperty("data", out var inner) && inner.ValueKind == JsonValueKind.Object ? inner : body;
+        if (data.TryGetProperty("metrics", out var metrics) && metrics.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var metric in metrics.EnumerateArray().Where(static m => m.ValueKind == JsonValueKind.Object).Take(20))
+            {
+                var name = metric.TryGetProperty("name", out var n) ? n.ToString() : "?";
+                var samples = metric.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.Array ? d : default;
+                var count = samples.ValueKind == JsonValueKind.Array ? samples.GetArrayLength() : 0;
+                var fields = count > 0 && samples[0].ValueKind == JsonValueKind.Object
+                    ? string.Join(",", samples[0].EnumerateObject().Select(static f => f.Name))
+                    : string.Empty;
+                parts.Add($"{name}×{count}[{fields}]");
+            }
+        }
+
+        if (data.TryGetProperty("workouts", out var workouts) && workouts.ValueKind == JsonValueKind.Array)
+        {
+            parts.Add($"workouts×{workouts.GetArrayLength()}");
+        }
+
+        if (parts.Count == 0)
+        {
+            parts.Add("fields: " + string.Join(",", data.EnumerateObject().Select(static f => f.Name).Take(20)));
+        }
+
+        return string.Join(" ", parts);
     }
 
     /// <summary>

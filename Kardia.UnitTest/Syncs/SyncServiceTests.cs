@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Kardia.Library.Services;
+using Kardia.WebApi.Features.Syncs.Services;
 
 namespace Kardia.UnitTest.Syncs;
 
@@ -72,5 +73,19 @@ public sealed class SyncServiceTests
         var result = await app.SyncService.IngestAsync(key, Body("""{ "hrv": 68 }"""));
 
         Assert.Equal(ServiceApiResponseStatus.Unauthorized, result.Status);
+    }
+
+    [Fact]
+    public async Task AnEmptySyncIsNotAnError()
+    {
+        var app = new TestApp();
+        var userId = await app.CreateUserAsync();
+        var key = (await app.SyncService.KeyCreateAsync(userId)).Result!.Key;
+
+        var result = await app.SyncService.IngestAsync(key, Body("""{ "data": { "metrics": [ { "name": "sleep_analysis", "units": "hr", "data": [] } ] } }"""));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, result.Result!.Days);
+        Assert.Contains("sleep_analysis×0", SyncService.Describe(Body("""{ "data": { "metrics": [ { "name": "sleep_analysis", "data": [] } ] } }""")));
     }
 }
