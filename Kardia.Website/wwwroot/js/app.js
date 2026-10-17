@@ -150,6 +150,7 @@
     var date = card.getAttribute("data-date");
     var query = "?topic=" + encodeURIComponent(topic) + (date ? "&date=" + date : "");
     var go = card.querySelector("[data-ai-go]");
+    var auto = card.getAttribute("data-auto") === "true";
     var q = function (sel) { return card.querySelector(sel); };
     var timer = null;
 
@@ -188,9 +189,12 @@
         .then(function (r) { return r.json(); })
         .then(function (result) {
           if (!result.isValid) return;
-          paint(result.data);
+          var state = result.data;
+          paint(state);
           clearTimeout(timer);
-          if (result.data && result.data.running) timer = setTimeout(load, 3000);
+          if (state && state.running) { timer = setTimeout(load, 3000); return; }
+          // Today writes its read by itself, once: no report yet, nothing running, no error.
+          if (auto && state && state.enabled && !state.report && !state.error) { auto = false; go.click(); }
         })
         .catch(function () { });
     };
@@ -207,16 +211,6 @@
     });
 
     load();
-  });
-
-  /* Today's coach card: "Analyse with AI" starts the overview card below it. */
-  document.querySelectorAll("[data-ai-start]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var target = document.querySelector('[data-ai-card][data-topic="Overview"] [data-ai-go]');
-      if (!target) return;
-      target.closest("[data-ai-card]").scrollIntoView({ behavior: "smooth", block: "center" });
-      if (!target.disabled) target.click();
-    });
   });
 
   /* Admin: delete an account. */

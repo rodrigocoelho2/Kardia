@@ -81,36 +81,38 @@ else
             </div>
         </section>
 
-        <section class="card coach rise" style="--d:2">
-            <div class="coach-head">
-                <span class="coach-ico">@Icons.Get("sparkle")</span>
-                <span class="kicker" style="color:var(--slp-text)">Coach</span>
-            </div>
-            @if (lead is not null)
-            {
-                <p class="coach-lead">@lead.Title</p>
-                <ul class="tips">
-                    @foreach (var tip in day.Coach)
-                    {
-                        <li class="@tip.Tone">@tip.Text</li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
-            }
-            <div class="head-acts" style="margin-top:auto">
-                @if (Model.AiCoach is { Enabled: true })
+        @if (Model.AiCoach is { Enabled: true })
+        {
+            @* With an AI provider set up, the AI coach takes the coach's place (and writes today's read by itself). *@
+            <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day", Visible: true, Auto: Model.IsToday)' />
+        }
+        else
+        {
+            <section class="card coach rise" style="--d:2">
+                <div class="coach-head">
+                    <span class="coach-ico">@Icons.Get("sparkle")</span>
+                    <span class="kicker" style="color:var(--slp-text)">Coach</span>
+                </div>
+                @if (lead is not null)
                 {
-                    <button class="btn slp small" type="button" data-ai-start>@Icons.Get("sparkle")Analyse with AI</button>
+                    <p class="coach-lead">@lead.Title</p>
+                    <ul class="tips">
+                        @foreach (var tip in day.Coach)
+                        {
+                            <li class="@tip.Tone">@tip.Text</li>
+                        }
+                    </ul>
                 }
-                <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
-            </div>
-        </section>
+                else
+                {
+                    <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
+                }
+                <div class="head-acts" style="margin-top:auto">
+                    <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
+                </div>
+            </section>
+        }
     </div>
-
-    <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day")' />
     <div class="row">
         <section class="card rise" style="--d:3">
             <div class="card-head">
