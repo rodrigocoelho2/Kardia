@@ -256,8 +256,11 @@ with types, so `"68 ms"` and `"14,8"` are fine. Run it from an automation after 
 stages and minute heart rate (strain), use Health Auto Export.
 
 What a sync does: values are converted to the app's time zone and metric units, a night is built from the sleep
-segments (naps are skipped), a value sent again replaces the old one (totals like steps keep the larger one), and the
-heart load of each touched day is worked out again. The answer says what it brought:
+segments (naps are skipped) and **joined** with what was already saved for it, so a partial "since last sync" export
+never shortens a night. **HRV, respiratory rate and blood oxygen** are kept as timed readings and the day's value is the
+average of those taken **during that night** (like WHOOP), so readings from later in the day never move the morning's
+recovery. Other values sent again replace the old ones (totals like steps keep the larger one), and the heart load of
+each touched day is worked out again. The answer says what it brought:
 `1 day · 1 440 heart-rate minutes · 1 night · 1 workout · 9 daily values`.
 
 ## Notifications and the AI coach
@@ -322,7 +325,7 @@ each with its unit tests.
 Kardia.slnx
 ├── Kardia.Database/           SQL Server project (SDK-style .sqlproj → dacpac)
 │   ├── Tables/                User, UserProfile, UserSetting, SyncKey, DailyMetric, HeartRateMinute, SleepNight, Workout,
-│   │                          DayLoad, JournalEntry, PushSubscription, PushSent, AppSecret
+│   │                          DayLoad, MetricSample, JournalEntry, PushSubscription, PushSent, AppSecret
 │   ├── StoredProcedures/      Users, Profiles, Settings, Syncs, Health, Journals, Push — the only way the WebApi touches data
 │   └── Scripts/               post-deployment script and deploy.sh (used by the db-deploy container)
 ├── Kardia.Library/            enums, ServiceApiResponse, validation types, header names (no ASP.NET)

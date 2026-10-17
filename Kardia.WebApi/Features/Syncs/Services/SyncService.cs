@@ -184,8 +184,9 @@ internal sealed class SyncService(
 
             await _healthDataRepository.MetricsSaveAsync(id, data.Metrics);
             await _healthDataRepository.HeartRatesSaveAsync(id, data.HeartRates);
-            await _healthDataRepository.SleepsSaveAsync(id, data.Sleeps);
+            await _healthDataRepository.SleepsSaveAsync(id, await MergeNightsAsync(id, data.Sleeps));
             await _healthDataRepository.WorkoutsSaveAsync(id, data.Workouts);
+            await SaveVitalsAsync(id, data);
             var saved = watch.ElapsedMilliseconds;
 
             // A new resting heart rate changes the load of its day too.
@@ -197,7 +198,7 @@ internal sealed class SyncService(
             var result = new SyncIngestResultDTO
             {
                 Days = days.Count,
-                Metrics = data.Metrics.Count,
+                Metrics = data.Metrics.Count + data.Samples.Select(static sample => (sample.SampleAt.Date, sample.Metric)).Distinct().Count(),
                 HeartRates = data.HeartRates.Count,
                 Sleeps = data.Sleeps.Count,
                 Workouts = data.Workouts.Count,
@@ -220,6 +221,59 @@ internal sealed class SyncService(
         finally
         {
             OneAtATime.Release();
+        }
+    }
+
+    /// <summary>
+    /// Joins each night of an export with the same night already saved, so a partial re-send never shortens it.
+    /// </summary>
+    /// <param name="id">The account.</param>
+    /// <param name="nights">The export's nights.</param>
+    /// <returns>The nights to save.</returns>
+    private async Task<List<SleepNightRow>> MergeNightsAsync(Guid id, IReadOnlyList<SleepNightRow> nights)
+    {
+        if (nights.Count == 0)
+        {
+            return [];
+        }
+
+        var saved = (await _healthDataRepository.SleepsListAsync(id, DateOnly.FromDateTime(nights.Min(static n => n.NightDate)), DateOnly.FromDateTime(nights.Max(static n => n.NightDate))))
+            .ToDictionary(static night => night.NightDate.Date);
+        return nights.Select(night => saved.TryGetValue(night.NightDate.Date, out var old) ? HealthPayload.Merge(old, night) : night).ToList();
+    }
+
+    /// <summary>
+    /// Saves the timed HRV, respiratory-rate and blood-oxygen readings, then works out the day values they touch from the
+    /// readings taken during each night (<see cref="NightlyVitals"/>). A new night also re-works its day.
+    /// </summary>
+    /// <param name="id">The account.</param>
+    /// <param name="data">The export.</param>
+    /// <returns>A task.</returns>
+    private async Task SaveVitalsAsync(Guid id, HealthPayloadData data)
+    {
+        if (data.Samples.Count > 0)
+        {
+            await _healthDataRepository.SamplesSaveAsync(id, data.Samples);
+        }
+
+        // A reading in the evening belongs to the next morning's night.
+        var days = data.Samples.SelectMany(static sample => new[] { DateOnly.FromDateTime(sample.SampleAt), DateOnly.FromDateTime(sample.SampleAt).AddDays(1) })
+            .Concat(data.Sleeps.Select(static night => DateOnly.FromDateTime(night.NightDate)))
+            .Where(day => day <= _clock.Today)
+            .Distinct()
+            .Order()
+            .ToList();
+        if (days.Count == 0)
+        {
+            return;
+        }
+
+        var nights = await _healthDataRepository.SleepsListAsync(id, days[0], days[^1]);
+        var samples = await _healthDataRepository.SamplesListAsync(id, days[0].AddDays(-1).ToDateTime(new TimeOnly(12, 0)), days[^1].AddDays(1).ToDateTime(TimeOnly.MinValue));
+        var rows = NightlyVitals.Compute(days, nights, samples);
+        if (rows.Count > 0)
+        {
+            await _healthDataRepository.MetricsSaveAsync(id, rows);
         }
     }
 

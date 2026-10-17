@@ -49,7 +49,9 @@ public sealed class HealthPayloadTests
         var data = Parse(HealthAutoExport);
 
         Assert.Null(data.Error);
-        Assert.Equal(68m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.Hrv).Value);
+        var hrv = Assert.Single(data.Samples);
+        Assert.Equal(((int)HealthMetric.Hrv, new DateTime(2026, 10, 16, 6, 58, 0), 68m), (hrv.Metric, hrv.SampleAt, hrv.Value));
+        Assert.DoesNotContain(data.Metrics, m => m.Metric == (int)HealthMetric.Hrv);
         Assert.Equal(52m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.RestingHeartRate).Value);
         Assert.Equal(9842m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.Steps).Value);
     }
@@ -105,6 +107,7 @@ public sealed class HealthPayloadTests
         var data = Parse("""{ "date": "2026-10-16", "hrv": "68 ms", "restingHeartRate": 52, "respiratoryRate": "14,8", "steps": 9842 }""");
 
         Assert.Null(data.Error);
+        Assert.Empty(data.Samples);   // the Shortcut sends day values, not timed readings
         Assert.Equal(68m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.Hrv).Value);
         Assert.Equal(14.8m, data.Metrics.Single(m => m.Metric == (int)HealthMetric.RespiratoryRate).Value);
         Assert.All(data.Metrics, m => Assert.Equal(new DateTime(2026, 10, 16), m.DayDate));

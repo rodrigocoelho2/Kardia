@@ -32,6 +32,7 @@
     <Build Include="Tables\dbo.DayLoad.sql" />
     <Build Include="Tables\dbo.HeartRateMinute.sql" />
     <Build Include="Tables\dbo.JournalEntry.sql" />
+    <Build Include="Tables\dbo.MetricSample.sql" />
     <Build Include="Tables\dbo.PushSent.sql" />
     <Build Include="Tables\dbo.PushSubscription.sql" />
     <Build Include="Tables\dbo.SleepNight.sql" />
@@ -46,6 +47,8 @@
     <Build Include="StoredProcedures\Health\dbo.DayLoadSave.sql" />
     <Build Include="StoredProcedures\Health\dbo.HeartRateMinuteList.sql" />
     <Build Include="StoredProcedures\Health\dbo.HeartRateMinuteSave.sql" />
+    <Build Include="StoredProcedures\Health\dbo.MetricSampleList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.MetricSampleSave.sql" />
     <Build Include="StoredProcedures\Health\dbo.SleepNightList.sql" />
     <Build Include="StoredProcedures\Health\dbo.SleepNightSave.sql" />
     <Build Include="StoredProcedures\Health\dbo.WorkoutList.sql" />

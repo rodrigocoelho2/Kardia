@@ -45,6 +45,22 @@ public sealed class HeartRateRow
     public short Bpm { get; set; }
 }
 
+/// <summary>
+/// One timed reading of a value the Watch measures mostly in your sleep (dbo.MetricSample): HRV, respiratory rate and
+/// blood oxygen. The day's value of these is the average of the readings taken during that night (see NightlyVitals).
+/// </summary>
+public sealed class MetricSampleRow
+{
+    /// <summary>Gets or sets the metric (<see cref="Library.Enums.HealthMetric"/> number).</summary>
+    public int Metric { get; set; }
+
+    /// <summary>Gets or sets when it was measured, local time.</summary>
+    public DateTime SampleAt { get; set; }
+
+    /// <summary>Gets or sets the value.</summary>
+    public decimal Value { get; set; }
+}
+
 /// <summary>A night (dbo.SleepNight), keyed by the date you woke up.</summary>
 public sealed class SleepNightRow
 {

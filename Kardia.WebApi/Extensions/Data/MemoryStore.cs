@@ -41,6 +41,9 @@ internal sealed class MemoryStore
     /// <summary>Gets the heart rate per minute, by account then minute.</summary>
     public Dictionary<Guid, SortedDictionary<DateTime, short>> HeartRates { get; } = [];
 
+    /// <summary>Gets the timed readings (HRV, respiratory rate, blood oxygen), by account then (metric, time).</summary>
+    public Dictionary<Guid, Dictionary<(int Metric, DateTime At), decimal>> Samples { get; } = [];
+
     /// <summary>Gets the nights, by account then wake-up date.</summary>
     public Dictionary<Guid, SortedDictionary<DateTime, SleepNightRow>> Sleeps { get; } = [];
 

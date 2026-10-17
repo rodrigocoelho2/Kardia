@@ -27,6 +27,19 @@ internal interface IHealthDataRepository
     /// <returns>A task.</returns>
     Task HeartRatesSaveAsync(Guid userId, IReadOnlyList<HeartRateRow> rows);
 
+    /// <summary>Saves timed readings (HRV, respiratory rate, blood oxygen); one sent again replaces the old one.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="rows">The readings.</param>
+    /// <returns>A task.</returns>
+    Task SamplesSaveAsync(Guid userId, IReadOnlyList<MetricSampleRow> rows);
+
+    /// <summary>Lists timed readings.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="from">From (inclusive), local time.</param>
+    /// <param name="to">To (exclusive), local time.</param>
+    /// <returns>The readings, in time order.</returns>
+    Task<List<MetricSampleRow>> SamplesListAsync(Guid userId, DateTime from, DateTime to);
+
     /// <summary>Lists the heart-rate minutes of a time range.</summary>
     /// <param name="userId">The account.</param>
     /// <param name="from">Start (inclusive), local time.</param>

@@ -71,6 +71,34 @@ internal sealed class MemoryHealthDataRepository(MemoryStore store) : IHealthDat
     }
 
     /// <inheritdoc />
+    public Task SamplesSaveAsync(Guid userId, IReadOnlyList<MetricSampleRow> rows)
+    {
+        lock (store.Gate)
+        {
+            var table = MemoryStore.For(store.Samples, userId);
+            foreach (var row in rows)
+            {
+                table[(row.Metric, row.SampleAt)] = row.Value;
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task<List<MetricSampleRow>> SamplesListAsync(Guid userId, DateTime from, DateTime to)
+    {
+        lock (store.Gate)
+        {
+            return Task.FromResult(MemoryStore.For(store.Samples, userId)
+                .Where(pair => pair.Key.At >= from && pair.Key.At < to)
+                .OrderBy(static pair => pair.Key.At)
+                .Select(static pair => new MetricSampleRow { Metric = pair.Key.Metric, SampleAt = pair.Key.At, Value = pair.Value })
+                .ToList());
+        }
+    }
+
+    /// <inheritdoc />
     public Task SleepsSaveAsync(Guid userId, IReadOnlyList<SleepNightRow> rows)
     {
         lock (store.Gate)

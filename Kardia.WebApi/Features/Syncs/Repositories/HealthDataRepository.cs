@@ -43,6 +43,23 @@ internal sealed class HealthDataRepository(ISqlConnectionFactory connectionFacto
     }
 
     /// <inheritdoc />
+    public async Task SamplesSaveAsync(Guid userId, IReadOnlyList<MetricSampleRow> rows)
+    {
+        foreach (var chunk in rows.Chunk(2_000))
+        {
+            await ExecuteAsync("[dbo].[MetricSampleSave]", new
+            {
+                UserUniqueID = userId,
+                Rows = Json(chunk.Select(static row => new { m = row.Metric, t = row.SampleAt.ToString("yyyy-MM-ddTHH:mm:ss"), v = row.Value })),
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<List<MetricSampleRow>> SamplesListAsync(Guid userId, DateTime from, DateTime to) =>
+        QueryAsync<MetricSampleRow>("[dbo].[MetricSampleList]", new { UserUniqueID = userId, From = from, To = to });
+
+    /// <inheritdoc />
     public Task<List<HeartRateRow>> HeartRatesListAsync(Guid userId, DateTime from, DateTime to) =>
         QueryAsync<HeartRateRow>("[dbo].[HeartRateMinuteList]", new { UserUniqueID = userId, From = from, To = to });
 

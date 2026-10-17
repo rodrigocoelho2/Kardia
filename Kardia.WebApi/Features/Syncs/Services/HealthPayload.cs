@@ -20,8 +20,14 @@ internal sealed record HealthPayloadData(
     IReadOnlyList<WorkoutRow> Workouts,
     string? Error)
 {
+    /// <summary>
+    /// Gets the timed readings of the night-measured values (<see cref="HealthPayload.SampledMetrics"/>). Their day values
+    /// are not in <see cref="Metrics"/>: they are worked out from the readings taken during the night.
+    /// </summary>
+    public IReadOnlyList<MetricSampleRow> Samples { get; init; } = [];
+
     /// <summary>Gets a value indicating whether nothing can be imported.</summary>
-    public bool IsEmpty => Metrics.Count == 0 && HeartRates.Count == 0 && Sleeps.Count == 0 && Workouts.Count == 0;
+    public bool IsEmpty => Metrics.Count == 0 && HeartRates.Count == 0 && Sleeps.Count == 0 && Workouts.Count == 0 && Samples.Count == 0;
 
     /// <summary>Gets every day the export touched.</summary>
     public IEnumerable<DateOnly> Days =>
@@ -29,6 +35,7 @@ internal sealed record HealthPayloadData(
             .Concat(HeartRates.Select(static row => DateOnly.FromDateTime(row.MinuteAt)))
             .Concat(Sleeps.Select(static row => DateOnly.FromDateTime(row.NightDate)))
             .Concat(Workouts.Select(static row => DateOnly.FromDateTime(row.StartedAt)))
+            .Concat(Samples.Select(static row => DateOnly.FromDateTime(row.SampleAt)))
             .Distinct()
             .Order();
 }
@@ -48,6 +55,12 @@ internal sealed record HealthPayloadData(
 /// </summary>
 internal static partial class HealthPayload
 {
+    /// <summary>
+    /// The values the Watch measures mostly while you sleep. With a time on each reading, a day's value is the average of
+    /// that night's readings (like WHOOP), so readings later in the day can't change a morning's recovery.
+    /// </summary>
+    public static readonly HashSet<HealthMetric> SampledMetrics = [HealthMetric.Hrv, HealthMetric.RespiratoryRate, HealthMetric.BloodOxygen];
+
     /// <summary>Gap between sleep segments that starts a new night.</summary>
     public static readonly TimeSpan NightGap = TimeSpan.FromHours(2);
 
@@ -149,6 +162,38 @@ internal static partial class HealthPayload
     }
 
     private static HealthPayloadData Empty(string error) => new([], [], [], [], error);
+
+    /// <summary>
+    /// Joins a night already saved with the same night from a new export. "Since last sync" exports often carry only part
+    /// of a night (its last hour, or the iPhone's segments), so a night is never replaced by a shorter one: the stages of
+    /// both are laid on one timeline (each minute once) and the time in bed covers both.
+    /// </summary>
+    /// <param name="saved">The night already saved.</param>
+    /// <param name="incoming">The same night from the new export.</param>
+    /// <returns>The joined night.</returns>
+    public static SleepNightRow Merge(SleepNightRow saved, SleepNightRow incoming)
+    {
+        static int Asleep(SleepNightRow night) => night.CoreMinutes + night.DeepMinutes + night.RemMinutes;
+
+        // Totals only (no stages) on either side: keep the fuller night.
+        if (saved.Stages.Length == 0 || incoming.Stages.Length == 0)
+        {
+            var savedAsleep = Asleep(saved);
+            var incomingAsleep = Asleep(incoming);
+            return incomingAsleep > savedAsleep || (incomingAsleep == savedAsleep && incoming.BedEnd - incoming.BedStart > saved.BedEnd - saved.BedStart) ? incoming : saved;
+        }
+
+        // The new export's stages win where both have a minute (they're the Watch's latest word on it).
+        var session = new List<(SleepStage? Stage, DateTime Start, DateTime End)>
+        {
+            (null, saved.BedStart, saved.BedEnd),
+            (null, incoming.BedStart, incoming.BedEnd),
+        };
+        session.AddRange(Days.Services.Scoring.SleepScore.Segments(saved).Select(static segment => ((SleepStage?)segment.Stage, segment.Start, segment.End)));
+        session.AddRange(Days.Services.Scoring.SleepScore.Segments(incoming).Select(static segment => ((SleepStage?)segment.Stage, segment.Start, segment.End)));
+        var merged = Collector.Night(session);
+        return merged is null || Asleep(merged) < Math.Max(Asleep(saved), Asleep(incoming)) - 1 ? (Asleep(incoming) > Asleep(saved) ? incoming : saved) : merged;
+    }
 
     /// <summary>
     /// The keys of a JSON object, lower case with only letters (so "heart_rate_variability", "heartRateVariability"
@@ -348,6 +393,7 @@ internal static partial class HealthPayload
         private readonly HashSet<HealthMetric> _sums = [];
         private readonly Dictionary<DateTime, List<double>> _heartRates = [];
         private readonly List<(SleepStage? Stage, DateTime Start, DateTime End)> _segments = [];
+        private readonly Dictionary<(HealthMetric Metric, DateTime At), decimal> _samples = [];
         private readonly List<SleepNightRow> _nights = [];
         private readonly Dictionary<DateTime, WorkoutRow> _workouts = [];
 
@@ -391,7 +437,14 @@ internal static partial class HealthPayload
             {
                 var f = Fields(sample);
                 var at = Time(First(f, "date", "start", "startdate"), zone);
-                Add(target.Metric, target.Sum, at?.Date ?? now.Date, Convert(target.Metric, Number(First(f, "qty", "value", "avg")), units));
+                var value = Convert(target.Metric, Number(First(f, "qty", "value", "avg")), units);
+                if (at is { } time && SampledMetrics.Contains(target.Metric))
+                {
+                    Sample(target.Metric, time, value);
+                    continue;
+                }
+
+                Add(target.Metric, target.Sum, at?.Date ?? now.Date, value);
             }
         }
 
@@ -601,6 +654,14 @@ internal static partial class HealthPayload
             list.Add(value);
         }
 
+        private void Sample(HealthMetric metric, DateTime at, double? value)
+        {
+            if (value is { } number && double.IsFinite(number) && InRange(metric, number) is { } kept)
+            {
+                _samples[(metric, new DateTime(at.Year, at.Month, at.Day, at.Hour, at.Minute, at.Second))] = Math.Round((decimal)kept, 3);
+            }
+        }
+
         private void Add(HealthMetric metric, bool sum, DateTime day, double? value)
         {
             // Averaged values must each be sane; summed ones (steps, energy) only non-negative, the day's total is checked in Build.
@@ -646,7 +707,10 @@ internal static partial class HealthPayload
                 .OrderBy(static night => night.NightDate)
                 .ToList();
 
-            var result = new HealthPayloadData(metrics, heartRates, nights, _workouts.Values.OrderBy(static workout => workout.StartedAt).ToList(), null);
+            var samples = _samples.OrderBy(static pair => pair.Key.At)
+                .Select(static pair => new MetricSampleRow { Metric = (int)pair.Key.Metric, SampleAt = pair.Key.At, Value = pair.Value })
+                .ToList();
+            var result = new HealthPayloadData(metrics, heartRates, nights, _workouts.Values.OrderBy(static workout => workout.StartedAt).ToList(), null) { Samples = samples };
             return result.IsEmpty ? result with { Error = "Nothing Kardia keeps was in this export." } : result;
         }
 
@@ -676,7 +740,7 @@ internal static partial class HealthPayload
             }
         }
 
-        private static SleepNightRow? Night(List<(SleepStage? Stage, DateTime Start, DateTime End)> session)
+        internal static SleepNightRow? Night(List<(SleepStage? Stage, DateTime Start, DateTime End)> session)
         {
             var staged = session.Where(static segment => segment.Stage is not null).OrderBy(static segment => segment.Start).ToList();
             if (staged.Count == 0)
