@@ -68,6 +68,7 @@ internal sealed class DemoSeeder(
         }
 
         await dayLoadService.RecomputeAsync(userId, Enumerable.Range(0, DemoData.Days).Select(back => today.AddDays(-back)));
+        DataVersion.Bump(userId);
         await MarkSyncedAsync(userId, true);
     }
 
@@ -82,6 +83,7 @@ internal sealed class DemoSeeder(
         await healthDataRepository.SleepsSaveAsync(userId, [.. data.Sleeps.Where(row => DateOnly.FromDateTime(row.NightDate) >= from)]);
         await healthDataRepository.WorkoutsSaveAsync(userId, [.. data.Workouts.Where(row => DateOnly.FromDateTime(row.StartedAt) >= from)]);
         await dayLoadService.RecomputeAsync(userId, [from, today]);
+        DataVersion.Bump(userId);
         await MarkSyncedAsync(userId, false);
     }
 

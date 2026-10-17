@@ -9,7 +9,7 @@
 <html lang="en" data-theme="@(theme == "light" ? "light" : "dark")">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="request-verification-token" content="@antiforgeryToken" />
     <meta name="color-scheme" content="@(theme == "light" ? "light" : theme == "system" ? "dark light" : "dark")" />
     <title>@(string.IsNullOrEmpty(title) || title == "Kardia" ? "Kardia" : $"{title} · Kardia")</title>

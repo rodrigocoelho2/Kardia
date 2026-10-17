@@ -73,6 +73,7 @@ internal sealed class DayLoadService(IHealthDataRepository healthDataRepository,
         }
 
         await _healthDataRepository.LoadsSaveAsync(userId, loads);
+        DataVersion.Bump(userId);
         return loads;
     }
 }

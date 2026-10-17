@@ -187,6 +187,7 @@ internal sealed class SyncService(
             await _healthDataRepository.SleepsSaveAsync(id, await MergeNightsAsync(id, data.Sleeps));
             await _healthDataRepository.WorkoutsSaveAsync(id, data.Workouts);
             await SaveVitalsAsync(id, data);
+            DataVersion.Bump(id);
             var saved = watch.ElapsedMilliseconds;
 
             // A new resting heart rate changes the load of its day too.

@@ -281,3 +281,5 @@
   .age-vis li { grid-template-columns: minmax(0, 1fr) 90px 40px; }
   .au-two { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 1023px) { .au-in input { font-size: 16px; } }

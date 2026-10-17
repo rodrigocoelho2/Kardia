@@ -68,7 +68,10 @@ public sealed class InsightModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
     /// <returns>The page.</returns>
     public async Task<HealthPageModel> HealthAsync(HealthPageModel page, string userId)
     {
-        var day = await CallAsync(() => ApiClient.DayGetAsync(userId, page.Date));
+        var dayCall = CallAsync(() => ApiClient.DayGetAsync(userId, page.Date));
+        var historyCall = CallAsync(() => ApiClient.DayHealthReportAsync(userId, 30));
+        var day = await dayCall;
+        page.LastSyncAt = day.Data?.LastSyncAt;
         if (!await OkAsync(page, day, userId))
         {
             return page;
@@ -76,8 +79,7 @@ public sealed class InsightModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
 
         page.Day = day.Data!;
         page.Date = day.Data!.Date;
-        page.LastSyncAt = day.Data.LastSyncAt;
-        page.History = (await CallAsync(() => ApiClient.DayHealthReportAsync(userId, 30))).Data ?? new HealthReportDTO();
+        page.History = (await historyCall).Data ?? new HealthReportDTO();
         return page;
     }
 

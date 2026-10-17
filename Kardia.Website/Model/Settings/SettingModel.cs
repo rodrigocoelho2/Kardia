@@ -62,9 +62,11 @@ public sealed class SettingModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
 
         page.UserId = userId;
         page.Profile = profile.Data;
-        page.Sync = (await CallAsync(() => ApiClient.SyncKeyGetAsync(userId))).Data ?? new SyncKeyDTO();
+        var syncCall = CallAsync(() => ApiClient.SyncKeyGetAsync(userId));
+        var settingCall = CallAsync(() => ApiClient.SettingGetAsync(userId));
+        page.Sync = (await syncCall).Data ?? new SyncKeyDTO();
         page.LastSyncAt = page.Sync.LastUsedAt;
-        page.Setting = (await CallAsync(() => ApiClient.SettingGetAsync(userId))).Data ?? new SettingDTO { UserId = userId };
+        page.Setting = (await settingCall).Data ?? new SettingDTO { UserId = userId };
         if (page.IsAdmin)
         {
             page.Users = (await CallAsync(() => ApiClient.UserListAsync())).Data ?? [];

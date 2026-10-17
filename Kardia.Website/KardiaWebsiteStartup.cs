@@ -77,8 +77,19 @@ internal static class KardiaWebsiteStartup
         app.UseStaticFiles(new StaticFileOptions
         {
             ContentTypeProvider = contentTypes,
-            // Revalidate on every load so a new version shows up right after a redeploy.
-            OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache",
+            // CSS and JS are linked with ?v=<hash of the file> (asp-append-version): those, the fonts and the icons are kept
+            // by the browser, so a page change doesn't revalidate them over the tunnel every time. Anything else (the
+            // service worker, the manifest) is checked on every load so a redeploy shows up at once.
+            OnPrepareResponse = context =>
+            {
+                var request = context.Context.Request;
+                var path = request.Path.Value ?? string.Empty;
+                context.Context.Response.Headers.CacheControl = request.Query.ContainsKey("v")
+                    ? "public, max-age=31536000, immutable"
+                    : path.StartsWith("/fonts/", StringComparison.Ordinal) || path.StartsWith("/img/", StringComparison.Ordinal)
+                        ? "public, max-age=2592000"
+                        : "no-cache";
+            },
         });
 
         app.UseRouting();

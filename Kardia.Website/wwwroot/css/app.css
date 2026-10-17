@@ -47,7 +47,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; color: inherit; }
@@ -839,3 +839,6 @@ a, button, summary, label.choice, .tag { -webkit-tap-highlight-color: transparen
 .swipe-hint.ready { opacity: 1; transform: scale(1); }
 
 details[open] > :not(summary) { animation: fade-in 0.35s var(--ease) both; }
+
+/* Phone: no double-tap zoom (touch-action above), and fields at 16px so focusing one doesn't zoom the page on iOS. */
+@media (max-width: 1023px) { .input, select.input, textarea { font-size: 16px; } }

@@ -62,7 +62,8 @@ internal static class KardiaStartup
             services.AddSwaggerGen(options => options.EnableAnnotations());
         }
 
-        // Infrastructure
+        // Infrastructure (scored days are cached for a few minutes; about 400 days × a few ranges per person)
+        services.AddMemoryCache(options => options.SizeLimit = 200_000);
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IAppClock, AppClock>();
         services.AddSingleton<IGlobalizationHelper, GlobalizationHelper>();

@@ -51,10 +51,16 @@ public sealed class DayModel(KardiaClient apiClient) : WebsiteBaseModel(apiClien
         page.Date = day.Data.Date;
         if (page.Section == AppSection.Today)
         {
-            page.Age = (await CallAsync(() => ApiClient.AgeGetAsync(userId))).Data;
-            page.Journal = (await CallAsync(() => ApiClient.JournalGetAsync(userId, page.Date))).Data;
-            page.Plan = (await CallAsync(() => ApiClient.PlanGetAsync(userId))).Data;
-            page.AiCoach = (await CallAsync(() => ApiClient.AiCoachGetAsync(userId))).Data;
+            // The cards of Today, fetched together.
+            var age = CallAsync(() => ApiClient.AgeGetAsync(userId));
+            var journal = CallAsync(() => ApiClient.JournalGetAsync(userId, page.Date));
+            var plan = CallAsync(() => ApiClient.PlanGetAsync(userId));
+            var coach = CallAsync(() => ApiClient.AiCoachGetAsync(userId));
+            await Task.WhenAll(age, journal, plan, coach);
+            page.Age = age.Result.Data;
+            page.Journal = journal.Result.Data;
+            page.Plan = plan.Result.Data;
+            page.AiCoach = coach.Result.Data;
         }
 
         return page;
