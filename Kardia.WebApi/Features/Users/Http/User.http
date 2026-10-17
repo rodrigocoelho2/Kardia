@@ -1,0 +1,24 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+
+### Status (and the demo account in demo mode)
+GET {{HostAddress}}/user/status
+x-api-key: {{apiKey}}
+
+### List
+GET {{HostAddress}}/user/list
+x-api-key: {{apiKey}}
+
+### Create (the first account is an admin)
+POST {{HostAddress}}/user
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "userName": "rodas", "password": "a-long-password", "birthDate": "1996-05-14", "sex": "Male" }
+
+### Sign in
+POST {{HostAddress}}/user/signin
+Content-Type: application/json
+x-api-key: {{apiKey}}
+
+{ "userName": "rodas", "password": "a-long-password" }

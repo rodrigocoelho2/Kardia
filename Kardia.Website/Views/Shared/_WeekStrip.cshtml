@@ -1,0 +1,23 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    var path = Context.Request.Path.Value ?? "/";
+    var section = Model.Section;
+    var week = Model.Day.Recent.TakeLast(7).ToList();
+}
+@* The last seven days as small rings (recovery, sleep or strain, by page); tap one to open it. *@
+<nav class="week rise" aria-label="Last 7 days">
+    @foreach (var item in week)
+    {
+        var (fraction, colour, text) = section switch
+        {
+            AppSection.Sleep => ((item.SleepPerformance ?? 0) / 100.0, "var(--slp)", item.SleepPerformance?.ToString() ?? "—"),
+            AppSection.Strain => ((item.Strain ?? 0) / 21, "var(--str)", Fmt.One(item.Strain)),
+            _ => ((item.Recovery ?? 0) / 100.0, item.Zone switch { RecoveryZone.Medium => "var(--mid)", RecoveryZone.Low => "var(--low)", _ => "var(--rec)" }, item.Recovery?.ToString() ?? "—"),
+        };
+        var href = item.Date == Model.Today ? path : $"{path}?date={Fmt.Iso(item.Date)}";
+        <a href="@href" aria-current="@(item.Date == Model.Date ? "date" : null)" aria-label="@Fmt.ShortDate(item.Date)">
+            <span>@(item.Date == Model.Today ? "Today" : Fmt.Weekday(item.Date))</span>
+            <span class="mr">@Charts.MiniRing(fraction, colour)<span>@text</span></span>
+        </a>
+    }
+</nav>

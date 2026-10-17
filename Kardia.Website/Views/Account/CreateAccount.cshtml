@@ -1,0 +1,100 @@
+@model Kardia.Website.Model.Account.AccountPageModel
+@{
+    ViewData["Title"] = "Create account";
+    ViewData["Tab"] = "create";
+    var today = Clock.Now.Date;
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="au">
+    <partial name="_AccountSide" model="Model" />
+
+    <main class="au-main">
+        <form class="au-form" method="post" action="/create-account" autocomplete="on">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+            <div>
+                <h1>@(Model.IsFirstAccount ? "Create the first account" : "Create your account")</h1>
+                <p class="lead2">@(Model.IsFirstAccount ? "It becomes the admin of this Kardia." : "Your data stays in its own account, on this server.")</p>
+            </div>
+
+            <partial name="_AccountCard" model="Model" />
+
+            @if (Model.NeedsSetupKey)
+            {
+                <label class="au-field">
+                    Setup key <small>KARDIA_SETUP_KEY, in the .env file next to docker-compose.yml</small>
+                    <span class="au-in">
+                        @Icons.Get("key")
+                        <input id="setupKey" name="setupKey" type="password" autocomplete="off" required />
+                        <button type="button" class="password-toggle" data-for="setupKey" aria-pressed="false" aria-label="Show password">@Icons.Get("eye")</button>
+                    </span>
+                </label>
+            }
+
+            <label class="au-field">
+                User name <small>3–32 letters, numbers, dots, dashes or underscores.</small>
+                <span class="au-in">
+                    @Icons.Get("user")
+                    <input name="userName" type="text" value="@Model.UserName" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="32" pattern="[A-Za-z0-9._\-]{3,32}" required autofocus />
+                </span>
+            </label>
+
+            <div class="au-two">
+                <label class="au-field">
+                    Password
+                    <span class="au-in">
+                        @Icons.Get("lock")
+                        <input id="password" name="password" type="password" autocomplete="new-password" minlength="@Model.MinPasswordLength" placeholder="At least @Model.MinPasswordLength characters" required />
+                        <button type="button" class="password-toggle" data-for="password" aria-pressed="false" aria-label="Show password">@Icons.Get("eye")</button>
+                    </span>
+                </label>
+                <label class="au-field">
+                    Repeat it
+                    <span class="au-in">
+                        @Icons.Get("lock")
+                        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="@Model.MinPasswordLength" required />
+                    </span>
+                </label>
+            </div>
+
+            <div class="au-section">For biological age</div>
+            <div class="au-two">
+                <label class="au-field">
+                    Date of birth <small>(optional)</small>
+                    <span class="au-in">
+                        @Icons.Get("calendar")
+                        <input name="birthDate" type="date" value="@(Model.BirthDate?.ToString("yyyy-MM-dd"))" max="@today.AddYears(-13).ToString("yyyy-MM-dd")" min="@today.AddYears(-110).ToString("yyyy-MM-dd")" />
+                    </span>
+                </label>
+                <label class="au-field">
+                    Sex <small>(reference values)</small>
+                    <span class="au-in">
+                        @Icons.Get("user")
+                        <select name="sex">
+                            <option value="Unspecified" selected="@(Model.Sex == BiologicalSex.Unspecified)">Rather not say</option>
+                            <option value="Male" selected="@(Model.Sex == BiologicalSex.Male)">Male</option>
+                            <option value="Female" selected="@(Model.Sex == BiologicalSex.Female)">Female</option>
+                        </select>
+                    </span>
+                </label>
+            </div>
+
+            <label class="au-check">
+                <input type="checkbox" name="remember" value="true" @(Model.Remember ? "checked" : "") />
+                <span>Keep me signed in on this device <small>(@Model.RememberDays days)</small></span>
+            </label>
+
+            <button class="btn-l brand" type="submit">Create account @Icons.Get("arrow")</button>
+            @if (!Model.IsFirstAccount)
+            {
+                <p class="au-fine">Already have one? <a href="/sign-in">Sign in</a></p>
+            }
+        </form>
+    </main>
+</div>
+
+<partial name="_PasswordToggle" />

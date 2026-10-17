@@ -1,0 +1,191 @@
+@model Kardia.Website.Model.Settings.SettingPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Settings";
+    var profile = Model.Profile;
+    var sync = Model.Sync;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var today = Clock.Today;
+    var needHours = (profile.SleepNeedMinutes ?? profile.SleepNeedMinutesUsed) / 60.0;
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">Signed in as @Model.UserName@(Model.IsAdmin ? " · admin" : "")</div>
+        <h1>Settings</h1>
+    </div>
+    <nav class="tabs-seg" aria-label="Sections">
+        <a class="seg" href="#profile">Profile</a>
+        <a class="seg" href="#apple-watch">Apple Watch</a>
+        <a class="seg" href="#account">Password</a>
+        @if (Model.IsAdmin) { <a class="seg" href="#users">Accounts</a> }
+    </nav>
+</header>
+
+@if (Model.Notice is not null)
+{
+    <div class="alert ok rise" role="status">@Model.Notice</div>
+}
+
+<div class="row">
+    <section class="card rise" id="profile" style="--d:1">
+        <div class="card-head">
+            <h2>Profile</h2>
+            <span class="side-note">used for strain, sleep need and biological age</span>
+        </div>
+        @if (Model.ErrorsFor == "profile" && Model.Errors.Count > 0)
+        {
+            <div class="alert err" role="alert">@foreach (var error in Model.Errors) { <p>@error</p> }</div>
+        }
+        <form class="form" method="post" action="/settings/profile">
+            @Html.AntiForgeryToken()
+            <div class="fields">
+                <label class="field">Date of birth
+                    <input class="input" type="date" name="birthDate" value="@(profile.BirthDate?.ToString("yyyy-MM-dd", inv))" max="@today.AddYears(-13).ToString("yyyy-MM-dd", inv)" min="@today.AddYears(-110).ToString("yyyy-MM-dd", inv)" />
+                </label>
+                <label class="field">Sex <small>reference values for fitness and HRV</small>
+                    <select class="input" name="sex">
+                        <option value="Unspecified" selected="@(profile.Sex == BiologicalSex.Unspecified)">Rather not say</option>
+                        <option value="Male" selected="@(profile.Sex == BiologicalSex.Male)">Male</option>
+                        <option value="Female" selected="@(profile.Sex == BiologicalSex.Female)">Female</option>
+                    </select>
+                </label>
+                <label class="field">Height <small>cm</small>
+                    <input class="input" type="number" name="heightCm" min="100" max="250" step="1" value="@(profile.HeightCm?.ToString("0", inv))" inputmode="numeric" />
+                </label>
+                <label class="field">Weight <small>kg · Apple Health's latest is used when it syncs</small>
+                    <input class="input" type="number" name="weightKg" min="30" max="300" step="0.1" value="@(profile.WeightKg?.ToString("0.#", inv))" inputmode="decimal" />
+                </label>
+                <label class="field">Maximum heart rate <small>empty: @profile.MaxHeartRateUsed bpm from your age</small>
+                    <input class="input" type="number" name="maxHeartRate" min="120" max="230" step="1" value="@profile.MaxHeartRate" placeholder="@profile.MaxHeartRateUsed" inputmode="numeric" />
+                </label>
+                <label class="field">Sleep need <small>hours a night before strain and debt</small>
+                    <input class="input" type="number" name="sleepNeedHours" min="6" max="10" step="0.25" value="@(profile.SleepNeedMinutes is { } need ? (need / 60.0).ToString("0.##", inv) : "")" placeholder="@needHours.ToString("0.##", inv)" inputmode="decimal" />
+                </label>
+            </div>
+            <div><button class="btn rec" type="submit">@Icons.Get("check")Save profile</button></div>
+        </form>
+    </section>
+</div>
+
+<div class="row">
+    <section class="card w2 rise" id="apple-watch" style="--d:2" data-key-panel data-has-key="@(sync.HasKey ? "true" : "false")">
+        <div class="card-head">
+            <h2>Apple Watch</h2>
+            @if (sync.LastUsedAt is { } used)
+            {
+                <span class="chip sync"><span class="live-dot"></span>Last sync @Fmt.Ago(used)</span>
+            }
+            else
+            {
+                <span class="chip warn">@Icons.Get("watch")Not connected yet</span>
+            }
+        </div>
+        <p class="muted" style="font-size:14px;line-height:1.55">Your Apple Watch saves everything to Apple Health on your iPhone. An app there sends it to Kardia: <b style="color:var(--text)">Health Auto Export</b> (automatic, in the background) or the <b style="color:var(--text)">Kardia Shortcut</b> (free, runs from an automation). Both use the address and key below.</p>
+
+        <div class="tiles">
+            <div class="tile" style="grid-column:1 / -1">
+                <span class="k">Address <span class="dim">POST, JSON</span></span>
+                <div class="keybox"><code id="sync-url">@Model.SyncUrl</code><button type="button" class="btn ghost small" data-copy="#sync-url">@Icons.Get("copy")<span data-label>Copy</span></button></div>
+            </div>
+            <div class="tile" style="grid-column:1 / -1">
+                <span class="k">Key <span class="dim" data-key-hint>@(sync.HasKey ? sync.KeyHint : "none yet")</span></span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button type="button" class="btn @(sync.HasKey ? "ghost" : "rec") small" data-key-create>@Icons.Get("key")@(sync.HasKey ? "Make a new key" : "Make a key")</button>
+                    @if (sync.HasKey) { <button type="button" class="btn danger small" data-key-revoke>Revoke</button> }
+                </div>
+            </div>
+        </div>
+        <div class="alert ok" data-key-new hidden>
+            <p style="margin-bottom:8px"><b>Your key — copy it now, it's only shown once.</b></p>
+            <div class="keybox"><code id="sync-key"></code><button type="button" class="btn ghost small" data-copy="#sync-key">@Icons.Get("copy")<span data-label>Copy</span></button></div>
+        </div>
+        @if (sync.LastSummary is { } summary)
+        {
+            <small class="dim">Last sync brought: @summary</small>
+        }
+
+        <div data-tabs style="display:flex;flex-direction:column;gap:16px;margin-top:6px">
+            <div class="tabs-seg" role="tablist" aria-label="How to send it">
+                <button type="button" role="tab" aria-selected="true" aria-controls="guide-hae">Health Auto Export</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="guide-shortcut">Shortcut</button>
+            </div>
+            <ol class="steps" id="guide-hae" role="tabpanel">
+                <li><span>On the iPhone, install <b>Health Auto Export – JSON+CSV</b> from the App Store and allow it to read Apple Health. REST API automations are part of its premium plan.</span></li>
+                <li><span>Open <b>Automations › New automation</b> and pick <b>REST API</b>. Paste the <b>address</b> above as the URL.</span></li>
+                <li><span>Under <b>Headers</b>, add <b>X-Kardia-Key</b> with your <b>key</b> as the value.</span></li>
+                <li><span>Set <b>Export format: JSON</b>, <b>Export version: 2</b>, data type <b>Health metrics</b> plus <b>Workouts</b>, and <b>Time grouping: Minutes</b> so heart rate comes minute by minute.</span></li>
+                <li><span>Pick the metrics: heart rate, heart rate variability, resting heart rate, respiratory rate, blood oxygen, sleep analysis, sleeping wrist temperature, step count, active and resting energy, VO₂ max, weight.</span></li>
+                <li><span>Set <b>Date range: Since last sync</b> and the cadence (every 15–60 minutes). Tap <b>Manual export</b> once with the last 30 days to fill your history.</span></li>
+            </ol>
+            <ol class="steps" id="guide-shortcut" role="tabpanel" hidden>
+                <li><span>In the <b>Shortcuts</b> app, make a shortcut that uses <b>Find Health Samples</b> for HRV, resting heart rate, respiratory rate, steps and active energy (today).</span></li>
+                <li><span>Put them in a <b>Dictionary</b> with the keys <b>hrv</b>, <b>restingHeartRate</b>, <b>respiratoryRate</b>, <b>steps</b>, <b>activeEnergy</b> and <b>date</b> (yyyy-MM-dd). Units in the values are fine ("68 ms").</span></li>
+                <li><span>Add <b>Get Contents of URL</b>: the <b>address</b> above, method <b>POST</b>, request body <b>JSON</b> with the dictionary, and a header <b>X-Kardia-Key</b> with your <b>key</b>.</span></li>
+                <li><span>In <b>Automation</b>, run it every morning after you wake up and again in the evening. The Shortcut sends daily values; for sleep stages and minute heart rate use Health Auto Export.</span></li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="card rise" id="account" style="--d:3">
+        <div class="card-head">
+            <h2>Password</h2>
+        </div>
+        @if (Model.ErrorsFor == "password" && Model.Errors.Count > 0)
+        {
+            <div class="alert err" role="alert">@foreach (var error in Model.Errors) { <p>@error</p> }</div>
+        }
+        <form class="form" method="post" action="/settings/password">
+            @Html.AntiForgeryToken()
+            <input type="text" name="username" value="@Model.UserName" autocomplete="username" hidden />
+            <label class="field">Current password
+                <input class="input" type="password" name="currentPassword" autocomplete="current-password" required />
+            </label>
+            <label class="field">New password <small>at least 8 characters</small>
+                <input class="input" type="password" name="newPassword" autocomplete="new-password" minlength="8" required />
+            </label>
+            <label class="field">Repeat it
+                <input class="input" type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required />
+            </label>
+            <div><button class="btn ghost" type="submit">@Icons.Get("lock")Change password</button></div>
+            <small class="dim">Changing it signs out your other devices.</small>
+        </form>
+        <form method="post" action="/sign-out" class="phone-only" style="margin-top:auto">
+            @Html.AntiForgeryToken()
+            <button class="btn danger block" type="submit">@Icons.Get("logout")Sign out</button>
+        </form>
+    </section>
+</div>
+
+@if (Model.IsAdmin)
+{
+    <section class="card rise" id="users" style="--d:4">
+        <div class="card-head">
+            <h2>Accounts</h2>
+            <span class="side-note">each account sees only its own data</span>
+        </div>
+        <div class="scroll-x">
+            <table class="users">
+                <thead><tr><th>User</th><th>Role</th><th>Created</th><th>Last sign-in</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td><b>@user.UserName</b></td>
+                            <td><span class="pill @(user.Role == UserRole.Admin ? "soft-rec" : "soft")">@user.Role</span></td>
+                            <td class="muted">@user.CreatedAt.ToString("d MMM yyyy", inv)</td>
+                            <td class="muted">@(user.LastSignInAt is { } last ? Fmt.Ago(last) : "never")</td>
+                            <td style="text-align:right">
+                                @if (!string.Equals(user.Id, Model.UserId, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <button type="button" class="btn danger small" data-delete-user="@user.Id" data-name="@user.UserName">@Icons.Get("trash")Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <small class="dim">New people create their own account from the sign-in page (set Website__AllowRegistration=false to stop that).</small>
+    </section>
+}

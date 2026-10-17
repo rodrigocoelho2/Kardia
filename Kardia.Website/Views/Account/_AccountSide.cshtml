@@ -1,0 +1,45 @@
+@model Kardia.Website.Model.Account.AccountPageModel
+@{
+    var active = (string)ViewData["Tab"]!;
+    var first = Model.IsFirstAccount && active == "create";
+    var create = active == "create" && !first;
+}
+@* The aurora side of the sign-in and create-account pages: brand, a headline and example rings (a header on the phone). *@
+<aside class="au-side">
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="au-top">
+        <a class="brand" href="/">@Icons.Logo(34)Kardia</a>
+        <a class="au-back" href="/about">@Icons.Get("left")What is Kardia?</a>
+    </div>
+    @if (first)
+    {
+        <h2>Set up <span class="grad-text">your Kardia.</span></h2>
+        <p>Create the first account. It becomes the admin and can add everyone else in the house.</p>
+    }
+    else if (create)
+    {
+        <h2>Meet the body <span class="grad-text">behind the numbers.</span></h2>
+        <p>Your Apple Watch already measures it. Kardia turns it into recovery, sleep, strain and a biological age you can move.</p>
+    }
+    else
+    {
+        <h2>Welcome back. <span class="grad-text">How ready are you?</span></h2>
+        <p>Sign in to see last night's sleep, this morning's recovery and how much strain today can take.</p>
+    }
+    <div class="au-cards" aria-hidden="true">
+        <div class="au-card">
+            <div class="ring-box">@Charts.Ring(0.78, "rec", thin: true)<div class="center"><span class="big num">78<small>%</small></span></div></div>
+            <span class="k">Recovery</span>
+        </div>
+        <div class="au-card">
+            <div class="ring-box">@Charts.Ring(0.86, "slp", thin: true)<div class="center"><span class="big num">86<small>%</small></span></div></div>
+            <span class="k">Sleep</span>
+        </div>
+        <div class="au-card">
+            <div class="ring-box">@Charts.Ring(12.4 / 21, "str", thin: true)<div class="center"><span class="big num">12.4</span></div></div>
+            <span class="k">Strain</span>
+        </div>
+    </div>
+    <small class="ex">Example scores.</small>
+</aside>

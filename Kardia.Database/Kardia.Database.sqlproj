@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.Build.Sql/2.1.0">
+
+  <!-- SQL Server database of Kardia: the tables and the stored procedures the WebApi calls. Builds to Kardia.Database.dacpac,
+       which the db-deploy container publishes on every deploy (creates the database or brings it up to date).
+       Every script is listed below (no wildcards), so Visual Studio shows them with either SSDT flavour;
+       adding a script through Solution Explorer adds its line here. -->
+  <PropertyGroup>
+    <Name>Kardia.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <EnableDefaultSqlItems>false</EnableDefaultSqlItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Tables\" />
+    <Folder Include="StoredProcedures\" />
+    <Folder Include="StoredProcedures\Health\" />
+    <Folder Include="StoredProcedures\Journals\" />
+    <Folder Include="StoredProcedures\Profiles\" />
+    <Folder Include="StoredProcedures\Syncs\" />
+    <Folder Include="StoredProcedures\Users\" />
+    <Folder Include="Scripts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Build Include="Tables\dbo.DailyMetric.sql" />
+    <Build Include="Tables\dbo.DayLoad.sql" />
+    <Build Include="Tables\dbo.HeartRateMinute.sql" />
+    <Build Include="Tables\dbo.JournalEntry.sql" />
+    <Build Include="Tables\dbo.SleepNight.sql" />
+    <Build Include="Tables\dbo.SyncKey.sql" />
+    <Build Include="Tables\dbo.User.sql" />
+    <Build Include="Tables\dbo.UserProfile.sql" />
+    <Build Include="Tables\dbo.Workout.sql" />
+    <Build Include="StoredProcedures\Health\dbo.DailyMetricList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.DailyMetricSave.sql" />
+    <Build Include="StoredProcedures\Health\dbo.DayLoadList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.DayLoadSave.sql" />
+    <Build Include="StoredProcedures\Health\dbo.HeartRateMinuteList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.HeartRateMinuteSave.sql" />
+    <Build Include="StoredProcedures\Health\dbo.SleepNightList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.SleepNightSave.sql" />
+    <Build Include="StoredProcedures\Health\dbo.WorkoutList.sql" />
+    <Build Include="StoredProcedures\Health\dbo.WorkoutSave.sql" />
+    <Build Include="StoredProcedures\Journals\dbo.JournalList.sql" />
+    <Build Include="StoredProcedures\Journals\dbo.JournalSet.sql" />
+    <Build Include="StoredProcedures\Profiles\dbo.UserProfileGet.sql" />
+    <Build Include="StoredProcedures\Profiles\dbo.UserProfileSave.sql" />
+    <Build Include="StoredProcedures\Syncs\dbo.SyncKeyDelete.sql" />
+    <Build Include="StoredProcedures\Syncs\dbo.SyncKeyGet.sql" />
+    <Build Include="StoredProcedures\Syncs\dbo.SyncKeyMark.sql" />
+    <Build Include="StoredProcedures\Syncs\dbo.SyncKeySave.sql" />
+    <Build Include="StoredProcedures\Syncs\dbo.SyncKeyUse.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserCount.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserCreate.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserDelete.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserGet.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserGetByName.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserList.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserSetPassword.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserTouchLogin.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
+    <None Include="Scripts\deploy.sh" />
+    <None Include="Dockerfile" />
+  </ItemGroup>
+
+</Project>

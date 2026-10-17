@@ -1,0 +1,15 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+# The id from GET /user/list
+@userId = 00000000000000000000000000000000
+
+### Habits of a day and what they do to recovery
+GET {{HostAddress}}/journal?userId={{userId}}&date=2026-10-16
+x-api-key: {{apiKey}}
+
+### Mark a habit
+POST {{HostAddress}}/journal
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{ "userId": "{{userId}}", "date": "2026-10-16", "tag": "Alcohol", "on": true }

@@ -1,0 +1,147 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Strain";
+    var day = Model.Day;
+    var strain = day.Strain;
+    var sleep = day.Sleep;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var tip = day.Coach.FirstOrDefault(static t => t.Area == CoachArea.Strain);
+    var zoneNames = new[] { "Warm-up", "Easy", "Aerobic", "Threshold", "Max" };
+    var zoneRanges = new[] { "50–60%", "60–70%", "70–80%", "80–90%", "90%+" };
+    var zoneColours = new[] { "var(--sky)", "var(--rec)", "var(--mid)", "var(--str)", "var(--str-2)" };
+    var zoneTotal = Math.Max(1, strain.ZoneMinutes.Sum());
+    var week = day.Recent.TakeLast(7).ToList();
+    var weekStrains = week.Select(static w => w.Strain ?? 0).ToList();
+    var weekAverage = weekStrains.Count > 0 ? weekStrains.Average() : 0;
+    var best = strain.Workouts.MaxBy(static w => w.Strain ?? 0);
+}
+
+<partial name="_PageHead" model="Model" />
+<partial name="_WeekStrip" model="Model" />
+
+@if (!day.HasData)
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="row">
+        <section class="card hero tint-str rise" style="--d:1">
+            <div class="ambient" aria-hidden="true" style="--amb: rgba(255,138,71,0.2)"></div>
+            <div class="ring-box">
+                @Charts.Ring((strain.Score ?? 0) / 21, "str", (strain.TargetLow / 21, strain.TargetHigh / 21))
+                <div class="center">
+                    <span class="big num">@Fmt.One(strain.Score)</span>
+                    <span class="lbl">Strain</span>
+                </div>
+            </div>
+            <h2 style="font-size:22px;color:var(--str-3)">Target @Fmt.One(strain.TargetLow) – @Fmt.One(strain.TargetHigh)</h2>
+            <p class="lead">@(tip?.Text ?? "Strain is the load on your heart, from 0 to 21. Every minute above half your maximum heart rate adds to it, more in the higher zones.")</p>
+            <div class="tiles t3" style="align-self:stretch">
+                <div class="tile center"><span class="k">Calories</span><span class="v">@Fmt.Whole(strain.TotalKcal)</span></div>
+                <div class="tile center"><span class="k">Active</span><span class="v">@Fmt.Whole(strain.ActiveKcal)</span></div>
+                <div class="tile center"><span class="k">Steps</span><span class="v">@Fmt.Whole(strain.Steps)</span></div>
+            </div>
+        </section>
+
+        <section class="card w2 rise" style="--d:2">
+            <div class="card-head">
+                <h2>Heart rate zones</h2>
+                <span class="side-note">max @strain.MaxHeartRate bpm</span>
+            </div>
+            <div class="zones5" aria-hidden="true">
+                @for (var z = 0; z < 5; z++)
+                {
+                    if (strain.ZoneMinutes[z] > 0)
+                    {
+                        <i class="z@(z + 1)" style="flex:@strain.ZoneMinutes[z]"></i>
+                    }
+                }
+            </div>
+            @for (var z = 4; z >= 0; z--)
+            {
+                var minutes = strain.ZoneMinutes[z];
+                <div class="list-row">
+                    <span class="ico-chip" style="--chip-bg:transparent"><i class="swatch z@(z + 1)" style="width:14px;height:14px;border-radius:5px"></i></span>
+                    <div class="grow">
+                        <span class="top"><span>Zone @(z + 1) · @zoneNames[z] <small class="dim" style="font-weight:400">@zoneRanges[z] · @((strain.MaxHeartRate * (0.5 + z * 0.1)).ToString("0"))+ bpm</small></span><span class="num">@Fmt.Duration(minutes)</span></span>
+                        <div class="meter" style="--fill:@zoneColours[z]"><i style="width:@((minutes * 100.0 / zoneTotal).ToString("0.0", inv))%"></i></div>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>Heart rate</h2>
+                <span class="side-note">@strain.MinBpm–@strain.MaxBpm bpm · average @(strain.AvgBpm?.ToString() ?? "—")</span>
+            </div>
+            @{
+                var wake = sleep.BedEnd?.Date == Model.Date.ToDateTime(TimeOnly.MinValue) ? sleep.BedEnd : null;
+                var heartLabel = $"Heart rate through the day, between {strain.MinBpm} and {strain.MaxBpm} bpm";
+            }
+            <div class="chart-wide">@Charts.DayHeart(Model.Date, day.HeartRates, wake, strain.Workouts, Model.IsToday ? Clock.Now : null, heartLabel, 640)</div>
+            <div class="chart-narrow">@Charts.DayHeart(Model.Date, day.HeartRates, wake, strain.Workouts, Model.IsToday ? Clock.Now : null, heartLabel)</div>
+            <div class="card-head" style="margin-top:6px">
+                <h2>Last 7 days</h2>
+                <span class="side-note">average @Fmt.One(weekAverage)</span>
+            </div>
+            <div class="week-bars">
+                <span class="avg" style="bottom:calc(@((weekAverage / 21 * 100).ToString("0.0", inv))% * 0.7 + 24px)"></span>
+                @for (var i = 0; i < week.Count; i++)
+                {
+                    var item = week[i];
+                    <div class="col @(item.Date == Model.Date ? "on" : "")">
+                        <span class="num" style="color:var(--text-2)">@Fmt.One(item.Strain)</span>
+                        <div class="b" style="height:@(((item.Strain ?? 0) / 21 * 70).ToString("0.0", inv))%;--i:@i"></div>
+                        <span>@(item.Date == Model.Today ? "Today" : Fmt.Weekday(item.Date))</span>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <section class="card rise" style="--d:4">
+            <div class="card-head">
+                <h2>Workouts</h2>
+                <span class="side-note">@strain.Workouts.Count @(strain.Workouts.Count == 1 ? "session" : "sessions")</span>
+            </div>
+            @if (strain.Workouts.Count == 0)
+            {
+                <p class="muted" style="font-size:14px">No workouts recorded @(Model.IsToday ? "yet today" : "this day"). Walks and errands still count: every minute above half your maximum heart rate adds strain.</p>
+            }
+            @foreach (var workout in strain.Workouts)
+            {
+                <div class="workout">
+                    <div class="top">
+                        <span class="ico-chip str">@Icons.Get(Fmt.WorkoutIcon(workout.Kind))</span>
+                        <div class="grow">
+                            <b>@Fmt.WorkoutName(workout.Kind)</b>
+                            <small>@Fmt.Clock(workout.StartedAt) · @workout.Minutes min</small>
+                        </div>
+                        <span class="pill @(workout == best ? "str" : "soft-str")">@Fmt.One(workout.Strain)</span>
+                    </div>
+                    @if (workout.HeartRates.Count > 1)
+                    {
+                        <svg class="wk-spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+                            @{
+                                var lo = workout.HeartRates.Min() - 5.0;
+                                var hi = workout.HeartRates.Max() + 5.0;
+                                var pts = string.Join(" ", workout.HeartRates.Select((b, i) => string.Create(inv, $"{i * 100.0 / (workout.HeartRates.Count - 1):0.0},{28 - (b - lo) / (hi - lo) * 26:0.0}")));
+                            }
+                            <polyline points="@pts" class="s-str" fill="none" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+                        </svg>
+                    }
+                    <div class="meta">
+                        @if (workout.DistanceKm is { } km) { <span><b>@km.ToString("0.0", inv)</b> km</span> }
+                        @if (workout.AvgBpm is { } avg) { <span>avg <b>@avg</b> bpm</span> }
+                        @if (workout.MaxBpm is { } max) { <span>max <b>@max</b> bpm</span> }
+                        @if (workout.ActiveKcal is { } kcal) { <span><b>@kcal.ToString("0")</b> kcal</span> }
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+}

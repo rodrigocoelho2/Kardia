@@ -1,0 +1,120 @@
+# Kardia on a NAS: SQL Server, the database deploy (runs once per "up" and exits), the WebApi and the Website.
+# Copy .env.example to .env next to this file and fill it in, then:  docker compose up -d --build
+
+# The stack's name, fixed so the folder can be called anything: it prefixes the volumes (kardia_sql, kardia_keys), so
+# the same name always finds the same data. Never change it on a running install.
+name: kardia
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: kardia-sql
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:?Set SQL_SA_PASSWORD in .env}
+      # Keeps SQL Server from taking most of the NAS memory.
+      MSSQL_MEMORY_LIMIT_MB: ${SQL_MEMORY_LIMIT_MB:-1024}
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    networks:
+      - default
+    ports:
+      # For SSMS / Azure Data Studio / VS Code on the LAN (server: <nas-ip>,1435 · user: sa).
+      - "${SQL_PORT:-1435}:1433"
+    volumes:
+      - sql:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Publishes the database project (tables and stored procedures) and exits: creates the Kardia database the first
+  # time, applies schema changes on later deploys.
+  db-deploy:
+    build:
+      context: .
+      dockerfile: Kardia.Database/Dockerfile
+    image: kardia-db-deploy:latest
+    container_name: kardia-db-deploy
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - default
+    environment:
+      SQL_SERVER: sqlserver
+      SQL_DATABASE: Kardia
+      SQL_USER: sa
+      SQL_PASSWORD: ${SQL_SA_PASSWORD}
+    logging: *logging
+
+  # The scores and the data. Not published on any port: only the website reaches it, over the compose network.
+  webapi:
+    build:
+      context: .
+      dockerfile: Kardia.WebApi/Dockerfile
+    image: kardia-webapi:latest
+    container_name: kardia-webapi
+    restart: unless-stopped
+    depends_on:
+      db-deploy:
+        condition: service_completed_successfully
+    networks:
+      - default
+    environment:
+      ConnectionStrings__Kardia: "Server=sqlserver,1433;Database=Kardia;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      Kardia__ApiKey: ${KARDIA_API_KEY:?Set KARDIA_API_KEY in .env}
+      Kardia__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
+      # "true" runs on sample data in memory, without SQL Server (to try it out).
+      Kardia__DemoMode: ${KARDIA_DEMO_MODE:-false}
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    logging: *logging
+
+  # Kardia (the app): http://<nas-ip>:5090 — and https://kardia.<your-domain> through Nginx Proxy Manager.
+  website:
+    build:
+      context: .
+      dockerfile: Kardia.Website/Dockerfile
+    image: kardia-website:latest
+    container_name: kardia-website
+    restart: unless-stopped
+    depends_on:
+      - webapi
+    ports:
+      - "${KARDIA_PORT:-5090}:8080"
+    environment:
+      KardiaApi__Url: http://webapi:8080/
+      KardiaApi__ApiKey: ${KARDIA_API_KEY:?Set KARDIA_API_KEY in .env}
+      # Asked for only when creating the FIRST account (the admin), so nobody else on the network can claim it.
+      Website__SetupKey: ${KARDIA_SETUP_KEY:?Set KARDIA_SETUP_KEY in .env}
+      # false = only the first account can be created from the sign-in page.
+      Website__AllowRegistration: ${KARDIA_ALLOW_REGISTRATION:-true}
+      # The address Health Auto Export reaches Kardia at, shown in Settings › Apple Watch.
+      Website__PublicUrl: ${KARDIA_PUBLIC_URL:-}
+      Website__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
+      TZ: ${TIME_ZONE:-Europe/Lisbon}
+    volumes:
+      - keys:/keys                          # session keys: "keep me signed in" survives updates
+    networks:
+      - default                             # talks to the webapi
+      - nas-net                             # Nginx Proxy Manager reaches it at http://kardia-website:8080
+    logging: *logging
+
+networks:
+  default:      # private network of this stack (SQL Server and the WebApi are not on nas-net)
+  # Shared network on the NAS; create it once with:  docker network create nas-net
+  nas-net:
+    external: true
+
+volumes:
+  sql:
+  keys:

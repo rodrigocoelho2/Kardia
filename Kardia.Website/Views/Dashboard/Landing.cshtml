@@ -1,0 +1,327 @@
+@model Kardia.Website.Model.Dashboard.LandingModel
+@{
+    ViewData["Title"] = "Kardia";
+    var start = DateTime.Today.AddHours(23).AddMinutes(48).AddDays(-1);
+    var night = new SleepDTO
+    {
+        BedStart = start,
+        BedEnd = start.AddMinutes(484),
+        Cycles = 5,
+    };
+    var plan = new (SleepStage Stage, int Minutes)[]
+    {
+        (SleepStage.Core, 18), (SleepStage.Deep, 26), (SleepStage.Core, 30), (SleepStage.Rem, 14), (SleepStage.Awake, 3), (SleepStage.Core, 24), (SleepStage.Deep, 22),
+        (SleepStage.Core, 28), (SleepStage.Rem, 22), (SleepStage.Core, 34), (SleepStage.Deep, 10), (SleepStage.Core, 26), (SleepStage.Rem, 28), (SleepStage.Awake, 4),
+        (SleepStage.Core, 38), (SleepStage.Rem, 32), (SleepStage.Core, 40), (SleepStage.Rem, 30), (SleepStage.Core, 25), (SleepStage.Awake, 4),
+    };
+    var at = start;
+    foreach (var (stage, minutes) in plan)
+    {
+        night.Segments.Add(new SleepSegmentDTO { Stage = stage, Start = at, End = at.AddMinutes(minutes) });
+        at = at.AddMinutes(minutes);
+    }
+
+    night.BedEnd = at;
+    var week = new (string Day, int Score)[] { ("Mon", 61), ("Tue", 85), ("Wed", 76), ("Thu", 72), ("Fri", 84), ("Sat", 38), ("Sun", 69) };
+    string Colour(int score) => score >= 67 ? "var(--rec)" : score >= 34 ? "var(--mid)" : "var(--low)";
+    var ticker = new (string Label, string Value, string Note, string Kind)[]
+    {
+        ("Recovery", "84%", "Ready to push", "rec"),
+        ("Sleep", "7h 40m", "92% of what you needed", "slp"),
+        ("Strain", "12.4", "target 14.3–16.3", "str"),
+        ("Biological age", "25.5", "4.9 years younger", "age"),
+        ("HRV", "68 ms", "+13% vs normal", "rec"),
+        ("Bedtime", "23:10", "pays back 35 min", "slp"),
+        ("Zone 2", "38 min", "about 25 more to target", "str"),
+        ("Alcohol", "−21 pts", "next-morning recovery", "age"),
+    };
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="lp">
+    <section class="lp-hero">
+        <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="grain" aria-hidden="true"></div>
+        <nav class="lp-nav" aria-label="Kardia">
+            <a class="brand" href="/about">@Icons.Logo(34)Kardia</a>
+            <div class="links"><a href="#how-it-works">How it works</a><a href="#try-it">Try it</a><a href="#features">Features</a><a href="#self-hosted">Self-hosted</a></div>
+            <div class="acts">
+                @if (Model.SignedIn)
+                {
+                    <a class="btn-l brand sm" href="/">Open Kardia @Icons.Get("arrow")</a>
+                }
+                else
+                {
+                    <a class="btn-l ghost sm" href="/sign-in">Sign in</a>
+                    @if (Model.CanCreateAccount)
+                    {
+                        <a class="btn-l brand sm lp-create" href="/create-account">Create account</a>
+                    }
+                }
+            </div>
+        </nav>
+
+        <div class="lp-main">
+            <div class="lp-copy">
+                <span class="lp-eyebrow in-1"><i class="ping"></i>Apple Watch · self-hosted</span>
+                <h1 class="lp-h1 in-2"><span>Wake up</span><span>knowing how</span><span class="grad-text">ready you are.</span></h1>
+                <p class="lp-lede in-3">Kardia turns what your Apple Watch already measures into a morning recovery score, a sleep coach, a daily strain target and a biological age you can move. No new band, no subscription: it runs on your own server, on your phone and your computer.</p>
+                <div class="lp-cta in-4">
+                    @if (Model.SignedIn)
+                    {
+                        <a class="btn-l brand" href="/">Open today @Icons.Get("arrow")</a>
+                    }
+                    else
+                    {
+                        <a class="btn-l brand" href="@(Model.CanCreateAccount ? "/create-account" : "/sign-in")">@(Model.CanCreateAccount ? "Get started" : "Sign in") @Icons.Get("arrow")</a>
+                        <a class="btn-l ghost" href="#try-it">See how it scores</a>
+                    }
+                </div>
+                <div class="lp-proof in-5">
+                    <span>@Icons.Get("watch")Apple Watch data</span>
+                    <span>@Icons.Get("server")Your server</span>
+                    <span>@Icons.Get("shield")No subscription</span>
+                </div>
+            </div>
+
+            <figure class="lp-art" aria-label="Kardia on a phone, with example scores">
+                <div class="phone" data-tilt aria-hidden="true">
+                    <span class="notch"></span>
+                    <div class="screen">
+                        <div>
+                            <div class="p-date">Friday, 16 October</div>
+                            <div class="p-title">Good morning, Rita</div>
+                        </div>
+                        <div class="p-hero">
+                            <div class="ambient" style="width:220px;height:220px;margin-left:-110px;top:0"></div>
+                            <div class="ring-box">@Charts.Ring(0.84, "rec")<div class="center"><span class="big num">84<small>%</small></span></div></div>
+                            <span class="kicker" style="font-size:10px">Recovery</span>
+                            <span style="font-size:12px;font-weight:600;color:var(--rec)">Ready to push</span>
+                        </div>
+                        <div class="p-pair">
+                            <div class="p-mini s"><div class="ring-box">@Charts.Ring(0.92, "slp", thin: true)<div class="center"><span class="big num">92</span></div></div><div><small>Sleep</small><b>7h 40m</b></div></div>
+                            <div class="p-mini t"><div class="ring-box">@Charts.Ring(12.4 / 21, "str", thin: true)<div class="center"><span class="big num">12.4</span></div></div><div><small>Strain</small><b>14–16</b></div></div>
+                        </div>
+                        <div class="p-coach"><b>Coach</b>Your HRV is 13% above normal. A good day for intervals: aim for strain 14–16, then be in bed by 23:10.</div>
+                        <div class="p-tab"><i class="on">@Icons.Get("today")</i><i>@Icons.Get("recovery")</i><i>@Icons.Get("sleep")</i><i>@Icons.Get("strain")</i><i>@Icons.Get("age")</i></div>
+                    </div>
+                </div>
+
+                <div class="float f-age" aria-hidden="true">
+                    <div class="t">@Icons.Get("age")Biological age<em>30 on the calendar</em></div>
+                    <div class="n num" style="margin-top:8px">25.5</div>
+                    <span class="s">4.9 years younger · ageing at 0.6×</span>
+                </div>
+                <div class="float f-sleep" aria-hidden="true">
+                    <div class="t">@Icons.Get("sleep")Last night<em>23:48 → 07:52</em></div>
+                    <b>7h 40m <span class="s" style="font-weight:400">· 5 cycles</span></b>
+                    <div class="bars">
+                        @foreach (var (stage, minutes) in plan)
+                        {
+                            var (height, colour) = stage switch
+                            {
+                                SleepStage.Awake => (100, "#F2F4F7"),
+                                SleepStage.Rem => (72, "var(--slp-3)"),
+                                SleepStage.Core => (46, "var(--slp)"),
+                                _ => (22, "var(--slp-2)"),
+                            };
+                            <i style="height:@height%;background:@colour;flex:@minutes"></i>
+                        }
+                    </div>
+                </div>
+                <div class="float f-hr" aria-hidden="true">
+                    <div class="t">@Icons.Get("heart")Heart rate<em>live</em></div>
+                    <b><span class="num" data-bpm>68</span> bpm</b>
+                    <svg viewBox="0 0 220 44" preserveAspectRatio="none"><path class="ecg" d="M0 26 H40 L48 26 L54 8 L62 40 L70 22 L78 26 H120 L128 26 L134 6 L142 40 L150 22 L158 26 H220" /></svg>
+                </div>
+                <div class="float f-push" aria-hidden="true">
+                    <div class="t">@Icons.Logo(16)Kardia<em>07:58</em></div>
+                    <div class="row"><p><b style="display:inline;font-size:13px">Recovery 84% — ready to push.</b> Last night came up 35 min short; tonight, bed by 23:10.</p></div>
+                </div>
+            </figure>
+        </div>
+    </section>
+
+    <div class="lp-ticker" aria-hidden="true">
+        <div class="track">
+            @for (var copy = 0; copy < 2; copy++)
+            {
+                foreach (var (label, value, note, kind) in ticker)
+                {
+                    <span>@label <b>@value</b><em class="@kind">@note</em></span>
+                }
+            }
+        </div>
+    </div>
+
+    <section class="lp-sec" id="how-it-works">
+        <div class="reveal">
+            <div class="lp-kick">@Icons.Get("sync")How it works</div>
+            <h2 class="lp-h2">Your watch measures. <span class="grad-text">Kardia explains.</span></h2>
+            <p class="lp-sub">Your Apple Watch already records heart rate, HRV, sleep stages and workouts into Apple Health. Kardia reads them, compares them with your own normal and tells you what they mean for today.</p>
+        </div>
+        <div class="lp-steps">
+            <div class="lp-step reveal">
+                <span class="n">1</span>
+                <h3>Wear your watch</h3>
+                <p>Day and night, like you already do. Sleep tracking on, nothing else to install on the watch.</p>
+                <div class="art">@Icons.Get("watch")Apple Watch → Apple Health</div>
+            </div>
+            <div class="lp-step reveal" style="--i:1;--g:var(--grad-slp);--gc:rgba(142,140,255,0.7)">
+                <span class="n">2</span>
+                <h3>Sync from the iPhone</h3>
+                <p>Health Auto Export (or a Shortcut) sends the data to your Kardia every few minutes with a personal key.</p>
+                <div class="art">@Icons.Get("key")POST /api/sync · X-Kardia-Key</div>
+            </div>
+            <div class="lp-step reveal" style="--i:2;--g:var(--grad-str);--gc:rgba(255,138,71,0.6)">
+                <span class="n">3</span>
+                <h3>Open today</h3>
+                <p>Recovery, last night's sleep, a strain target and a coach that reads the numbers for you. Phone or computer.</p>
+                <div class="art">@Icons.Get("today")84% · 7h 40m · 12.4</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-sec" id="try-it">
+        <div class="reveal">
+            <div class="lp-kick">@Icons.Get("recovery")Try it</div>
+            <h2 class="lp-h2">Move last night. <span class="grad-text">Watch the morning change.</span></h2>
+            <p class="lp-sub">Recovery weighs your heart rate variability, resting heart rate and sleep against your own 30-day normal. Drag the sliders: this is the same formula the app uses, simplified.</p>
+        </div>
+        <div class="lp-demo reveal" data-demo>
+            <div class="lp-panel">
+                <div>
+                    <h3>Last night</h3>
+                    <p class="help">Compared with your normal.</p>
+                </div>
+                <label class="slider" style="--c:var(--rec)">
+                    <span class="top"><span>Heart rate variability</span><b data-out="hrv">+10%</b></span>
+                    <input type="range" min="-40" max="40" step="1" value="10" data-in="hrv" aria-label="Heart rate variability versus normal" />
+                    <span class="ticks"><span>−40%</span><span>normal</span><span>+40%</span></span>
+                </label>
+                <label class="slider" style="--c:var(--rose)">
+                    <span class="top"><span>Resting heart rate</span><b data-out="rhr">−1 bpm</b></span>
+                    <input type="range" min="-6" max="10" step="1" value="-1" data-in="rhr" aria-label="Resting heart rate versus normal" />
+                    <span class="ticks"><span>−6</span><span>normal</span><span>+10</span></span>
+                </label>
+                <label class="slider" style="--c:var(--slp)">
+                    <span class="top"><span>Sleep</span><b data-out="sleep">7h 40m</b></span>
+                    <input type="range" min="240" max="600" step="10" value="460" data-in="sleep" aria-label="Hours of sleep" />
+                    <span class="ticks"><span>4h</span><span>need 8h 15m</span><span>10h</span></span>
+                </label>
+            </div>
+            <div class="lp-panel">
+                <div class="demo-out">
+                    <div class="ring-box" data-ring>
+                        @Charts.Ring(0.75, "rec")
+                        <div class="center"><span class="big num"><span data-out="score">75</span><small>%</small></span><span class="lbl">Recovery</span></div>
+                    </div>
+                    <div class="words">
+                        <span class="zone" data-out="zone" style="color:var(--rec)">Ready to push</span>
+                        <p data-out="advice">Your body is ready: intervals, a long ride or a heavy session will pay off.</p>
+                        <span class="tgt">@Icons.Get("strain")Strain target <span data-out="target">13.1–15.1</span></span>
+                    </div>
+                </div>
+                <div class="notice" style="font-size:13px">
+                    @Icons.Get("info")
+                    <span>In the app, “normal” is your own last 30 days, and respiratory rate and wrist temperature count too. Kardia isn't a medical device.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-sec" id="features">
+        <div class="reveal">
+            <div class="lp-kick">@Icons.Get("sparkle")Features</div>
+            <h2 class="lp-h2">Everything your mornings need. <span class="grad-text">Nothing you have to log.</span></h2>
+        </div>
+        <div class="lp-bento">
+            <div class="lp-tile t-rec reveal">
+                <h3>Recovery, every morning</h3>
+                <p>From 1 to 99%, green, yellow or red, with what moved it: HRV, resting heart rate, breathing, temperature and sleep.</p>
+                <div class="vis week-rings">
+                    @foreach (var (day, score) in week)
+                    {
+                        <div><span class="mr">@Charts.MiniRing(score / 100.0, Colour(score))<span>@score</span></span>@day</div>
+                    }
+                </div>
+            </div>
+            <div class="lp-tile t-slp reveal" style="--i:1">
+                <h3>A sleep coach</h3>
+                <p>Stages, cycles, efficiency and consistency, plus how much you need tonight after today's strain and your sleep debt — and when to be in bed.</p>
+                <div class="vis">@Charts.Hypnogram(night)</div>
+            </div>
+            <div class="lp-tile t-str reveal">
+                <h3>Strain, 0 to 21</h3>
+                <p>The load on your heart through the day, with a target that follows your recovery.</p>
+                <div class="vis strain-scale">
+                    <div class="row"><b>18</b><i style="width:66%"></i>all out</div>
+                    <div class="row"><b>14</b><i style="width:51%"></i>hard</div>
+                    <div class="row"><b>10</b><i style="width:36%"></i>moderate</div>
+                    <div class="row"><b>6</b><i style="width:22%"></i>light</div>
+                </div>
+            </div>
+            <div class="lp-tile t-age reveal" style="--i:1">
+                <h3>Your biological age</h3>
+                <p>Cardio fitness, resting heart rate, HRV, sleep, steps and training compared with what's typical for your age — and how fast you're ageing over the last three months.</p>
+                <div class="vis age-vis">
+                    <div class="n num">25.5<small>vs. 30 on the calendar</small></div>
+                    <ul>
+                        <li><span>Resting heart rate</span><span class="diverge"><i class="minus" style="width:28%"></i></span><b class="good-t">−1.4</b></li>
+                        <li><span>Time in zone 2+</span><span class="diverge"><i class="minus" style="width:24%"></i></span><b class="good-t">−1.2</b></li>
+                        <li><span>Cardio fitness</span><span class="diverge"><i class="minus" style="width:22%"></i></span><b class="good-t">−1.1</b></li>
+                        <li><span>Body mass index</span><span class="diverge"><i class="plus" style="width:8%"></i></span><b class="warn-t">+0.4</b></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="lp-tile t-jou reveal">
+                <h3>A journal that answers back</h3>
+                <p>Tap what you did yesterday. After a few weeks Kardia shows what really moves your recovery.</p>
+                <div class="vis" style="display:flex;flex-direction:column;gap:14px">
+                    <div class="jou-tags"><span class="on">Alcohol</span><span>Late caffeine</span><span class="on">Stretching</span><span>Sauna</span><span>Screens in bed</span><span>Magnesium</span></div>
+                    <div class="jou-effect"><b>−21</b>points of recovery the morning after alcohol, over 21 days.</div>
+                </div>
+            </div>
+            <div class="lp-tile t-self reveal" style="--i:1" id="self-hosted">
+                <h3>Yours, on your server</h3>
+                <p>One Docker Compose file on your NAS. Your health data never leaves your house.</p>
+                <div class="vis self">
+                    <div class="it"><span class="ico-chip rec">@Icons.Get("server")</span><div><b>Docker on your NAS</b><span>SQL Server, the API and the website.</span></div></div>
+                    <div class="it"><span class="ico-chip slp">@Icons.Get("user")</span><div><b>Accounts for the house</b><span>Everyone sees only their own data.</span></div></div>
+                    <div class="it"><span class="ico-chip str">@Icons.Get("today")</span><div><b>Phone and computer</b><span>Add it to the home screen like an app.</span></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-final reveal">
+        <div class="lp-final-in">
+            <div>
+                <h2>Tomorrow morning, <span class="grad-text">know before you go.</span></h2>
+                <p>Connect your Apple Watch once. Kardia takes it from there.</p>
+            </div>
+            <div class="acts">
+                @if (Model.SignedIn)
+                {
+                    <a class="btn-l brand" href="/">Open Kardia @Icons.Get("arrow")</a>
+                }
+                else
+                {
+                    <a class="btn-l brand" href="@(Model.CanCreateAccount ? "/create-account" : "/sign-in")">@(Model.CanCreateAccount ? "Create your account" : "Sign in") @Icons.Get("arrow")</a>
+                    <small>Already have one? <a href="/sign-in" style="color:var(--rec);font-weight:600">Sign in</a></small>
+                }
+            </div>
+        </div>
+    </section>
+
+    <footer class="lp-foot">
+        <span>@Icons.Logo(20)Kardia @Model.Version</span>
+        <span>Not a medical device. Not affiliated with Apple.</span>
+    </footer>
+</div>
+
+@section Scripts {
+    <script src="~/js/landing.js" asp-append-version="true"></script>
+}

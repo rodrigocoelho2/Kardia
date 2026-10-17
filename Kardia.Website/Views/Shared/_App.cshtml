@@ -1,0 +1,92 @@
+@model AppPageModel
+@{
+    Layout = "_Layout";
+    var currentSection = Model.Section;
+    string Current(AppSection s) => s == currentSection ? "page" : null!;
+    var tabs = new[]
+    {
+        (AppSection.Today, "/", "today", "Today"),
+        (AppSection.Recovery, "/recovery", "recovery", "Recovery"),
+        (AppSection.Sleep, "/sleep", "sleep", "Sleep"),
+        (AppSection.Strain, "/strain", "strain", "Strain"),
+        (AppSection.Age, "/age", "age", "Age"),
+    };
+    var dateQuery = Model.IsToday || currentSection is AppSection.Age or AppSection.Settings ? string.Empty : "?date=" + Fmt.Iso(Model.Date);
+    var lastSync = Model.LastSyncAt;
+}
+<div class="app sec-@currentSection.ToString().ToLowerInvariant()">
+    <aside class="side">
+        <a class="brand" href="/">@Icons.Logo(34)Kardia</a>
+        <nav class="nav" aria-label="Kardia">
+            <span class="nav-h">Your day</span>
+            @foreach (var (s, href, icon, name) in tabs)
+            {
+                <a href="@(href)@(s is AppSection.Age ? string.Empty : dateQuery)" aria-current="@Current(s)">@Icons.Get(icon)@name</a>
+            }
+            <span class="nav-h">More</span>
+            <a href="/journal@(dateQuery)" aria-current="@Current(AppSection.Journal)">@Icons.Get("journal")Journal</a>
+            <a href="/settings" aria-current="@Current(AppSection.Settings)">@Icons.Get("settings")Settings</a>
+            <a href="/about">@Icons.Get("info")About Kardia</a>
+        </nav>
+        <div class="device">
+            <div class="row">
+                <span class="ico">@Icons.Get("watch")</span>
+                <div>
+                    <b>Apple Watch</b>
+                    @if (lastSync is { } synced)
+                    {
+                        <small><span class="live-dot"></span>Synced @Fmt.Ago(synced)</small>
+                    }
+                    else
+                    {
+                        <small><span class="live-dot off"></span><a href="/settings#apple-watch">Connect it</a></small>
+                    }
+                </div>
+            </div>
+            <form method="post" action="/sign-out">
+                @Html.AntiForgeryToken()
+                <button class="btn ghost small" type="submit">@Icons.Get("logout")Sign out @Model.UserName</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="main">
+        <div class="glow-top" aria-hidden="true"></div>
+        <header class="phone-top">
+            <a class="brand" href="/">@Icons.Logo(28)Kardia</a>
+            <div class="acts">
+                <a class="icon-btn" href="/journal@(dateQuery)" aria-label="Journal">@Icons.Get("journal")</a>
+                <a class="avatar" href="/settings" aria-label="Settings (@Model.UserName)">@Model.Initials</a>
+            </div>
+        </header>
+        <main class="page">
+            @if (Model.Unavailable is { } problem)
+            {
+                <section class="card empty">
+                    <span class="ico-chip str">@Icons.Get("server")</span>
+                    <h2>Kardia's engine isn't answering</h2>
+                    <p>@problem</p>
+                    <a class="btn ghost" href="">Try again</a>
+                </section>
+            }
+            else
+            {
+                @RenderBody()
+            }
+        </main>
+    </div>
+
+    <nav class="tabbar" aria-label="Kardia">
+        @foreach (var (s, href, icon, name) in tabs)
+        {
+            <a href="@(href)@(s is AppSection.Age ? string.Empty : dateQuery)" aria-current="@Current(s)">@Icons.Get(icon)@name</a>
+        }
+    </nav>
+</div>
+@section Head {
+    @await RenderSectionAsync("Head", required: false)
+}
+@section Scripts {
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+}

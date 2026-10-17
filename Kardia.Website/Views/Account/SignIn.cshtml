@@ -1,0 +1,70 @@
+@model Kardia.Website.Model.Account.AccountPageModel
+@{
+    ViewData["Title"] = "Sign in";
+    ViewData["Tab"] = "sign-in";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="au">
+    <partial name="_AccountSide" model="Model" />
+
+    <main class="au-main">
+        <form class="au-form" method="post" action="/sign-in" autocomplete="on">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+            <div>
+                <h1>Sign in</h1>
+                <p class="lead2">Your recovery is waiting.</p>
+            </div>
+
+            <partial name="_AccountCard" model="Model" />
+
+            @if (Model.DemoUserName is { } demoUser)
+            {
+                <div class="au-demo">
+                    @Icons.Get("sparkle")
+                    <span>Demo mode: sign in as <b>@demoUser</b> / <b>@Model.DemoPassword</b>.</span>
+                    <button type="button" class="btn rec small" data-demo-fill data-user="@demoUser" data-pass="@Model.DemoPassword">Try it</button>
+                </div>
+            }
+
+            <label class="au-field">
+                User name
+                <span class="au-in">
+                    @Icons.Get("user")
+                    <input name="userName" type="text" value="@Model.UserName" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus />
+                </span>
+            </label>
+
+            <label class="au-field">
+                Password
+                <span class="au-in">
+                    @Icons.Get("lock")
+                    <input id="password" name="password" type="password" autocomplete="current-password" required />
+                    <button type="button" class="password-toggle" data-for="password" aria-pressed="false" aria-label="Show password">@Icons.Get("eye")</button>
+                </span>
+            </label>
+
+            <label class="au-check">
+                <input type="checkbox" name="remember" value="true" @(Model.Remember ? "checked" : "") />
+                <span>Keep me signed in on this device <small>(@Model.RememberDays days)</small></span>
+            </label>
+
+            <button class="btn-l brand" type="submit">Sign in @Icons.Get("arrow")</button>
+
+            @if (Model.CanCreateAccount)
+            {
+                <p class="au-fine">No account yet? <a href="/create-account">Create one</a></p>
+            }
+            else
+            {
+                <p class="au-fine">No account yet? Ask whoever runs this Kardia to create one for you.</p>
+            }
+        </form>
+    </main>
+</div>
+
+<partial name="_PasswordToggle" />

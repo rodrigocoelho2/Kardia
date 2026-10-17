@@ -1,0 +1,16 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+# The id from GET /user/list
+@userId = 00000000000000000000000000000000
+
+### Today (recovery, sleep, strain, heart rate, coach)
+GET {{HostAddress}}/day?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Another day
+GET {{HostAddress}}/day?userId={{userId}}&date=2026-10-15
+x-api-key: {{apiKey}}
+
+### A summary per day (up to 400 days)
+GET {{HostAddress}}/day/range?userId={{userId}}&from=2026-09-17&to=2026-10-16
+x-api-key: {{apiKey}}

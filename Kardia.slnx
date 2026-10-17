@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Kardia.Database/Kardia.Database.sqlproj" Type="42ea0dbd-9cf1-443e-919e-be9c484e4577" />
+  <Project Path="Kardia.Library/Kardia.Library.csproj" />
+  <Project Path="Kardia.Sdk/Kardia.Sdk.csproj" />
+  <Project Path="Kardia.UnitTest/Kardia.UnitTest.csproj" />
+  <Project Path="Kardia.WebApi/Kardia.WebApi.csproj" />
+  <Project Path="Kardia.Website/Kardia.Website.csproj" />
+</Solution>

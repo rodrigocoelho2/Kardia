@@ -1,0 +1,4 @@
+@HostAddress = http://127.0.0.1:5091
+
+### Status (no key needed)
+GET {{HostAddress}}/health

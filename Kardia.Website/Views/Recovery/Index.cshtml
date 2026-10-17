@@ -1,0 +1,136 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Recovery";
+    var day = Model.Day;
+    var rec = day.Recovery;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var tip = day.Coach.FirstOrDefault(static t => t.Area == CoachArea.Recovery);
+    string Pct(double value) => Math.Clamp(value, 0, 100).ToString("0.0", inv) + "%";
+    var hrvChange = rec.Hrv is { } h && rec.HrvBaseline > 0 ? (h - rec.HrvBaseline) / rec.HrvBaseline * 100 : 0;
+    var restChange = rec.RestingHeartRate is { } r ? r - rec.RestingBaseline : 0;
+}
+
+<partial name="_PageHead" model="Model" />
+<partial name="_WeekStrip" model="Model" />
+
+@if (!day.HasData)
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="row">
+        <section class="card hero rise" style="--d:1">
+            <div class="ambient" aria-hidden="true" style="--amb: @(rec.Zone == RecoveryZone.Low ? "rgba(255,107,107,0.2)" : rec.Zone == RecoveryZone.Medium ? "rgba(245,196,81,0.2)" : "rgba(91,227,166,0.22)")"></div>
+            <div class="ring-box">
+                @Charts.Ring((rec.Score ?? 0) / 100.0, Fmt.ZonePalette(rec.Zone))
+                <div class="center">
+                    <span class="big num">@(rec.Score?.ToString() ?? "—")<small>%</small></span>
+                    <span class="lbl">Recovery</span>
+                </div>
+            </div>
+            <h2 class="z-@rec.Zone" style="font-size:22px">@Fmt.ZoneHeadline(rec.Zone)</h2>
+            <p class="lead">@(tip?.Text ?? "Recovery compares last night's HRV, resting heart rate, breathing and sleep with your own 30-day normal.")</p>
+            <div class="zones" aria-hidden="true">
+                <div class="bar"><i></i><i></i><i></i>@if (rec.Score is { } score) { <span class="mark" style="left:@Pct(score)"></span> }</div>
+                <div class="scale"><span>Low · 1–33</span><span>Medium · 34–66</span><span>High · 67–99</span></div>
+            </div>
+        </section>
+
+        <section class="card w2 rise" style="--d:2">
+            <div class="card-head">
+                <h2>What moved it</h2>
+                <span class="side-note">last night vs. your 30-day normal</span>
+            </div>
+            <div class="list-row">
+                <span class="ico-chip rec">@Icons.Get("recovery")</span>
+                <div class="grow">
+                    <span class="top"><span>Heart rate variability</span><span class="num">@(rec.Hrv?.ToString("0") ?? "—") <small>ms</small> <span class="@(hrvChange >= 0 ? "good-t" : "warn-t")" style="font-size:12px">@Fmt.Signed(hrvChange, "%")</span></span></span>
+                    <div class="meter" style="--fill:var(--rec)"><i style="width:@Pct((rec.Hrv ?? 0) / Math.Max(1, rec.HrvBaseline * 1.6) * 100)"></i><b style="left:@Pct(100 / 1.6)"></b></div>
+                    <small>Normal @rec.HrvBaseline.ToString("0") ms · the biggest part of the score (45%)</small>
+                </div>
+            </div>
+            <div class="list-row">
+                <span class="ico-chip rose">@Icons.Get("heart")</span>
+                <div class="grow">
+                    <span class="top"><span>Resting heart rate</span><span class="num">@(rec.RestingHeartRate?.ToString("0") ?? "—") <small>bpm</small> <span class="@(restChange <= 0 ? "good-t" : "warn-t")" style="font-size:12px">@Fmt.Signed(restChange)</span></span></span>
+                    <div class="meter" style="--fill:var(--rose)"><i style="width:@Pct((rec.RestingHeartRate ?? 0) / Math.Max(1, rec.RestingBaseline * 1.4) * 100)"></i><b style="left:@Pct(100 / 1.4)"></b></div>
+                    <small>Normal @rec.RestingBaseline.ToString("0") bpm · lower than usual is better (25%)</small>
+                </div>
+            </div>
+            <div class="list-row">
+                <span class="ico-chip slp">@Icons.Get("sleep")</span>
+                <div class="grow">
+                    <span class="top"><span>Sleep performance</span><span class="num">@(rec.SleepPerformance?.ToString() ?? "—")<small>%</small></span></span>
+                    <div class="meter" style="--fill:var(--slp)"><i style="width:@Pct(rec.SleepPerformance ?? 0)"></i><b style="left:85%"></b></div>
+                    <small>Sleep you got against sleep you needed (20%)</small>
+                </div>
+            </div>
+            <div class="list-row">
+                <span class="ico-chip sky">@Icons.Get("lungs")</span>
+                <div class="grow">
+                    <span class="top"><span>Respiratory rate</span><span class="num">@Fmt.One(rec.RespiratoryRate) <small>rpm</small></span></span>
+                    <div class="meter" style="--fill:var(--sky)"><i style="width:@Pct((rec.RespiratoryRate ?? 0) / Math.Max(1, rec.RespiratoryBaseline * 1.5) * 100)"></i><b style="left:@Pct(100 / 1.5)"></b></div>
+                    <small>Normal @rec.RespiratoryBaseline.ToString("0.0", inv) rpm · a jump can mean you're coming down with something</small>
+                </div>
+            </div>
+            @if (rec.WristTemperatureChange is { } temperature)
+            {
+                <div class="list-row">
+                    <span class="ico-chip mid">@Icons.Get("temp")</span>
+                    <div class="grow">
+                        <span class="top"><span>Wrist temperature</span><span class="num">@Fmt.Signed(temperature, "", 1) <small>°C</small></span></span>
+                        <div class="meter" style="--fill:var(--mid)"><i style="width:@Pct(50 + temperature * 40)"></i><b style="left:50%"></b></div>
+                        <small>Change from your normal while you slept</small>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>HRV · 30 days</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:var(--rec)"></i>HRV</span>
+                    <span><i class="swatch" style="background:rgba(255,255,255,0.2)"></i>Your normal</span>
+                </div>
+            </div>
+            @Charts.Trend(day.HrvTrend, rec.HrvBaseline, "line-hrv", $"Heart rate variability over 30 days; your normal is {rec.HrvBaseline:0} ms")
+            <div class="tiles t3">
+                @{
+                    var hrvs = day.HrvTrend.Where(static p => p.Value is not null).Select(static p => p.Value!.Value).ToList();
+                }
+                <div class="tile"><span class="k">Lowest</span><span class="v">@(hrvs.Count > 0 ? hrvs.Min().ToString("0") : "—")<small> ms</small></span></div>
+                <div class="tile"><span class="k">Average</span><span class="v">@(hrvs.Count > 0 ? hrvs.Average().ToString("0") : "—")<small> ms</small></span></div>
+                <div class="tile"><span class="k">Highest</span><span class="v" style="color:var(--rec)">@(hrvs.Count > 0 ? hrvs.Max().ToString("0") : "—")<small> ms</small></span></div>
+            </div>
+        </section>
+
+        <section class="card rise" style="--d:4">
+            <div class="card-head">
+                <h2>What it means today</h2>
+            </div>
+            <div class="tile" style="gap:10px">
+                <span class="k">Strain target</span>
+                <span class="v" style="color:var(--str)">@Fmt.One(rec.TargetLow) – @Fmt.One(rec.TargetHigh)</span>
+                <small class="muted">@(rec.Zone switch
+                {
+                    RecoveryZone.High => "Your body is ready: intervals, a long ride or a heavy session will pay off.",
+                    RecoveryZone.Medium => "A normal day: train, but keep the hardest work for a green day.",
+                    RecoveryZone.Low => "Keep it light: walk, stretch, sleep early. Hard training today costs more than it gives.",
+                    _ => "Once a night is synced, Kardia suggests how hard to go.",
+                })</small>
+            </div>
+            <ul class="tips">
+                @foreach (var item in day.Coach.Where(static t => t.Area is CoachArea.Journal or CoachArea.Sleep).Take(2))
+                {
+                    <li class="@item.Tone"><span><b>@item.Title.</b> @item.Text</span></li>
+                }
+            </ul>
+            <a class="btn ghost small" href="/strain@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))" style="margin-top:auto">@Icons.Get("strain")See today's strain</a>
+        </section>
+    </div>
+}

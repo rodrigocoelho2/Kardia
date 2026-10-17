@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Unit tests: the scores (recovery, sleep, strain, biological age), the Apple Health parser and the services, run
+       against the in-memory repositories and the demo data with a fixed clock (no database, no network). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kardia.Library\Kardia.Library.csproj" />
+    <ProjectReference Include="..\Kardia.Sdk\Kardia.Sdk.csproj" />
+    <ProjectReference Include="..\Kardia.WebApi\Kardia.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>

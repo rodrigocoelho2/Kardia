@@ -1,0 +1,329 @@
+using System.Globalization;
+using System.Text;
+using Kardia.Library.Enums;
+using Kardia.Sdk.Models;
+using Microsoft.AspNetCore.Html;
+
+namespace Kardia.Website.Helpers;
+
+/// <summary>
+/// The charts, drawn on the server as inline SVG (no chart library, nothing to load): the score rings, the heart rate
+/// through the day, the hypnogram, trend lines and sparklines. Every SVG scales with its box; colours come from the
+/// palettes in app.css.
+/// </summary>
+public static class Charts
+{
+    /// <summary>The circumference of the ring (r = 90).</summary>
+    public const double RingLength = 565.49;
+
+    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    private static int _ids;
+
+    /// <summary>The gradient stops of each palette.</summary>
+    private static readonly Dictionary<string, string[]> Palettes = new(StringComparer.Ordinal)
+    {
+        ["rec"] = ["#C6FFE6", "#5BE3A6", "#17A86F"],
+        ["mid"] = ["#FFEDB8", "#F5C451", "#D9951A"],
+        ["low"] = ["#FFC9C9", "#FF6B6B", "#E0444A"],
+        ["slp"] = ["#ECEBFF", "#8E8CFF", "#5A57F0"],
+        ["str"] = ["#FFD3A8", "#FF8A47", "#FF4D6D"],
+        ["age"] = ["#C6FFE6", "#7CC7FF", "#8E8CFF"],
+    };
+
+    /// <summary>
+    /// A score ring: track, scale ticks, the value in a gradient with a soft glow, and a knob at its end.
+    /// </summary>
+    /// <param name="fraction">How full, 0–1.</param>
+    /// <param name="palette">rec, mid, low, slp, str or age.</param>
+    /// <param name="target">An arc drawn outside the ring (e.g. the strain target), as fractions.</param>
+    /// <param name="thin">A thinner ring for small sizes.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Ring(double fraction, string palette, (double From, double To)? target = null, bool thin = false)
+    {
+        var id = NextId();
+        var stops = Palettes.TryGetValue(palette, out var colors) ? colors : Palettes["rec"];
+        var value = Math.Clamp(fraction, 0, 1);
+        var length = value * RingLength;
+        var angle = value * 2 * Math.PI;
+        var knobX = 110 + 90 * Math.Cos(angle);
+        var knobY = 110 + 90 * Math.Sin(angle);
+        var width = thin ? 16 : 14;
+
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"ring\" viewBox=\"0 0 220 220\" aria-hidden=\"true\"><defs>");
+        svg.Append(Invariant, $"<linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"{stops[0]}\"/><stop offset=\"0.5\" stop-color=\"{stops[1]}\"/><stop offset=\"1\" stop-color=\"{stops[2]}\"/></linearGradient>");
+        svg.Append(Invariant, $"<filter id=\"{id}g\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"><feGaussianBlur stdDeviation=\"7\"/></filter></defs>");
+        if (!thin)
+        {
+            svg.Append("<circle cx=\"110\" cy=\"110\" r=\"104\" fill=\"none\" class=\"ring-ticks\" stroke-width=\"5\" stroke-dasharray=\"1.2 9.69\"/>");
+        }
+
+        svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-track\" stroke-width=\"{width}\"/>");
+        svg.Append("<g transform=\"rotate(-90 110 110)\">");
+        if (target is { } arc && !thin)
+        {
+            const double outer = 2 * Math.PI * 104;
+            var from = Math.Clamp(arc.From, 0, 1) * outer;
+            var span = Math.Max(2, (Math.Clamp(arc.To, 0, 1) - Math.Clamp(arc.From, 0, 1)) * outer);
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"104\" fill=\"none\" class=\"ring-target\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-dasharray=\"{span:0.0} {outer:0.0}\" stroke-dashoffset=\"{-from:0.0}\"/>");
+        }
+
+        if (length > 0.5)
+        {
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke=\"url(#{id})\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\" filter=\"url(#{id}g)\" opacity=\"0.6\"/>");
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke=\"url(#{id})\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\"/>");
+            svg.Append(Invariant, $"<circle class=\"ring-knob\" cx=\"{knobX:0.0}\" cy=\"{knobY:0.0}\" r=\"{(thin ? 10 : 9)}\"/>");
+        }
+
+        svg.Append("</g></svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>
+    /// A small ring without glow (the week strip).
+    /// </summary>
+    /// <param name="fraction">How full, 0–1.</param>
+    /// <param name="cssColor">The stroke colour (a CSS value).</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent MiniRing(double fraction, string cssColor)
+    {
+        var length = Math.Clamp(fraction, 0, 1) * 94.25;
+        return new HtmlString(string.Create(Invariant,
+            $"<svg class=\"mini-ring\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" class=\"ring-track\" stroke-width=\"4\"/><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" stroke=\"{cssColor}\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} 94.25\" transform=\"rotate(-90 20 20)\" class=\"ring-val\"/></svg>"));
+    }
+
+    /// <summary>
+    /// The heart rate through a day, with the night and the workouts shaded and "now" marked.
+    /// </summary>
+    /// <param name="day">The day.</param>
+    /// <param name="points">5-minute heart-rate points.</param>
+    /// <param name="sleepEnd">When last night ended (the sleep band runs from midnight to it).</param>
+    /// <param name="workouts">The workouts.</param>
+    /// <param name="now">The current time (today only).</param>
+    /// <param name="label">What a screen reader hears.</param>
+    /// <param name="width">The drawing width (wider for big cards, so the text keeps its size).</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent DayHeart(DateOnly day, IReadOnlyList<HeartRatePointDTO> points, DateTime? sleepEnd, IReadOnlyList<WorkoutDTO> workouts, DateTime? now, string label, double width = 350)
+    {
+        const double top = 8, bottom = 110;
+        var start = day.ToDateTime(TimeOnly.MinValue);
+        double X(DateTime time) => Math.Clamp((time - start).TotalMinutes / 1440 * width, 0, width);
+        var low = Math.Min(40, points.Count > 0 ? points.Min(static p => p.Bpm) - 5 : 40);
+        var high = Math.Max(150, points.Count > 0 ? points.Max(static p => p.Bpm) + 8 : 150);
+        double Y(double bpm) => bottom - (bpm - low) / (high - low) * (bottom - top - 6);
+
+        var svg = new StringBuilder();
+        var id = NextId();
+        svg.Append(Invariant, $"<svg class=\"chart-day\" viewBox=\"0 0 {width:0} 128\" role=\"img\" aria-label=\"{Escape(label)}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FF8A47\" stop-opacity=\"0.45\"/><stop offset=\"1\" stop-color=\"#FF8A47\" stop-opacity=\"0\"/></linearGradient></defs>");
+        if (sleepEnd is { } wake && wake > start)
+        {
+            var w = X(wake);
+            svg.Append(Invariant, $"<rect x=\"0\" y=\"{top}\" width=\"{w:0.0}\" height=\"{bottom - top}\" rx=\"10\" class=\"band-sleep\"/>");
+            if (w > 40)
+            {
+                svg.Append(Invariant, $"<text x=\"8\" y=\"22\" class=\"band-label sleep\">Sleep</text>");
+            }
+        }
+
+        foreach (var workout in workouts)
+        {
+            var x = X(workout.StartedAt);
+            var w = Math.Max(6, X(workout.StartedAt.AddMinutes(workout.Minutes)) - x);
+            svg.Append(Invariant, $"<rect x=\"{x:0.0}\" y=\"{top}\" width=\"{w:0.0}\" height=\"{bottom - top}\" rx=\"6\" class=\"band-workout\"/>");
+        }
+
+        if (points.Count > 1)
+        {
+            var line = string.Join(" L", points.Select(p => string.Create(Invariant, $"{X(p.At):0.0},{Y(p.Bpm):0.0}")));
+            var last = points[^1];
+            svg.Append(Invariant, $"<path d=\"M{X(points[0].At):0.0},{bottom} L{line} L{X(last.At):0.0},{bottom} Z\" fill=\"url(#{id})\"/>");
+            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"line-heart\"/>");
+            if (now is { } clock)
+            {
+                var x = X(clock < last.At.AddMinutes(10) ? clock : last.At);
+                svg.Append(Invariant, $"<line x1=\"{x:0.0}\" y1=\"{top}\" x2=\"{x:0.0}\" y2=\"{bottom}\" class=\"now-line\"/>");
+                svg.Append(Invariant, $"<circle cx=\"{X(last.At):0.0}\" cy=\"{Y(last.Bpm):0.0}\" r=\"5\" class=\"now-dot\"/>");
+            }
+        }
+
+        foreach (var (hour, text) in new[] { (0, "00h"), (6, "06h"), (12, "12h"), (18, "18h"), (24, "24h") })
+        {
+            var x = hour / 24.0 * width;
+            var anchor = hour == 0 ? "start" : hour == 24 ? "end" : "middle";
+            svg.Append(Invariant, $"<text x=\"{x:0.0}\" y=\"124\" text-anchor=\"{anchor}\" class=\"axis\">{text}</text>");
+        }
+
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>
+    /// The hypnogram: one lane per stage, the night from bedtime to getting up.
+    /// </summary>
+    /// <param name="sleep">The night.</param>
+    /// <param name="width">The drawing width (wider for big cards, so the text keeps its size).</param>
+    /// <returns>The SVG (empty when only totals were synced).</returns>
+    public static IHtmlContent Hypnogram(SleepDTO sleep, double width = 360)
+    {
+        if (sleep.Segments.Count == 0 || sleep.BedStart is not { } start || sleep.BedEnd is not { } end || end <= start)
+        {
+            return HtmlString.Empty;
+        }
+
+        const double left = 60;
+        var right = width - 8;
+        var total = (end - start).TotalMinutes;
+        double X(DateTime time) => left + Math.Clamp((time - start).TotalMinutes / total, 0, 1) * (right - left);
+        static double Lane(SleepStage stage) => stage switch { SleepStage.Awake => 8, SleepStage.Rem => 40, SleepStage.Core => 72, _ => 104 };
+        static string Css(SleepStage stage) => stage switch { SleepStage.Awake => "st-awake", SleepStage.Rem => "st-rem", SleepStage.Core => "st-core", _ => "st-deep" };
+
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-hypno\" viewBox=\"0 0 {width:0} 150\" role=\"img\" aria-label=\"Sleep stages from {start:HH:mm} to {end:HH:mm}, {sleep.Cycles} cycles\">");
+        foreach (var (stage, name) in new[] { (SleepStage.Awake, "Awake"), (SleepStage.Rem, "REM"), (SleepStage.Core, "Light"), (SleepStage.Deep, "Deep") })
+        {
+            var y = Lane(stage);
+            svg.Append(Invariant, $"<text x=\"0\" y=\"{y + 15}\" class=\"axis\">{name}</text><line x1=\"{left}\" y1=\"{y + 11}\" x2=\"{right}\" y2=\"{y + 11}\" class=\"lane\"/>");
+        }
+
+        var path = new StringBuilder();
+        for (var index = 1; index < sleep.Segments.Count; index++)
+        {
+            var x = X(sleep.Segments[index].Start);
+            path.Append(Invariant, $"M{x:0.0},{Lane(sleep.Segments[index - 1].Stage) + 11} V{Lane(sleep.Segments[index].Stage) + 11} ");
+        }
+
+        svg.Append(Invariant, $"<path d=\"{path}\" class=\"hypno-link\"/>");
+        foreach (var segment in sleep.Segments)
+        {
+            var x = X(segment.Start);
+            var w = Math.Max(2, X(segment.End) - x);
+            svg.Append(Invariant, $"<rect x=\"{x:0.0}\" y=\"{Lane(segment.Stage)}\" width=\"{w:0.0}\" height=\"22\" rx=\"{Math.Min(5, w / 2):0.0}\" class=\"{Css(segment.Stage)}\"/>");
+        }
+
+        var middle = start.AddMinutes(total / 2);
+        svg.Append(Invariant, $"<text x=\"{left}\" y=\"146\" class=\"axis\">{start:HH:mm}</text><text x=\"{(left + right) / 2:0.0}\" y=\"146\" text-anchor=\"middle\" class=\"axis\">{middle:HH:mm}</text><text x=\"{right}\" y=\"146\" text-anchor=\"end\" class=\"axis\">{end:HH:mm}</text>");
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>
+    /// A sparkline (stretches with its box; the line keeps its width).
+    /// </summary>
+    /// <param name="values">The values, oldest first (gaps allowed).</param>
+    /// <param name="cssClass">The line's class (picks the colour).</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Sparkline(IEnumerable<double?> values, string cssClass)
+    {
+        var list = values.ToList();
+        var known = list.Where(static v => v is not null).Select(static v => v!.Value).ToList();
+        if (known.Count < 2)
+        {
+            return new HtmlString("<svg class=\"spark\" viewBox=\"0 0 100 30\" preserveAspectRatio=\"none\" aria-hidden=\"true\"></svg>");
+        }
+
+        var (min, max) = (known.Min(), known.Max());
+        var spread = Math.Max(max - min, Math.Abs(max) * 0.04 + 0.5);
+        var points = list.Select((v, i) => (v, i)).Where(static p => p.v is not null)
+            .Select(p => string.Create(Invariant, $"{p.i * 100.0 / (list.Count - 1):0.0},{26 - (p.v!.Value - min) / spread * 22:0.0}"));
+        return new HtmlString($"<svg class=\"spark\" viewBox=\"0 0 100 30\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polyline points=\"{string.Join(' ', points)}\" class=\"{cssClass}\" vector-effect=\"non-scaling-stroke\"/></svg>");
+    }
+
+    /// <summary>
+    /// A 30-day trend with an area under it, a band for your normal and the last point marked.
+    /// </summary>
+    /// <param name="points">The points, oldest first.</param>
+    /// <param name="baseline">Your normal.</param>
+    /// <param name="cssClass">The colour class (line-hrv).</param>
+    /// <param name="label">What a screen reader hears.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Trend(IReadOnlyList<TrendPointDTO> points, double baseline, string cssClass, string label)
+    {
+        var known = points.Where(static p => p.Value is not null).ToList();
+        if (known.Count < 2)
+        {
+            return HtmlString.Empty;
+        }
+
+        var low = Math.Min(known.Min(static p => p.Value!.Value), baseline) * 0.92;
+        var high = Math.Max(known.Max(static p => p.Value!.Value), baseline) * 1.06;
+        double X(int index) => index * 346.0 / Math.Max(1, points.Count - 1);
+        double Y(double v) => 92 - (v - low) / (high - low) * 80;
+        var id = NextId();
+        var line = string.Join(" L", points.Select((p, i) => (p, i)).Where(static x => x.p.Value is not null).Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.p.Value!.Value):0.0}")));
+        var lastIndex = points.Count - 1 - points.Reverse().TakeWhile(static p => p.Value is null).Count();
+        var last = points[lastIndex].Value!.Value;
+        var firstIndex = points.ToList().FindIndex(static p => p.Value is not null);
+
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-trend {cssClass}\" viewBox=\"0 0 350 100\" role=\"img\" aria-label=\"{Escape(label)}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" class=\"stop-a\"/><stop offset=\"1\" class=\"stop-b\"/></linearGradient></defs>");
+        svg.Append(Invariant, $"<rect x=\"0\" y=\"{Y(baseline) - 10:0.0}\" width=\"350\" height=\"20\" rx=\"6\" class=\"band-normal\"/><line x1=\"0\" y1=\"{Y(baseline):0.0}\" x2=\"350\" y2=\"{Y(baseline):0.0}\" class=\"baseline\"/>");
+        svg.Append(Invariant, $"<path d=\"M{line} L{X(lastIndex):0.0},100 L{X(firstIndex):0.0},100 Z\" fill=\"url(#{id})\"/>");
+        svg.Append(Invariant, $"<path d=\"M{line}\" class=\"trend-line\"/>");
+        svg.Append(Invariant, $"<circle cx=\"{X(lastIndex):0.0}\" cy=\"{Y(last):0.0}\" r=\"9\" class=\"trend-halo\"/><circle cx=\"{X(lastIndex):0.0}\" cy=\"{Y(last):0.0}\" r=\"4.5\" class=\"trend-dot\"/>");
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    /// <summary>
+    /// The strain line drawn over the 14-day recovery bars (stretches with its box).
+    /// </summary>
+    /// <param name="strains">The strain of each day.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent StrainLine(IReadOnlyList<double?> strains)
+    {
+        var width = strains.Count * 100;
+        var points = strains.Select((s, i) => (s, i)).Where(static p => p.s is not null)
+            .Select(p => string.Create(Invariant, $"{p.i * 100 + 50},{200 - p.s!.Value / 21 * 180:0.0}"));
+        return new HtmlString(string.Create(Invariant,
+            $"<svg class=\"strain-overlay\" viewBox=\"0 0 {width} 200\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polyline points=\"{string.Join(' ', points)}\" class=\"line-strain\" vector-effect=\"non-scaling-stroke\"/></svg>"));
+    }
+
+    /// <summary>
+    /// Biological age against the calendar over the last months.
+    /// </summary>
+    /// <param name="history">Points, oldest first.</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent AgeHistory(IReadOnlyList<AgePointDTO> history)
+    {
+        if (history.Count < 2)
+        {
+            return HtmlString.Empty;
+        }
+
+        var values = history.SelectMany(static p => new[] { p.BiologicalAge, p.ChronologicalAge }).ToList();
+        var low = Math.Floor(values.Min() - 1);
+        var high = Math.Ceiling(values.Max() + 1);
+        double X(int index) => 24 + index * 316.0 / (history.Count - 1);
+        double Y(double v) => 112 - (v - low) / (high - low) * 96;
+        var id = NextId();
+        var bio = string.Join(" L", history.Select((p, i) => string.Create(Invariant, $"{X(i):0.0},{Y(p.BiologicalAge):0.0}")));
+        var calendar = string.Join(" L", history.Select((p, i) => string.Create(Invariant, $"{X(i):0.0},{Y(p.ChronologicalAge):0.0}")));
+
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-age\" viewBox=\"0 0 350 136\" role=\"img\" aria-label=\"Biological age over the last months, from {history[0].BiologicalAge:0.0} to {history[^1].BiologicalAge:0.0}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#5BE3A6\"/><stop offset=\"1\" stop-color=\"#8E8CFF\"/></linearGradient><linearGradient id=\"{id}a\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7CC7FF\" stop-opacity=\"0.28\"/><stop offset=\"1\" stop-color=\"#7CC7FF\" stop-opacity=\"0\"/></linearGradient></defs>");
+        foreach (var tick in new[] { low, (low + high) / 2, high })
+        {
+            svg.Append(Invariant, $"<line x1=\"24\" y1=\"{Y(tick):0.0}\" x2=\"340\" y2=\"{Y(tick):0.0}\" class=\"lane\"/><text x=\"0\" y=\"{Y(tick) + 3:0.0}\" class=\"axis\">{tick:0}</text>");
+        }
+
+        svg.Append(Invariant, $"<path d=\"M{calendar}\" class=\"line-calendar\"/>");
+        svg.Append(Invariant, $"<path d=\"M{bio} L{X(history.Count - 1):0.0},120 L{X(0):0.0},120 Z\" fill=\"url(#{id}a)\"/>");
+        svg.Append(Invariant, $"<path d=\"M{bio}\" fill=\"none\" stroke=\"url(#{id})\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>");
+        for (var index = 0; index < history.Count; index++)
+        {
+            svg.Append(Invariant, $"<circle cx=\"{X(index):0.0}\" cy=\"{Y(history[index].BiologicalAge):0.0}\" r=\"{(index == history.Count - 1 ? 5.5 : 3.5)}\" class=\"age-dot\"/>");
+        }
+
+        foreach (var (point, index) in history.Select((p, i) => (p, i)).Where(x => x.i == 0 || x.i == history.Count - 1 || x.i == history.Count / 2))
+        {
+            svg.Append(Invariant, $"<text x=\"{X(index):0.0}\" y=\"134\" text-anchor=\"middle\" class=\"axis\">{point.Date.ToString("MMM", CultureInfo.GetCultureInfo("en-IE"))}</text>");
+        }
+
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
+    private static string NextId() => "k" + Interlocked.Increment(ref _ids).ToString(Invariant);
+
+    private static string Escape(string text) => System.Net.WebUtility.HtmlEncode(text);
+}

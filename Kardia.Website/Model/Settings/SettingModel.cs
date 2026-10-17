@@ -1,0 +1,93 @@
+using Kardia.Sdk;
+using Kardia.Sdk.Models;
+
+namespace Kardia.Website.Model.Settings;
+
+/// <summary>
+/// The settings screen: profile, Apple Watch connection, account and (for admins) the accounts.
+/// </summary>
+public sealed class SettingPageModel : AppPageModel
+{
+    /// <summary>Gets or sets the profile.</summary>
+    public ProfileDTO Profile { get; set; } = new();
+
+    /// <summary>Gets or sets the Apple Watch connection.</summary>
+    public SyncKeyDTO Sync { get; set; } = new();
+
+    /// <summary>Gets or sets every account (admins only).</summary>
+    public List<UserDTO> Users { get; set; } = [];
+
+    /// <summary>Gets or sets the address Health Auto Export sends to.</summary>
+    public string SyncUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets a message after a save ("Profile saved.").</summary>
+    public string? Notice { get; set; }
+
+    /// <summary>Gets or sets the errors of the last form sent.</summary>
+    public List<string> Errors { get; set; } = [];
+
+    /// <summary>Gets or sets which form the errors belong to ("profile" or "password").</summary>
+    public string? ErrorsFor { get; set; }
+
+    /// <summary>Gets or sets the signed-in account's id.</summary>
+    public string UserId { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Loads and saves the settings.
+/// </summary>
+/// <param name="apiClient">The API client.</param>
+public sealed class SettingModel(KardiaClient apiClient) : WebsiteBaseModel(apiClient)
+{
+    /// <summary>
+    /// Builds the screen.
+    /// </summary>
+    /// <param name="page">The page with the shell filled in.</param>
+    /// <param name="userId">The account.</param>
+    /// <returns>The page.</returns>
+    public async Task<SettingPageModel> PageAsync(SettingPageModel page, string userId)
+    {
+        var profile = await CallAsync(() => ApiClient.ProfileGetAsync(userId));
+        if (!profile.IsValid || profile.Data is null)
+        {
+            page.Unavailable = profile.ValidationErrors.FirstOrDefault()?.Message ?? ApiUnavailableMessage;
+            return page;
+        }
+
+        page.UserId = userId;
+        page.Profile = profile.Data;
+        page.Sync = (await CallAsync(() => ApiClient.SyncKeyGetAsync(userId))).Data ?? new SyncKeyDTO();
+        page.LastSyncAt = page.Sync.LastUsedAt;
+        if (page.IsAdmin)
+        {
+            page.Users = (await CallAsync(() => ApiClient.UserListAsync())).Data ?? [];
+        }
+
+        return page;
+    }
+
+    /// <summary>Saves the profile.</summary>
+    /// <param name="item">The profile.</param>
+    /// <returns>The saved profile, or the errors.</returns>
+    public Task<AjaxDataResult<ProfileDTO>> SaveProfileAsync(ProfileSaveRequest item) => CallAsync(() => ApiClient.ProfileSaveAsync(item));
+
+    /// <summary>Changes the password.</summary>
+    /// <param name="item">The account, current and new password.</param>
+    /// <returns>The account (with its new stamp), or the errors.</returns>
+    public Task<AjaxDataResult<UserDTO>> ChangePasswordAsync(UserPasswordRequest item) => CallAsync(() => ApiClient.UserPasswordAsync(item));
+
+    /// <summary>Makes a new sync key.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The key (shown once).</returns>
+    public Task<AjaxDataResult<SyncKeyCreatedDTO>> CreateKeyAsync(string userId) => CallAsync(() => ApiClient.SyncKeyCreateAsync(userId));
+
+    /// <summary>Revokes the sync key.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>Success.</returns>
+    public Task<AjaxDataResult<bool>> RevokeKeyAsync(string userId) => CallAsync(() => ApiClient.SyncKeyRevokeAsync(userId));
+
+    /// <summary>Deletes an account (admins).</summary>
+    /// <param name="identifier">The account.</param>
+    /// <returns>Success.</returns>
+    public Task<AjaxDataResult<bool>> DeleteUserAsync(string identifier) => CallAsync(() => ApiClient.UserDeleteAsync(identifier));
+}

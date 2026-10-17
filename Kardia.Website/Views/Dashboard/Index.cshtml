@@ -1,0 +1,286 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Today";
+    var day = Model.Day;
+    var rec = day.Recovery;
+    var sleep = day.Sleep;
+    var strain = day.Strain;
+    var recent = day.Recent;
+    var lead = day.Coach.FirstOrDefault();
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">@Fmt.LongDate(Model.Date)</div>
+        <h1>@(Model.IsToday ? $"{Model.Greeting}, {Model.UserName}" : Fmt.LongDate(Model.Date))</h1>
+    </div>
+    <div class="head-acts">
+        @if (day.LastSyncAt is { } synced)
+        {
+            <span class="chip sync"><span class="live-dot"></span>Apple Watch · synced @Fmt.Ago(synced)</span>
+        }
+        else
+        {
+            <a class="chip warn" href="/settings#apple-watch">@Icons.Get("watch")Connect your Apple Watch</a>
+        }
+        <partial name="_DateNav" model="Model" />
+    </div>
+</header>
+
+@if (!day.HasData)
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="row">
+        <section class="card w2 hero-rings rise" style="--d:1" aria-label="Recovery, sleep and strain">
+            <a class="cell" href="/recovery@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))" style="--amb: rgba(91,227,166,0.2)">
+                <div class="ambient" aria-hidden="true"></div>
+                <div class="ring-box">
+                    @Charts.Ring((rec.Score ?? 0) / 100.0, Fmt.ZonePalette(rec.Zone))
+                    <div class="center"><span class="big num">@(rec.Score?.ToString() ?? "—")<small>%</small></span></div>
+                </div>
+                <div class="t">
+                    <span class="kicker">Recovery</span>
+                    <span class="sub z-@rec.Zone">@Fmt.ZoneHeadline(rec.Zone)</span>
+                </div>
+            </a>
+            <a class="cell c-slp" href="/sleep@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))">
+                <div class="ring-box">
+                    @Charts.Ring((sleep.Performance ?? 0) / 100.0, "slp")
+                    <div class="center"><span class="big num">@(sleep.Performance?.ToString() ?? "—")<small>%</small></span></div>
+                </div>
+                <div class="t">
+                    <span class="kicker">Sleep</span>
+                    <span class="sub" style="color:var(--slp-3)">@Fmt.Duration(sleep.HasNight ? sleep.AsleepMinutes : null) <span class="dim" style="font-weight:500">of @Fmt.Duration(sleep.NeedMinutes)</span></span>
+                </div>
+            </a>
+            <a class="cell c-str" href="/strain@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))">
+                <div class="ring-box">
+                    @Charts.Ring((strain.Score ?? 0) / 21, "str", (strain.TargetLow / 21, strain.TargetHigh / 21))
+                    <div class="center"><span class="big num">@Fmt.One(strain.Score)</span></div>
+                </div>
+                <div class="t">
+                    <span class="kicker">Strain</span>
+                    <span class="sub" style="color:var(--str-3)">Target @Fmt.One(strain.TargetLow)–@Fmt.One(strain.TargetHigh)</span>
+                </div>
+            </a>
+            <div class="hero-foot">
+                <div><span class="k">@Icons.Get("kcal")Calories</span><b class="num">@Fmt.Whole(strain.TotalKcal)</b><small>kcal</small></div>
+                <div><span class="k">@Icons.Get("steps")Steps</span><b class="num">@Fmt.Whole(strain.Steps)</b></div>
+                <div><span class="k">@Icons.Get("heart")Zone 2+</span><b class="num">@strain.ZoneMinutes.Skip(1).Sum()</b><small>min</small></div>
+                <div><span class="k">@Icons.Get("sleep")Bedtime</span><b class="num">@Fmt.Clock(sleep.Bedtime)</b><small>tonight</small></div>
+            </div>
+        </section>
+
+        <section class="card coach rise" style="--d:2">
+            <div class="coach-head">
+                <span class="coach-ico">@Icons.Get("sparkle")</span>
+                <span class="kicker" style="color:var(--slp-text)">Coach</span>
+            </div>
+            @if (lead is not null)
+            {
+                <p class="coach-lead">@lead.Title</p>
+                <ul class="tips">
+                    @foreach (var tip in day.Coach)
+                    {
+                        <li class="@tip.Tone">@tip.Text</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
+            }
+            <a class="btn ghost small" href="/journal" style="margin-top:auto">@Icons.Get("journal")Log today in the journal</a>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>Recovery vs strain · 14 days</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:var(--rec)"></i>High</span>
+                    <span><i class="swatch" style="background:var(--mid)"></i>Medium</span>
+                    <span><i class="swatch" style="background:var(--low)"></i>Low</span>
+                    <span><i class="swatch" style="background:var(--str);height:3px;width:14px"></i>Strain</span>
+                </div>
+            </div>
+            <div class="scroll-x">
+                <div class="bars14">
+                    <div class="plot">
+                        <span class="gl" style="bottom:66%"></span><span class="gl" style="bottom:33%"></span>
+                        @for (var i = 0; i < recent.Count; i++)
+                        {
+                            var item = recent[i];
+                            var height = Math.Max(2, (item.Recovery ?? 0) * 0.83);
+                            <div class="col"><div class="bar zbg-@item.Zone @(i == recent.Count - 1 && Model.IsToday ? "today" : "")" style="height:@(height.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))%;--i:@i" title="@Fmt.ShortDate(item.Date): recovery @(item.Recovery?.ToString() ?? "—")%, strain @Fmt.One(item.Strain)"></div></div>
+                        }
+                        @Charts.StrainLine(recent.Select(static r => r.Strain).ToList())
+                    </div>
+                    <div class="labels">
+                        @for (var i = 0; i < recent.Count; i++)
+                        {
+                            if (i == recent.Count - 1 && Model.IsToday) { <b>Today</b> } else { <span>@recent[i].Date.Day</span> }
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card rise" style="--d:4">
+            <div class="card-head">
+                <h2>Heart rate</h2>
+                @if ((Model.IsToday ? strain.CurrentBpm : strain.AvgBpm) is { } headBpm)
+                {
+                    <span class="side-note">@(Model.IsToday ? "now" : "average") <b class="num" style="color:var(--text)">@headBpm</b> bpm</span>
+                }
+            </div>
+            @if (day.HeartRates.Count == 0)
+            {
+                <p class="muted small-note">No heart rate yet for this day. It shows up after the next sync from your iPhone.</p>
+            }
+            @Charts.DayHeart(Model.Date, day.HeartRates, sleep.BedEnd?.Date == Model.Date.ToDateTime(TimeOnly.MinValue) ? sleep.BedEnd : null, strain.Workouts, Model.IsToday ? Clock.Now : null, $"Heart rate through the day, between {strain.MinBpm} and {strain.MaxBpm} bpm")
+            <div class="hr-stats">
+                <div class="tile"><span class="k">Lowest</span><span class="v">@(strain.MinBpm?.ToString() ?? "—")</span></div>
+                <div class="tile"><span class="k">Average</span><span class="v">@(strain.AvgBpm?.ToString() ?? "—")</span></div>
+                <div class="tile"><span class="k">Highest</span><span class="v" style="color:var(--str-3)">@(strain.MaxBpm?.ToString() ?? "—")</span></div>
+            </div>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card w3 tint-slp rise" style="--d:5">
+            <div class="card-head">
+                <h2>Last night</h2>
+                <a class="more" href="/sleep@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))" style="color:var(--slp-text)">@Fmt.Clock(sleep.BedStart) → @Fmt.Clock(sleep.BedEnd) @Icons.Get("right")</a>
+            </div>
+            @if (sleep.Segments.Count > 0)
+            {
+                @Charts.Hypnogram(sleep)
+            }
+            <div class="tiles t4">
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:#F2F4F7"></i> Awake</span></span><span class="v">@Fmt.Duration(sleep.AwakeMinutes)</span></div>
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-3)"></i> REM</span></span><span class="v">@Fmt.Duration(sleep.RemMinutes)</span></div>
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp)"></i> Light</span></span><span class="v">@Fmt.Duration(sleep.CoreMinutes)</span></div>
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-2)"></i> Deep</span></span><span class="v">@Fmt.Duration(sleep.DeepMinutes)</span></div>
+            </div>
+        </section>
+
+        <section class="card w2 rise" style="--d:6">
+            <div class="card-head">
+                <h2>Vitals</h2>
+                <span class="side-note">vs. your 30-day normal</span>
+            </div>
+            <div class="tiles">
+                @{
+                    var hrvChange = rec.Hrv is { } h && rec.HrvBaseline > 0 ? (h - rec.HrvBaseline) / rec.HrvBaseline * 100 : 0;
+                    var restChange = rec.RestingHeartRate is { } r ? r - rec.RestingBaseline : 0;
+                }
+                <div class="tile">
+                    <span class="k">HRV <span class="d @(hrvChange >= 0 ? "good-t" : "warn-t")">@Fmt.Signed(hrvChange, "%")</span></span>
+                    <span class="v">@(rec.Hrv?.ToString("0") ?? "—")<small> ms</small></span>
+                    @Charts.Sparkline(recent.Select(static x => x.Hrv), "s-rec")
+                </div>
+                <div class="tile">
+                    <span class="k">Resting HR <span class="d @(restChange <= 0 ? "good-t" : "warn-t")">@Fmt.Signed(restChange)</span></span>
+                    <span class="v">@(rec.RestingHeartRate?.ToString("0") ?? "—")<small> bpm</small></span>
+                    @Charts.Sparkline(recent.Select(static x => x.RestingHeartRate), "s-rose")
+                </div>
+                <div class="tile">
+                    <span class="k">Respiration <span class="d dim">@(rec.RespiratoryRate is { } rr && Math.Abs(rr - rec.RespiratoryBaseline) >= 0.5 ? Fmt.Signed(rr - rec.RespiratoryBaseline, "", 1) : "steady")</span></span>
+                    <span class="v">@Fmt.One(rec.RespiratoryRate)<small> rpm</small></span>
+                </div>
+                <div class="tile">
+                    <span class="k">@(rec.WristTemperatureChange is not null ? "Wrist temp." : "Blood oxygen") <span class="d dim">@(rec.WristTemperatureChange is { } t && Math.Abs(t) >= 0.3 ? "off normal" : "steady")</span></span>
+                    @if (rec.WristTemperatureChange is { } temperature)
+                    {
+                        <span class="v">@Fmt.Signed(temperature, "", 1)<small> °C</small></span>
+                    }
+                    else
+                    {
+                        <span class="v">@(rec.BloodOxygen?.ToString("0") ?? "—")<small> %</small></span>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card w3 rise" style="--d:7">
+            <div class="card-head">
+                <h2>Strain target</h2>
+                <span class="num" style="color:var(--str);font-weight:600">@Fmt.One(strain.TargetLow) – @Fmt.One(strain.TargetHigh)</span>
+            </div>
+            <div class="target">
+                @{
+                    var inv = System.Globalization.CultureInfo.InvariantCulture;
+                    var fill = Math.Clamp((strain.Score ?? 0) / 21 * 100, 0, 100);
+                    var bandLeft = strain.TargetLow / 21 * 100;
+                    var bandWidth = (strain.TargetHigh - strain.TargetLow) / 21 * 100;
+                }
+                <div class="track">
+                    <div class="fill" style="width:@(fill.ToString("0.0", inv))%"></div>
+                    <div class="band" style="left:@(bandLeft.ToString("0.0", inv))%;width:@(bandWidth.ToString("0.0", inv))%"></div>
+                </div>
+                <div class="meta">
+                    <span>Now <b class="num" style="color:var(--text)">@(strain.Score is null ? "—" : Fmt.One(strain.Score))</b></span>
+                    <span>@(strain.Score is null ? "Waiting for heart rate" : strain.Score is { } s && s < strain.TargetLow ? $"{Fmt.One(strain.TargetLow - s)} to go" : strain.Score is { } s2 && s2 > strain.TargetHigh ? "Past today's target" : "In your target")</span>
+                </div>
+            </div>
+            @foreach (var workout in strain.Workouts)
+            {
+                <div class="list-row">
+                    <span class="ico-chip str">@Icons.Get(Fmt.WorkoutIcon(workout.Kind))</span>
+                    <div class="grow">
+                        <span class="top"><span>@Fmt.WorkoutName(workout.Kind)</span></span>
+                        <small>@Fmt.Clock(workout.StartedAt) · @workout.Minutes min@(workout.DistanceKm is { } km ? $" · {km:0.0} km" : "")@(workout.AvgBpm is { } avg ? $" · {avg} bpm" : "")</small>
+                    </div>
+                    <span class="pill @(workout == strain.Workouts.MaxBy(static w => w.Strain ?? 0) ? "str" : "soft-str")">@Fmt.One(workout.Strain)</span>
+                </div>
+            }
+        </section>
+
+        <section class="card w2 tint-age rise" style="--d:8">
+            <div class="card-head">
+                <h2>Biological age</h2>
+                <a class="more" href="/age" style="color:var(--sky)">Details @Icons.Get("right")</a>
+            </div>
+            @if (Model.Age is { Ready: true } age)
+            {
+                <div class="teaser">
+                    <span class="age-num">@Fmt.One(age.BiologicalAge)</span>
+                    <div>
+                        <b style="font-family:var(--font-display);font-size:16px">@(age.Difference <= 0 ? $"{Fmt.One(-age.Difference)} years younger" : $"{Fmt.One(age.Difference)} years older")</b>
+                        <p class="muted" style="font-size:13px">than your @((int)(age.ChronologicalAge ?? 0)) on the calendar@(age.Pace is { } pace ? $" · ageing at {pace:0.0}×" : "")</p>
+                    </div>
+                </div>
+            }
+            else if (Model.Age is { HasBirthDate: false })
+            {
+                <p class="muted">Add your date of birth to see how old your body is compared with the calendar.</p>
+                <a class="btn ghost small" href="/settings#profile">Add date of birth</a>
+            }
+            else
+            {
+                <p class="muted">Biological age needs @(Model.Age?.DaysNeeded ?? 14) days of data (@(Model.Age?.DaysWithData ?? 0) so far).</p>
+            }
+            @if (Model.Journal is { } journal)
+            {
+                <div class="card-head" style="margin-top:6px">
+                    <h2 style="font-size:15px">Journal · @(Model.IsToday ? "today" : Fmt.ShortDate(Model.Date))</h2>
+                    <a class="more" href="/journal@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))">All @Icons.Get("right")</a>
+                </div>
+                <div class="chips-wrap" data-journal data-date="@Fmt.Iso(Model.Date)">
+                    @foreach (var tag in journal.Tags.Take(6))
+                    {
+                        <button type="button" class="tag" data-tag="@tag.Tag" aria-pressed="@(tag.On ? "true" : "false")">@tag.Name</button>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+}

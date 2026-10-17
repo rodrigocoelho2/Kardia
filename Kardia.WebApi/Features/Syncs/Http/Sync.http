@@ -1,0 +1,49 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+@userId = put-an-account-id-here
+@syncKey = kardia_sk_put-the-key-here
+
+### The connection (hint only)
+GET {{HostAddress}}/sync/key?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### A new key (shown once)
+POST {{HostAddress}}/sync/key?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Health Auto Export (REST API, JSON, export version 2)
+POST {{HostAddress}}/sync/ingest
+Content-Type: application/json
+x-api-key: {{apiKey}}
+X-Kardia-Key: {{syncKey}}
+
+{
+  "data": {
+    "metrics": [
+      { "name": "heart_rate_variability", "units": "ms", "data": [ { "date": "2026-10-16 06:58:00 +0100", "qty": 68 } ] },
+      { "name": "resting_heart_rate", "units": "count/min", "data": [ { "date": "2026-10-16 00:00:00 +0100", "qty": 52 } ] },
+      { "name": "heart_rate", "units": "count/min", "data": [
+        { "date": "2026-10-16 08:30:00 +0100", "Min": 148, "Avg": 152, "Max": 157 },
+        { "date": "2026-10-16 08:31:00 +0100", "Min": 151, "Avg": 156, "Max": 160 }
+      ] },
+      { "name": "sleep_analysis", "units": "hr", "data": [
+        { "startDate": "2026-10-15 23:48:00 +0100", "endDate": "2026-10-16 00:20:00 +0100", "value": "Core" },
+        { "startDate": "2026-10-16 00:20:00 +0100", "endDate": "2026-10-16 01:05:00 +0100", "value": "Deep" },
+        { "startDate": "2026-10-16 01:05:00 +0100", "endDate": "2026-10-16 07:52:00 +0100", "value": "Core" }
+      ] }
+    ],
+    "workouts": [
+      { "name": "Outdoor Run", "start": "2026-10-16 08:30:00 +0100", "end": "2026-10-16 09:08:00 +0100",
+        "activeEnergyBurned": { "qty": 512, "units": "kcal" }, "distance": { "qty": 7.2, "units": "km" },
+        "heartRate": { "min": 98, "avg": 156, "max": 182 } }
+    ]
+  }
+}
+
+### The Kardia Shortcut (a flat dictionary)
+POST {{HostAddress}}/sync/ingest
+Content-Type: application/json
+x-api-key: {{apiKey}}
+X-Kardia-Key: {{syncKey}}
+
+{ "date": "2026-10-16", "hrv": "68 ms", "restingHeartRate": 52, "respiratoryRate": "14,8", "steps": 9842, "activeEnergy": "612 kcal" }

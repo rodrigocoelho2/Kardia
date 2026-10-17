@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- The engine: JSON API for the Website, the Apple Health sync and the scores (recovery, sleep, strain,
+       biological age). Owns the SQL Server data through the stored procedures of Kardia.Database. -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UserSecretsId>kardia-webapi-5e2b81c7</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kardia.Library\Kardia.Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kardia.UnitTest" />
+  </ItemGroup>
+
+</Project>

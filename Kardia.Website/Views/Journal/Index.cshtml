@@ -1,0 +1,85 @@
+@model Kardia.Website.Model.Journals.JournalPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Journal";
+    var journal = Model.Journal;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var maxPoints = Math.Max(10, journal.Impacts.Select(static i => Math.Abs(i.Difference)).DefaultIfEmpty(0).Max());
+    var groups = new (string Title, string Note, JournalTag[] Tags)[]
+    {
+        ("Habits", "Things that tend to cost recovery", [JournalTag.Alcohol, JournalTag.LateCaffeine, JournalTag.ScreensInBed, JournalTag.LateMeal]),
+        ("Recovery work", "Things that tend to help", [JournalTag.Stretching, JournalTag.Sauna, JournalTag.Meditation, JournalTag.ColdExposure, JournalTag.Magnesium]),
+        ("Life", "Context for an odd morning", [JournalTag.Travel, JournalTag.Stress, JournalTag.Sick]),
+    };
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">@Fmt.LongDate(Model.Date)</div>
+        <h1>Journal</h1>
+    </div>
+    <div class="head-acts">
+        <partial name="_DateNav" model="Model" />
+    </div>
+</header>
+
+<div class="row">
+    <section class="card rise" style="--d:1">
+        <div class="card-head">
+            <h2>@(Model.IsToday ? "Today, did you…" : $"On {Fmt.ShortDate(Model.Date)}, did you…")</h2>
+            <span class="side-note" data-journal-status aria-live="polite">Tap to mark</span>
+        </div>
+        @foreach (var group in groups)
+        {
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <div><span class="kicker">@group.Title</span> <small class="dim">· @group.Note</small></div>
+                <div class="chips-wrap" data-journal data-date="@Fmt.Iso(Model.Date)">
+                    @foreach (var tag in journal.Tags.Where(t => group.Tags.Contains(t.Tag)))
+                    {
+                        <button type="button" class="tag" data-tag="@tag.Tag" aria-pressed="@(tag.On ? "true" : "false")">@tag.Name</button>
+                    }
+                </div>
+            </div>
+        }
+        <div class="notice" style="margin-top:auto">
+            @Icons.Get("info")
+            <span>Log what happened during the day; Kardia looks at the <b>next morning's</b> recovery. After a few weeks it shows what really moves yours.</span>
+        </div>
+    </section>
+
+    <section class="card w2 rise" style="--d:2">
+        <div class="card-head">
+            <h2>What moves your recovery</h2>
+            <span class="side-note">last 90 days · @journal.DaysLogged days logged</span>
+        </div>
+        @if (journal.Impacts.Count == 0)
+        {
+            <div class="empty" style="padding:24px 8px">
+                <span class="ico-chip slp">@Icons.Get("journal")</span>
+                <p>Nothing to compare yet. Each habit needs at least 3 mornings after a day with it and 3 without, with recovery on both.</p>
+            </div>
+        }
+        else
+        {
+            <div class="legend">
+                <span><i class="swatch" style="background:var(--rec)"></i>Higher recovery the next morning</span>
+                <span><i class="swatch" style="background:var(--str)"></i>Lower</span>
+            </div>
+            @foreach (var impact in journal.Impacts.OrderBy(static i => i.Difference))
+            {
+                var width = Math.Abs(impact.Difference) / maxPoints * 50;
+                <div class="impact">
+                    <div>
+                        <b>@impact.Name</b>
+                        <small>@impact.DaysWith @(impact.DaysWith == 1 ? "day" : "days") · @impact.RecoveryWith.ToString("0", inv)% with, @impact.RecoveryWithout.ToString("0", inv)% without</small>
+                    </div>
+                    <div class="diverge" aria-hidden="true">
+                        @if (impact.Difference > 0) { <i class="minus" style="width:@(width.ToString("0.0", inv))%;right:auto;left:50%;transform-origin:left;background:linear-gradient(90deg, #1FB57A, var(--rec))"></i> }
+                        else if (impact.Difference < 0) { <i class="plus" style="width:@(width.ToString("0.0", inv))%;left:auto;right:50%;transform-origin:right;background:linear-gradient(270deg, var(--str), var(--str-2))"></i> }
+                    </div>
+                    <span class="yrs @(impact.Difference > 0.5 ? "good-t" : impact.Difference < -0.5 ? "warn-t" : "dim")">@Fmt.Signed(impact.Difference, "", 0) pts</span>
+                </div>
+            }
+        }
+    </section>
+</div>

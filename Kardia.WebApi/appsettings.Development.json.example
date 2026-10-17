@@ -1,0 +1,9 @@
+{
+  "ConnectionStrings": {
+    "Kardia": "Server=127.0.0.1,1435;Database=Kardia;User Id=sa;Password=<your SQL_SA_PASSWORD>;TrustServerCertificate=True"
+  },
+  "Kardia": {
+    "ApiKey": "devkey",
+    "DemoMode": true
+  }
+}

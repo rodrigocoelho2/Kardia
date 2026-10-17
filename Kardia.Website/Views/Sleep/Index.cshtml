@@ -1,0 +1,136 @@
+@model Kardia.Website.Model.Days.DayPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Sleep";
+    var day = Model.Day;
+    var sleep = day.Sleep;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var tip = day.Coach.FirstOrDefault(static t => t.Area == CoachArea.Sleep);
+    var stages = new[]
+    {
+        (Name: "Awake", Minutes: sleep.AwakeMinutes, Colour: "#F2F4F7", Note: "Short wake-ups are normal"),
+        (Name: "REM", Minutes: sleep.RemMinutes, Colour: "var(--slp-3)", Note: "Memory and mood"),
+        (Name: "Light", Minutes: sleep.CoreMinutes, Colour: "var(--slp)", Note: "Most of the night"),
+        (Name: "Deep", Minutes: sleep.DeepMinutes, Colour: "var(--slp-2)", Note: "Physical repair"),
+    };
+    var stageTotal = Math.Max(1, stages.Sum(static s => s.Minutes));
+    var week = day.Recent.TakeLast(7).ToList();
+    var weekMax = Math.Max(sleep.NeedMinutes, week.Select(static w => w.AsleepMinutes ?? 0).DefaultIfEmpty(0).Max()) * 1.1;
+}
+
+<partial name="_PageHead" model="Model" />
+<partial name="_WeekStrip" model="Model" />
+
+@if (!day.HasData || !sleep.HasNight)
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="row">
+        <section class="card hero tint-slp rise" style="--d:1">
+            <div class="stars" aria-hidden="true">
+                @for (var i = 0; i < 18; i++)
+                {
+                    <i style="left:@((i * 37 % 100).ToString(inv))%;top:@((i * 23 % 60 + 4).ToString(inv))%;animation-delay:@((i % 5) * 0.7)s"></i>
+                }
+            </div>
+            <div class="ring-box">
+                @Charts.Ring((sleep.Performance ?? 0) / 100.0, "slp")
+                <div class="center">
+                    <span class="big num">@(sleep.Performance?.ToString() ?? "—")<small>%</small></span>
+                    <span class="lbl">Sleep</span>
+                </div>
+            </div>
+            <h2 style="font-size:22px">@Fmt.Duration(sleep.AsleepMinutes) <span class="muted" style="font-weight:500">of @Fmt.Duration(sleep.NeedMinutes) needed</span></h2>
+            <p class="lead">@Fmt.Clock(sleep.BedStart) → @Fmt.Clock(sleep.BedEnd) · @sleep.Cycles sleep cycles · @Fmt.Duration(sleep.InBedMinutes) in bed</p>
+            <div class="tiles t3" style="align-self:stretch">
+                <div class="tile center"><span class="k">Efficiency</span><span class="v">@(sleep.Efficiency?.ToString() ?? "—")<small>%</small></span></div>
+                <div class="tile center"><span class="k">Consistency</span><span class="v">@(sleep.Consistency?.ToString() ?? "—")<small>%</small></span></div>
+                <div class="tile center"><span class="k">Breathing</span><span class="v">@Fmt.One(sleep.RespiratoryRate)<small> rpm</small></span></div>
+            </div>
+        </section>
+
+        <section class="card w2 tint-slp rise" style="--d:2">
+            <div class="card-head">
+                <h2>Stages</h2>
+                <span class="side-note">@Fmt.Clock(sleep.BedStart) → @Fmt.Clock(sleep.BedEnd)</span>
+            </div>
+            <div class="chart-wide">@Charts.Hypnogram(sleep, 640)</div>
+            <div class="chart-narrow">@Charts.Hypnogram(sleep)</div>
+            <div class="stagebar" aria-hidden="true">
+                @foreach (var stage in stages.Where(static s => s.Minutes > 0))
+                {
+                    <i style="flex:@stage.Minutes;background:@stage.Colour"></i>
+                }
+            </div>
+            <div class="tiles t4">
+                @foreach (var stage in stages)
+                {
+                    <div class="tile">
+                        <span class="k"><span><i class="swatch" style="background:@stage.Colour"></i> @stage.Name</span><span class="dim">@((stage.Minutes * 100 / stageTotal).ToString(inv))%</span></span>
+                        <span class="v">@Fmt.Duration(stage.Minutes)</span>
+                        <small class="dim" style="font-size:11px">@stage.Note</small>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="row">
+        <section class="card rise" style="--d:3">
+            <div class="card-head">
+                <h2>Tonight</h2>
+                @if (sleep.WakeAt is { } wake)
+                {
+                    <span class="side-note">to wake at @Fmt.Clock(wake)</span>
+                }
+            </div>
+            <div>
+                <span class="kicker">Be in bed by</span>
+                <div class="bedtime" style="color:#C4C3FF">@Fmt.Clock(sleep.Bedtime)</div>
+            </div>
+            <div class="need">
+                <div><span>Baseline need</span><span>@Fmt.Duration(sleep.NeedBaseMinutes)</span></div>
+                <div><span>+ today's strain</span><span>@Fmt.Duration(sleep.TonightStrainMinutes)</span></div>
+                <div><span>+ sleep debt</span><span>@Fmt.Duration(sleep.TonightDebtMinutes)</span></div>
+                <div class="total"><span>You need</span><span>@Fmt.Duration(sleep.TonightNeedMinutes)</span></div>
+            </div>
+            @if (tip is not null)
+            {
+                <p class="muted" style="font-size:13px;line-height:1.5">@tip.Text</p>
+            }
+        </section>
+
+        <section class="card w2 rise" style="--d:4">
+            <div class="card-head">
+                <h2>Last 7 nights</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:var(--slp)"></i>Asleep</span>
+                    <span class="dim">need @Fmt.Duration(sleep.NeedMinutes)</span>
+                </div>
+            </div>
+            <div class="week-bars slp">
+                @for (var i = 0; i < week.Count; i++)
+                {
+                    var night = week[i];
+                    var height = (night.AsleepMinutes ?? 0) / weekMax * 82;
+                    <div class="col @(night.Date == Model.Date ? "on" : "")">
+                        <span class="num" style="color:var(--text-2)">@(night.AsleepMinutes is { } a ? $"{a / 60}:{a % 60:00}" : "—")</span>
+                        <div class="b" style="height:@(height.ToString("0.0", inv))%;--i:@i"></div>
+                        <span>@(night.Date == Model.Today ? "Today" : Fmt.Weekday(night.Date))</span>
+                    </div>
+                }
+            </div>
+            <div class="tiles t3">
+                @{
+                    var asleep = week.Where(static w => w.AsleepMinutes is not null).Select(static w => w.AsleepMinutes!.Value).ToList();
+                    var perf = week.Where(static w => w.SleepPerformance is not null).Select(static w => w.SleepPerformance!.Value).ToList();
+                }
+                <div class="tile"><span class="k">Average asleep</span><span class="v">@Fmt.Duration(asleep.Count > 0 ? (int)asleep.Average() : null)</span></div>
+                <div class="tile"><span class="k">Average score</span><span class="v">@(perf.Count > 0 ? perf.Average().ToString("0") : "—")<small>%</small></span></div>
+                <div class="tile"><span class="k">Sleep debt</span><span class="v" style="color:@(sleep.DebtMinutes > 60 ? "var(--mid)" : "var(--text)")">@Fmt.Duration(sleep.DebtMinutes)</span></div>
+            </div>
+        </section>
+    </div>
+}

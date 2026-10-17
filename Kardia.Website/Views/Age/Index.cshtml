@@ -1,0 +1,140 @@
+@model Kardia.Website.Model.Ages.AgePageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Biological age";
+    var age = Model.Age;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string Pct(double value) => Math.Clamp(value, 0, 100).ToString("0.0", inv) + "%";
+    string Icon(string key) => key switch
+    {
+        "vo2max" => "lungs",
+        "resting" => "heart",
+        "hrv" => "recovery",
+        "sleep" or "consistency" => "sleep",
+        "steps" => "steps",
+        "training" => "strain",
+        _ => "user",
+    };
+    string Chip(string key) => key switch
+    {
+        "vo2max" => "sky",
+        "resting" => "rose",
+        "hrv" => "rec",
+        "sleep" or "consistency" => "slp",
+        "steps" => "mid",
+        "training" => "str",
+        _ => "",
+    };
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">From your last 30 days</div>
+        <h1>Biological age</h1>
+    </div>
+</header>
+
+@if (!age.HasBirthDate)
+{
+    <section class="card empty rise" style="--d:1">
+        <span class="ico-chip sky">@Icons.Get("calendar")</span>
+        <h2>Add your date of birth</h2>
+        <p>Biological age compares your heart, fitness and sleep with what's typical for your age and sex. Kardia needs to know both to start.</p>
+        <a class="btn rec" href="/settings#profile">@Icons.Get("settings")Open your profile</a>
+    </section>
+}
+else if (!age.Ready || age.BiologicalAge is not { } bio || age.ChronologicalAge is not { } calendar)
+{
+    <section class="card empty tint-age rise" style="--d:1">
+        <span class="ico-chip sky">@Icons.Get("age")</span>
+        <h2>Learning your body</h2>
+        <p>Biological age needs @age.DaysNeeded days of Apple Watch data so one bad night doesn't decide it. You have @age.DaysWithData.</p>
+        <div class="progress" style="width:min(360px, 100%)"><i style="width:@Pct(age.DaysWithData * 100.0 / Math.Max(1, age.DaysNeeded))"></i></div>
+        <small class="dim">@Math.Max(0, age.DaysNeeded - age.DaysWithData) more @(age.DaysNeeded - age.DaysWithData == 1 ? "day" : "days") to go.</small>
+    </section>
+}
+else
+{
+    var difference = age.Difference ?? bio - calendar;
+    var low = Math.Floor(calendar - 12);
+    var high = Math.Ceiling(calendar + 12);
+    double At(double value) => (value - low) / (high - low) * 100;
+    var maxYears = Math.Max(2.5, age.Factors.Select(static f => Math.Abs(f.Years)).DefaultIfEmpty(0).Max());
+
+    <section class="card age-hero tint-age rise" style="--d:1">
+        <div class="ambient" aria-hidden="true" style="--amb: rgba(124,199,255,0.18);left:22%;top:-40px"></div>
+        <div style="display:flex;flex-direction:column;gap:14px;position:relative">
+            <span class="kicker">Your body is</span>
+            <div class="age-big num">@bio.ToString("0.0", inv)<small> years</small></div>
+            <div class="age-diff">
+                @if (Math.Abs(difference) < 0.5)
+                {
+                    <span>Right on your calendar age of @calendar.ToString("0")</span>
+                }
+                else
+                {
+                    <span class="@(difference < 0 ? "good-t" : "warn-t")">@Math.Abs(difference).ToString("0.0", inv) years @(difference < 0 ? "younger" : "older")</span>
+                    <span class="muted" style="font-weight:500"> than your @calendar.ToString("0") on the calendar</span>
+                }
+            </div>
+            @if (age.Pace is { } pace)
+            {
+                <span class="pace">@Icons.Get("trend")Ageing at <b>@pace.ToString("0.0", inv)×</b> @(pace < 1 ? "— slower than the calendar over the last 3 months" : pace > 1 ? "— faster than the calendar over the last 3 months" : "— in step with the calendar")</span>
+            }
+        </div>
+        <div class="age-scale" aria-hidden="true">
+            <div class="track">
+                <span class="pin cal" style="left:@Pct(At(calendar))"></span>
+                <span class="pin bio" style="left:@Pct(At(bio));--from:@Pct(At(calendar))"></span>
+            </div>
+            <div class="marks">
+                <span style="left:@Pct(At(bio))"><b>@bio.ToString("0.0", inv)</b>biological</span>
+                <span style="left:@Pct(At(calendar))"><b>@calendar.ToString("0")</b>calendar</span>
+            </div>
+            <div class="scale" style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)"><span>@low.ToString("0") · younger</span><span>older · @high.ToString("0")</span></div>
+        </div>
+    </section>
+
+    <div class="row">
+        <section class="card w2 rise" style="--d:2">
+            <div class="card-head">
+                <h2>What makes it</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:var(--rec)"></i>Takes years off</span>
+                    <span><i class="swatch" style="background:var(--str)"></i>Adds years</span>
+                </div>
+            </div>
+            @foreach (var factor in age.Factors.OrderBy(static f => f.Years))
+            {
+                var width = Math.Abs(factor.Years) / maxYears * 50;
+                <div class="factor">
+                    <span class="ico-chip @Chip(factor.Key)">@Icons.Get(Icon(factor.Key))</span>
+                    <div class="what">
+                        <b>@factor.Name</b>
+                        <small>@(factor.Value is { } value ? $"{value.ToString("0.#", inv)} {factor.Unit}" : "No data yet")@(factor.Typical is { } typical ? $" · typical {typical.ToString("0.#", inv)}" : "")</small>
+                    </div>
+                    <div class="diverge" aria-hidden="true">
+                        @if (factor.Years < 0) { <i class="minus" style="width:@Pct(width)"></i> }
+                        else if (factor.Years > 0) { <i class="plus" style="width:@Pct(width)"></i> }
+                    </div>
+                    <span class="yrs @(factor.Years < -0.05 ? "good-t" : factor.Years > 0.05 ? "warn-t" : "dim")">@(Math.Abs(factor.Years) < 0.05 ? "0" : Fmt.Signed(factor.Years, "", 1)) y</span>
+                </div>
+            }
+        </section>
+
+        <section class="card rise" style="--d:3">
+            <div class="card-head">
+                <h2>Last 6 months</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:linear-gradient(90deg,#5BE3A6,#8E8CFF)"></i>Biological</span>
+                    <span><i class="swatch" style="background:rgba(255,255,255,0.35);height:2px;width:14px"></i>Calendar</span>
+                </div>
+            </div>
+            @Charts.AgeHistory(age.History)
+            <div class="notice">
+                @Icons.Get("info")
+                <span>An estimate, not a medical test. It weighs VO₂ max, resting heart rate, HRV, sleep, steps, training and BMI against published values for your age and sex, then moves slowly so one week can't swing it. Improve the factors on the left and it follows.</span>
+            </div>
+        </section>
+    </div>
+}

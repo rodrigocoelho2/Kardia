@@ -1,0 +1,20 @@
+@model AppPageModel
+@{
+    var path = Context.Request.Path.Value ?? "/";
+    var previous = Model.Date.AddDays(-1);
+    var next = Model.Date.AddDays(1);
+    var label = Model.IsToday ? "Today" : Model.Date == Model.Today.AddDays(-1) ? "Yesterday" : Fmt.ShortDate(Model.Date);
+}
+@* Previous / next day (no next after today). *@
+<nav class="datenav" aria-label="Day">
+    <a href="@path?date=@Fmt.Iso(previous)" aria-label="Previous day, @Fmt.ShortDate(previous)">@Icons.Get("left")</a>
+    <span class="label">@label</span>
+    @if (Model.IsToday)
+    {
+        <span class="off" aria-hidden="true">@Icons.Get("right")</span>
+    }
+    else
+    {
+        <a href="@path@(next >= Model.Today ? string.Empty : "?date=" + Fmt.Iso(next))" aria-label="Next day, @Fmt.ShortDate(next)">@Icons.Get("right")</a>
+    }
+</nav>
