@@ -88,4 +88,17 @@ public sealed class SyncServiceTests
         Assert.Equal(0, result.Result!.Days);
         Assert.Contains("sleep_analysis×0", SyncService.Describe(Body("""{ "data": { "metrics": [ { "name": "sleep_analysis", "data": [] } ] } }""")));
     }
+
+    [Fact]
+    public async Task AKeyMangledByThePhoneStillWorks()
+    {
+        var app = new TestApp();
+        var userId = await app.CreateUserAsync();
+        var key = (await app.SyncService.KeyCreateAsync(userId)).Result!.Key;
+        var mangled = "\u200B " + char.ToUpperInvariant(key[0]) + key[1..] + "\u00A0, " + key;
+
+        var result = await app.SyncService.IngestAsync(mangled, Body("""{ "hrv": 68 }"""));
+
+        Assert.True(result.IsSuccess, result.Problems?.Title);
+    }
 }

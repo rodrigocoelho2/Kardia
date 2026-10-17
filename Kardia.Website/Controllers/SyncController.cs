@@ -32,7 +32,7 @@ public sealed class SyncController(KardiaClient apiClient, ILogger<SyncControlle
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var agent = Request.Headers.UserAgent.ToString();
         if (logger.IsEnabled(LogLevel.Information))
-            logger.LogInformation("Sync request: {Length} bytes, key {Key}, from {Agent}", Request.ContentLength?.ToString() ?? "?", string.IsNullOrEmpty(key) ? "missing" : "…" + key[^Math.Min(4, key.Length)..], agent.Length > 80 ? agent[..80] : agent);
+            logger.LogInformation("Sync request: {Length} bytes, key {Key} ({KeyLength} characters, starts \"{KeyStart}\"), from {Agent}", Request.ContentLength?.ToString() ?? "?", string.IsNullOrEmpty(key) ? "missing" : "…" + key[^Math.Min(4, key.Length)..], key?.Length ?? 0, key is null ? string.Empty : Uri.EscapeDataString(key[..Math.Min(10, key.Length)]), agent.Length > 80 ? agent[..80] : agent);
         try
         {
             // Read the whole export first, then hand it to the WebApi in one go (with its length), and don't cancel that hand-over

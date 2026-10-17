@@ -118,6 +118,7 @@ internal sealed class SyncService(
             trimmed = inBody.GetString()!.Trim();
         }
 
+        trimmed = NormaliseKey(trimmed);
         var userId = trimmed.StartsWith(ApiHeaders.SyncKeyPrefix, StringComparison.Ordinal) && trimmed.Length < 100
             ? await _syncKeyRepository.UseAsync(Hash(trimmed))
             : null;
@@ -300,6 +301,19 @@ internal sealed class SyncService(
     /// <param name="key">The key.</param>
     /// <returns>The hash.</returns>
     internal static byte[] Hash(string key) => SHA256.HashData(Encoding.UTF8.GetBytes(key));
+
+    /// <summary>
+    /// Undoes what phones do to a pasted key: a capitalised first letter (iOS autocapitalisation), invisible characters
+    /// from copy and paste, and a header sent twice ("key, key"). Keys are lower-case letters, digits and underscores,
+    /// so this never turns a wrong key into a right one.
+    /// </summary>
+    /// <param name="key">The key as received.</param>
+    /// <returns>The key as Kardia made it.</returns>
+    internal static string NormaliseKey(string key)
+    {
+        var first = key.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? string.Empty;
+        return new string([.. first.ToLowerInvariant().Where(static c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_')]);
+    }
 
     private static SyncKeyDTO ToDTO(SyncKeyRow? row) => row is null ? new SyncKeyDTO() : new SyncKeyDTO
     {
