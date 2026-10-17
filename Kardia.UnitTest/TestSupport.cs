@@ -8,6 +8,11 @@ using Kardia.WebApi.Features.Days.Services;
 using Kardia.WebApi.Features.Demo.Services;
 using Kardia.WebApi.Features.Journals.Repositories;
 using Kardia.WebApi.Features.Journals.Services;
+using Kardia.WebApi.Features.Plans.Services;
+using Kardia.WebApi.Features.Push.Repositories;
+using Kardia.WebApi.Features.Reports.Services;
+using Kardia.WebApi.Features.Settings.Repositories;
+using Kardia.WebApi.Features.Settings.Services;
 using Kardia.WebApi.Features.Profiles.Repositories;
 using Kardia.WebApi.Features.Profiles.Services;
 using Kardia.WebApi.Features.Syncs.Repositories;
@@ -28,8 +33,12 @@ internal static class TestSupport
 
     public static DateOnly Today => new(2026, 10, 16);
 
-    public static IOptions<KardiaOptions> Options(bool demo = false) =>
-        Microsoft.Extensions.Options.Options.Create(new KardiaOptions { ApiKey = "test-key", TimeZone = "Europe/Lisbon", DemoMode = demo });
+    public static IOptions<KardiaOptions> Options(bool demo = false, Action<KardiaOptions>? configure = null)
+    {
+        var options = new KardiaOptions { ApiKey = "test-key", TimeZone = "Europe/Lisbon", DemoMode = demo };
+        configure?.Invoke(options);
+        return Microsoft.Extensions.Options.Options.Create(options);
+    }
 }
 
 /// <summary>A clock stopped at <see cref="TestSupport.Now"/>.</summary>
@@ -57,12 +66,18 @@ internal sealed class TestApp
         Health = new MemoryHealthDataRepository(Store);
         SyncKeys = new MemorySyncKeyRepository(Store, Time);
         Journal = new MemoryJournalRepository(Store);
+        Settings = new MemorySettingRepository(Store);
+        Push = new MemoryPushRepository(Store);
+        Secrets = new MemorySecretRepository(Store);
         DayLoads = new DayLoadService(Health, Profiles, Clock);
         Scores = new DayScoreReader(Health);
         Seeder = demo ? new DemoSeeder(Health, SyncKeys, Journal, DayLoads, Clock) : new NoDemoSeeder();
         UserService = new UserService(Users, Profiles, Seeder, globalization, Clock, options);
         ProfileService = new ProfileService(Profiles, Users, globalization, Clock);
-        DayService = new DayService(Users, Profiles, Health, SyncKeys, Journal, Scores, globalization, Clock);
+        DayService = new DayService(Users, Profiles, Health, SyncKeys, Journal, Scores, Settings, globalization, Clock);
+        SettingService = new SettingService(Settings, Users, globalization);
+        PlanService = new PlanService(Users, Profiles, Settings, Scores, globalization, Clock);
+        ReportService = new ReportService(Users, Profiles, Scores, globalization, Clock);
         AgeService = new AgeService(Users, Profiles, Scores, globalization, Clock);
         JournalService = new JournalService(Journal, Users, Profiles, Scores, globalization, Clock);
         SyncService = new SyncService(SyncKeys, Health, Users, DayLoads, globalization, Clock, NullLogger<SyncService>.Instance);
@@ -83,6 +98,18 @@ internal sealed class TestApp
     public MemorySyncKeyRepository SyncKeys { get; }
 
     public MemoryJournalRepository Journal { get; }
+
+    public MemorySettingRepository Settings { get; }
+
+    public MemoryPushRepository Push { get; }
+
+    public MemorySecretRepository Secrets { get; }
+
+    public SettingService SettingService { get; }
+
+    public PlanService PlanService { get; }
+
+    public ReportService ReportService { get; }
 
     public DayLoadService DayLoads { get; }
 

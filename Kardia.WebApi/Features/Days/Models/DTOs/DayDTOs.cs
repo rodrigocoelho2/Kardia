@@ -35,6 +35,12 @@ public sealed class DayDTO
     /// <summary>Gets or sets the 30-day HRV trend (this day last).</summary>
     public List<TrendPointDTO> HrvTrend { get; set; } = [];
 
+    /// <summary>Gets or sets the Health Monitor: last night's five signs against your typical range.</summary>
+    public HealthMonitorDTO Health { get; set; } = new();
+
+    /// <summary>Gets or sets the cardio load: the last 7 days of heart load against the last 28.</summary>
+    public CardioLoadDTO CardioLoad { get; set; } = new();
+
     /// <summary>Gets or sets the coach's tips for the day, most useful first.</summary>
     public List<CoachTipDTO> Coach { get; set; } = [];
 }
@@ -153,6 +159,12 @@ public sealed class SleepDTO
 
     /// <summary>Gets or sets the part of tonight's need that pays back sleep debt, in minutes.</summary>
     public int TonightDebtMinutes { get; set; }
+
+    /// <summary>Gets or sets the sleep goal: the share of the need to aim for (100, 85 or 70).</summary>
+    public int GoalPercent { get; set; } = 100;
+
+    /// <summary>Gets or sets the sleep to plan for tonight with the goal (the bedtime is set from it).</summary>
+    public int TonightGoalMinutes { get; set; }
 
     /// <summary>Gets or sets when to go to bed tonight (local time).</summary>
     public DateTime? Bedtime { get; set; }
@@ -284,6 +296,33 @@ public sealed class DaySummaryDTO
 
     /// <summary>Gets or sets the resting heart rate.</summary>
     public double? RestingHeartRate { get; set; }
+
+    /// <summary>Gets or sets the respiratory rate while asleep.</summary>
+    public double? RespiratoryRate { get; set; }
+
+    /// <summary>Gets or sets blood oxygen.</summary>
+    public double? BloodOxygen { get; set; }
+
+    /// <summary>Gets or sets the wrist temperature change from your normal, °C.</summary>
+    public double? WristTemperatureChange { get; set; }
+
+    /// <summary>Gets or sets cardio fitness (VO₂ max), when the Watch estimated it that day.</summary>
+    public double? Vo2Max { get; set; }
+
+    /// <summary>Gets or sets the steps.</summary>
+    public double? Steps { get; set; }
+
+    /// <summary>Gets or sets the minutes in heart-rate zone 2 or higher.</summary>
+    public int ActiveMinutes { get; set; }
+
+    /// <summary>Gets or sets the sleep need of the night, in minutes.</summary>
+    public int NeedMinutes { get; set; }
+
+    /// <summary>Gets or sets when you went to bed (the night that ended this morning).</summary>
+    public DateTime? BedStart { get; set; }
+
+    /// <summary>Gets or sets the Health Monitor signs outside your typical range (keys: hrv, resting…).</summary>
+    public List<string> HealthFlags { get; set; } = [];
 }
 
 /// <summary>One point of a trend line.</summary>
@@ -310,4 +349,157 @@ public sealed class CoachTipDTO
 
     /// <summary>Gets or sets the tip.</summary>
     public string Text { get; set; } = string.Empty;
+}
+
+/// <summary>The Health Monitor of a day: five signs measured overnight, each against your typical range.</summary>
+public sealed class HealthMonitorDTO
+{
+    /// <summary>Gets or sets a value indicating whether there's enough history (7 days) to judge any sign.</summary>
+    public bool Ready { get; set; }
+
+    /// <summary>Gets or sets how many judged signs are in range.</summary>
+    public int InRange { get; set; }
+
+    /// <summary>Gets or sets how many signs were judged.</summary>
+    public int Judged { get; set; }
+
+    /// <summary>Gets or sets the signs.</summary>
+    public List<HealthSignDTO> Signs { get; set; } = [];
+}
+
+/// <summary>One Health Monitor sign.</summary>
+public sealed class HealthSignDTO
+{
+    /// <summary>Gets or sets the key: hrv, resting, respiratory, oxygen or temperature.</summary>
+    public string Key { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the name.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the value (temperature: the change from your normal).</summary>
+    public double? Value { get; set; }
+
+    /// <summary>Gets or sets the unit.</summary>
+    public string Unit { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets your normal.</summary>
+    public double Typical { get; set; }
+
+    /// <summary>Gets or sets the bottom of your typical range.</summary>
+    public double Low { get; set; }
+
+    /// <summary>Gets or sets the top of your typical range.</summary>
+    public double High { get; set; }
+
+    /// <summary>Gets or sets where the value sits.</summary>
+    public HealthSignStatus Status { get; set; }
+
+    /// <summary>Gets or sets the decimals to show.</summary>
+    public int Decimals { get; set; }
+}
+
+/// <summary>Cardio load: the last 7 days of heart load against the last 28.</summary>
+public sealed class CardioLoadDTO
+{
+    /// <summary>Gets or sets a value indicating whether there are enough days (21 of the last 28) to judge it.</summary>
+    public bool Ready { get; set; }
+
+    /// <summary>Gets or sets the acute:chronic ratio.</summary>
+    public double? Ratio { get; set; }
+
+    /// <summary>Gets or sets the band.</summary>
+    public CardioLoadStatus Status { get; set; }
+
+    /// <summary>Gets or sets the mean daily heart load (TRIMP) of the last 7 days.</summary>
+    public double AcuteLoad { get; set; }
+
+    /// <summary>Gets or sets the mean daily heart load (TRIMP) of the last 28 days.</summary>
+    public double ChronicLoad { get; set; }
+
+    /// <summary>Gets or sets the daily strain that keeps the load productive, bottom.</summary>
+    public double? StrainLow { get; set; }
+
+    /// <summary>Gets or sets the daily strain that keeps the load productive, top.</summary>
+    public double? StrainHigh { get; set; }
+
+    /// <summary>Gets or sets the ratio over the last 8 weeks.</summary>
+    public List<TrendPointDTO> History { get; set; } = [];
+}
+
+/// <summary>The Health Monitor over 30 or 180 days, for the report you can print or save as PDF.</summary>
+public sealed class HealthReportDTO
+{
+    /// <summary>Gets or sets the first day.</summary>
+    public DateOnly From { get; set; }
+
+    /// <summary>Gets or sets the last day.</summary>
+    public DateOnly To { get; set; }
+
+    /// <summary>Gets or sets the days with any sign measured.</summary>
+    public int DaysMeasured { get; set; }
+
+    /// <summary>Gets or sets the days with two or more signs outside their range.</summary>
+    public int DaysFlagged { get; set; }
+
+    /// <summary>Gets or sets one series per sign.</summary>
+    public List<HealthSeriesDTO> Signs { get; set; } = [];
+}
+
+/// <summary>One sign over the report.</summary>
+public sealed class HealthSeriesDTO
+{
+    /// <summary>Gets or sets the key.</summary>
+    public string Key { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the name.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the unit.</summary>
+    public string Unit { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the decimals to show.</summary>
+    public int Decimals { get; set; }
+
+    /// <summary>Gets or sets the average of the period.</summary>
+    public double? Average { get; set; }
+
+    /// <summary>Gets or sets the lowest value.</summary>
+    public double? Min { get; set; }
+
+    /// <summary>Gets or sets the highest value.</summary>
+    public double? Max { get; set; }
+
+    /// <summary>Gets or sets your typical range at the end of the period, bottom.</summary>
+    public double Low { get; set; }
+
+    /// <summary>Gets or sets your typical range at the end of the period, top.</summary>
+    public double High { get; set; }
+
+    /// <summary>Gets or sets the days in range.</summary>
+    public int InRangeDays { get; set; }
+
+    /// <summary>Gets or sets the days outside.</summary>
+    public int OutsideDays { get; set; }
+
+    /// <summary>Gets or sets every day.</summary>
+    public List<HealthPointDTO> Days { get; set; } = [];
+}
+
+/// <summary>One day of a sign.</summary>
+public sealed class HealthPointDTO
+{
+    /// <summary>Gets or sets the day.</summary>
+    public DateOnly Date { get; set; }
+
+    /// <summary>Gets or sets the value.</summary>
+    public double? Value { get; set; }
+
+    /// <summary>Gets or sets the range that day, bottom.</summary>
+    public double Low { get; set; }
+
+    /// <summary>Gets or sets the range that day, top.</summary>
+    public double High { get; set; }
+
+    /// <summary>Gets or sets where the value sat.</summary>
+    public HealthSignStatus Status { get; set; }
 }

@@ -1,0 +1,37 @@
+@model AppPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "More";
+    var items = new[]
+    {
+        ("/health", "shield", "rec", "Health Monitor", "Overnight signs against your typical range"),
+        ("/plan", "calendar", "sky", "Weekly plan", "Sleep, bedtime, zone 2 and steps for this week"),
+        ("/trends", "trend", "slp", "Trends", "30 days, 90 days or a year of every number"),
+        ("/report", "check", "str", "Weekly & monthly report", "Your performance assessment"),
+        ("/coach", "sparkle", "slp", "AI coach", "A short report on your last 30 days"),
+        ("/journal", "journal", "mid", "Journal", "What you did, and what it does to your recovery"),
+        ("/settings", "settings", "rose", "Settings", "Profile, goals, notifications, Apple Watch"),
+        ("/about", "info", "", "About Kardia", "How the scores work"),
+    };
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">Kardia</div>
+        <h1>More</h1>
+    </div>
+</header>
+
+<section class="card rise" style="--d:1">
+    @foreach (var (href, icon, css, name, text) in items)
+    {
+        <a class="list-row" href="@href">
+            <span class="ico-chip @css">@Icons.Get(icon)</span>
+            <div class="grow">
+                <span class="top"><span>@name</span></span>
+                <small>@text</small>
+            </div>
+            @Icons.Get("right", "dim")
+        </a>
+    }
+</section>

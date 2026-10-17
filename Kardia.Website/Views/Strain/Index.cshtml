@@ -73,6 +73,54 @@ else
         </section>
     </div>
 
+        var load = day.CardioLoad;
+        // The scale runs from 0.5 to 1.8: detraining below 0.8, maintaining to 1.0, productive to 1.3, overreaching to 1.5.
+        double ScaleAt(double ratio) => Math.Clamp((ratio - 0.5) / 1.3 * 100, 0, 100);
+        var history = load.History.Select(static p => new Charts.SeriesPoint(p.Date, p.Value)).ToList();
+    <div class="row">
+        <section class="card rise" style="--d:3" id="cardio-load">
+            <div class="card-head">
+                <h2>Cardio load</h2>
+                <span class="side-note">last 7 days vs. last 28</span>
+            </div>
+            @if (load.Ready && load.Ratio is { } ratio)
+            {
+                <div style="display:flex;align-items:baseline;gap:12px">
+                    <span class="cl-ratio num" style="color:@Fmt.CardioColor(load.Status)">@ratio.ToString("0.00", inv)</span>
+                    <b style="font:600 18px var(--font-display);color:@Fmt.CardioColor(load.Status)">@Fmt.CardioName(load.Status)</b>
+                </div>
+                <div class="cl-scale" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="mark" style="left:@(ScaleAt(ratio).ToString("0.0", inv))%"></span></div>
+                <div class="cl-labels" aria-hidden="true"><span>Detraining</span><span>Maintain</span><span>Productive</span><span>Over&shy;reaching</span><span>Over&shy;training</span></div>
+                <p class="muted" style="font-size:14px">@Fmt.CardioText(load.Status)</p>
+                @if (load.StrainLow is { } low && load.StrainHigh is { } high)
+                {
+                    <div class="tiles">
+                        <div class="tile"><span class="k">Productive strain</span><span class="v">@Fmt.One(low)–@Fmt.One(high)<small> a day</small></span></div>
+                        <div class="tile"><span class="k">Heart load</span><span class="v">@load.AcuteLoad.ToString("0", inv)<small> vs @load.ChronicLoad.ToString("0", inv) usual</small></span></div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="muted" style="font-size:14px">@Fmt.CardioText(load.Status)</p>
+            }
+        </section>
+
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>Cardio load · 8 weeks</h2>
+                <div class="legend">
+                    <span><i class="swatch" style="background:var(--rec)"></i>Productive 1.0–1.3</span>
+                </div>
+            </div>
+            @{
+                var banded = history.Select(static p => p with { Low = 1.0, High = 1.3, Status = p.Value is { } v ? (v > 1.5 ? "far" : v > 1.3 ? "out" : null) : null }).ToList();
+            }
+            <div class="chart-wide">@Charts.Series(banded, "ser-str", "Cardio load ratio over the last eight weeks", 1, 640, 210)</div>
+            <div class="chart-narrow">@Charts.Series(banded, "ser-str", "Cardio load ratio over the last eight weeks", 1, 360, 160)</div>
+        </section>
+    </div>
+
     <div class="row">
         <section class="card w2 rise" style="--d:3">
             <div class="card-head">

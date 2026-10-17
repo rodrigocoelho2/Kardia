@@ -1,0 +1,11 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### This week
+GET {{HostAddress}}/report?userId={{userId}}&period=Week
+x-api-key: {{apiKey}}
+
+### Last month
+GET {{HostAddress}}/report?userId={{userId}}&period=Month&date=2026-09-30
+x-api-key: {{apiKey}}

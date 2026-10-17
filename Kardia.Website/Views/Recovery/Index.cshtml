@@ -95,7 +95,7 @@ else
                 <h2>HRV · 30 days</h2>
                 <div class="legend">
                     <span><i class="swatch" style="background:var(--rec)"></i>HRV</span>
-                    <span><i class="swatch" style="background:rgba(255,255,255,0.2)"></i>Your normal</span>
+                    <span><i class="swatch" style="background:var(--line-2)"></i>Your normal</span>
                 </div>
             </div>
             @Charts.Trend(day.HrvTrend, rec.HrvBaseline, "line-hrv", $"Heart rate variability over 30 days; your normal is {rec.HrvBaseline:0} ms")

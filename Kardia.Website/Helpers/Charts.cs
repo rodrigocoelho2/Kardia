@@ -323,6 +323,152 @@ public static class Charts
         return new HtmlString(svg.ToString());
     }
 
+    /// <summary>One point of a <see cref="Series"/>.</summary>
+    /// <param name="Date">The day (or the first day of the week it stands for).</param>
+    /// <param name="Value">The value, or null for a gap.</param>
+    /// <param name="Low">The bottom of the band behind the point (your typical range), if any.</param>
+    /// <param name="High">The top of the band, if any.</param>
+    /// <param name="Status">A class for the point's dot (in, out, far), if any.</param>
+    public sealed record SeriesPoint(DateOnly Date, double? Value, double? Low = null, double? High = null, string? Status = null);
+
+    /// <summary>
+    /// A line over days or weeks: the area under it, an optional band behind it (your typical range, day by day), dots
+    /// coloured by status, the lowest and highest value on the right and a few dates under it. Used by trends, reports
+    /// and the Health Monitor.
+    /// </summary>
+    /// <param name="points">The points, oldest first.</param>
+    /// <param name="cssClass">The colour class (ser-rec, ser-slp, ser-str, ser-sky, ser-rose, ser-mid).</param>
+    /// <param name="label">What a screen reader hears.</param>
+    /// <param name="decimals">Decimals of the axis labels.</param>
+    /// <param name="width">The drawing width.</param>
+    /// <param name="height">The drawing height.</param>
+    /// <param name="dots">Whether to draw a dot on every point.</param>
+    /// <param name="floor">A value the axis must include (0 for strain, for example).</param>
+    /// <param name="smooth">Points of a rolling average drawn over a faded daily line (0 = none).</param>
+    /// <returns>The SVG.</returns>
+    public static IHtmlContent Series(IReadOnlyList<SeriesPoint> points, string cssClass, string label, int decimals = 0, double width = 640, double height = 150, bool dots = false, double? floor = null, int smooth = 0)
+    {
+        var known = points.Where(static p => p.Value is not null).ToList();
+        if (known.Count < 2)
+        {
+            return new HtmlString("<p class=\"muted small-note\">Not enough days yet to draw this.</p>");
+        }
+
+        const double top = 10, left = 4, right = 40, bottomPad = 22;
+        var values = known.Select(static p => p.Value!.Value)
+            .Concat(points.Where(static p => p.Low is not null).Select(static p => p.Low!.Value))
+            .Concat(points.Where(static p => p.High is not null).Select(static p => p.High!.Value))
+            .Concat(floor is { } f ? [f] : [])
+            .ToList();
+        var low = values.Min();
+        var high = values.Max();
+        var pad = Math.Max((high - low) * 0.12, Math.Abs(high) * 0.02 + 0.5);
+        low = floor is { } floorValue && floorValue >= low - pad ? Math.Min(low, floorValue) : low - pad;
+        high += pad;
+        var plotRight = width - right;
+        var bottom = height - bottomPad;
+        double X(int index) => left + index * (plotRight - left) / Math.Max(1, points.Count - 1);
+        double Y(double value) => bottom - (value - low) / (high - low) * (bottom - top);
+        string Fmt(double value) => value.ToString(decimals == 0 ? "0" : "0.0", Invariant);
+
+        var id = NextId();
+        var svg = new StringBuilder();
+        svg.Append(Invariant, $"<svg class=\"chart-series {cssClass}\" viewBox=\"0 0 {width:0} {height:0}\" role=\"img\" aria-label=\"{Escape(label)}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" class=\"stop-a\"/><stop offset=\"1\" class=\"stop-b\"/></linearGradient></defs>");
+
+        foreach (var tick in new[] { high - pad, (high + low) / 2, low + pad })
+        {
+            svg.Append(Invariant, $"<line x1=\"{left:0}\" y1=\"{Y(tick):0.0}\" x2=\"{plotRight:0}\" y2=\"{Y(tick):0.0}\" class=\"lane\"/><text x=\"{width - 2:0}\" y=\"{Y(tick) + 3.5:0.0}\" text-anchor=\"end\" class=\"axis\">{Fmt(tick)}</text>");
+        }
+
+        // The band: your typical range, which moves day by day.
+        var banded = points.Select((p, i) => (p, i)).Where(static x => x.p.Low is not null && x.p.High is not null).ToList();
+        if (banded.Count > 1)
+        {
+            var upper = string.Join(" L", banded.Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.p.High!.Value):0.0}")));
+            var lower = string.Join(" L", banded.AsEnumerable().Reverse().Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.p.Low!.Value):0.0}")));
+            svg.Append(Invariant, $"<path d=\"M{upper} L{lower} Z\" class=\"band-typical\"/>");
+        }
+
+        // The line breaks at gaps of more than a few points; the area follows the line.
+        var segments = new List<List<(double X, double Y)>>();
+        var current = new List<(double X, double Y)>();
+        var missing = 0;
+        for (var i = 0; i < points.Count; i++)
+        {
+            if (points[i].Value is not { } value)
+            {
+                missing++;
+                continue;
+            }
+
+            if (missing > 3 && current.Count > 0)
+            {
+                segments.Add(current);
+                current = [];
+            }
+
+            missing = 0;
+            current.Add((X(i), Y(value)));
+        }
+
+        if (current.Count > 0)
+        {
+            segments.Add(current);
+        }
+
+        foreach (var segment in segments)
+        {
+            var line = string.Join(" L", segment.Select(p => string.Create(Invariant, $"{p.X:0.0},{p.Y:0.0}")));
+            if (banded.Count <= 1 && segment.Count > 1)
+            {
+                svg.Append(Invariant, $"<path d=\"M{line} L{segment[^1].X:0.0},{bottom:0.0} L{segment[0].X:0.0},{bottom:0.0} Z\" fill=\"url(#{id})\"/>");
+            }
+
+            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"series-line{(smooth > 1 ? " faded" : string.Empty)}\"/>");
+        }
+
+        if (smooth > 1)
+        {
+            var averaged = points.Select((p, i) =>
+            {
+                var window = points.Skip(Math.Max(0, i - smooth + 1)).Take(Math.Min(smooth, i + 1)).Where(static w => w.Value is not null).Select(static w => w.Value!.Value).ToList();
+                return (i, Value: window.Count >= Math.Max(2, smooth / 2) ? window.Average() : (double?)null);
+            }).Where(static x => x.Value is not null).ToList();
+            if (averaged.Count > 1)
+            {
+                svg.Append(Invariant, $"<path d=\"M{string.Join(" L", averaged.Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.Value!.Value):0.0}")))}\" class=\"series-line smooth\"/>");
+            }
+        }
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            if (points[i].Value is not { } value)
+            {
+                continue;
+            }
+
+            var isLast = i == points.Count - 1 || points.Skip(i + 1).All(static p => p.Value is null);
+            if (dots || isLast || points[i].Status is "out" or "far")
+            {
+                var status = points[i].Status is { } st ? " " + st : string.Empty;
+                svg.Append(Invariant, $"<circle cx=\"{X(i):0.0}\" cy=\"{Y(value):0.0}\" r=\"{(isLast ? 4.5 : 3)}\" class=\"series-dot{status}{(isLast ? " last" : string.Empty)}\"/>");
+            }
+        }
+
+        // A few dates under the line.
+        var labels = points.Count <= 1 ? [0] : new[] { 0, points.Count / 4, points.Count / 2, points.Count * 3 / 4, points.Count - 1 }.Distinct();
+        var span = points.Count > 1 ? points[^1].Date.DayNumber - points[0].Date.DayNumber : 0;
+        foreach (var index in labels)
+        {
+            var text = span > 200 ? points[index].Date.ToString("MMM", Invariant) : points[index].Date.ToString("d MMM", Invariant);
+            var anchor = index == 0 ? "start" : index == points.Count - 1 ? "end" : "middle";
+            svg.Append(Invariant, $"<text x=\"{X(index):0.0}\" y=\"{height - 4:0}\" text-anchor=\"{anchor}\" class=\"axis\">{text}</text>");
+        }
+
+        svg.Append("</svg>");
+        return new HtmlString(svg.ToString());
+    }
+
     private static string NextId() => "k" + Interlocked.Increment(ref _ids).ToString(Invariant);
 
     private static string Escape(string text) => System.Net.WebUtility.HtmlEncode(text);

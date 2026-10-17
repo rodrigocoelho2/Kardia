@@ -1,5 +1,6 @@
 using Kardia.Library.Enums;
 using Kardia.Sdk.Models;
+using Kardia.Website.Helpers;
 using Kardia.Website.Model;
 using Kardia.Website.Model.Settings;
 using Kardia.Website.Security;
@@ -27,6 +28,9 @@ public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOption
         {
             "profile" => "Profile saved. Your scores use it from now on.",
             "password" => "Password changed. Other devices have been signed out.",
+            "goals" => "Goals saved. The weekly plan and tonight's bedtime use them now.",
+            "notifications" => "Notification choices saved.",
+            "theme" => "Appearance saved for this browser.",
             _ => null,
         };
         return View(page);
@@ -66,6 +70,115 @@ public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOption
         page.ErrorsFor = "profile";
         return View("Index", page);
     }
+
+    /// <summary>Saves the goals: sleep goal and the weekly plan targets.</summary>
+    /// <param name="sleepGoalPercent">100, 85 or 70.</param>
+    /// <param name="activeMinutesWeek">Zone 2+ minutes a week.</param>
+    /// <param name="stepsDay">Steps a day.</param>
+    /// <param name="sleepNightsWeek">Nights a week on the sleep goal.</param>
+    /// <param name="bedtimeNightsWeek">Nights a week in bed on time.</param>
+    /// <returns>A redirect, or the page with the errors.</returns>
+    [HttpPost("/settings/goals")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GoalsAsync([FromForm] int sleepGoalPercent, [FromForm] int activeMinutesWeek, [FromForm] int stepsDay, [FromForm] int sleepNightsWeek, [FromForm] int bedtimeNightsWeek)
+    {
+        var model = new SettingModel(ApiClient);
+        var current = await model.GetSettingAsync(UserId);
+        var item = current.Data ?? new SettingDTO { UserId = UserId };
+        item.SleepGoalPercent = sleepGoalPercent;
+        item.ActiveMinutesWeek = activeMinutesWeek;
+        item.StepsDay = stepsDay;
+        item.SleepNightsWeek = sleepNightsWeek;
+        item.BedtimeNightsWeek = bedtimeNightsWeek;
+        return await SaveSettingAsync(model, item, "goals");
+    }
+
+    /// <summary>Saves which notifications to send.</summary>
+    /// <param name="notifyMorning">Morning recovery.</param>
+    /// <param name="notifyBedtime">Bedtime reminder.</param>
+    /// <param name="bedtimeLeadMinutes">Minutes before bedtime.</param>
+    /// <param name="notifyHealth">Health Monitor alert.</param>
+    /// <param name="notifyStrain">Strain target.</param>
+    /// <param name="notifyReports">Weekly and monthly assessments.</param>
+    /// <returns>A redirect, or the page with the errors.</returns>
+    [HttpPost("/settings/notifications")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> NotificationsAsync([FromForm] bool notifyMorning, [FromForm] bool notifyBedtime, [FromForm] int bedtimeLeadMinutes,
+        [FromForm] bool notifyHealth, [FromForm] bool notifyStrain, [FromForm] bool notifyReports)
+    {
+        var model = new SettingModel(ApiClient);
+        var current = await model.GetSettingAsync(UserId);
+        var item = current.Data ?? new SettingDTO { UserId = UserId };
+        item.NotifyMorning = notifyMorning;
+        item.NotifyBedtime = notifyBedtime;
+        item.BedtimeLeadMinutes = bedtimeLeadMinutes;
+        item.NotifyHealth = notifyHealth;
+        item.NotifyStrain = notifyStrain;
+        item.NotifyReports = notifyReports;
+        return await SaveSettingAsync(model, item, "notifications");
+    }
+
+    /// <summary>Sets tonight's sleep goal from the Sleep screen.</summary>
+    /// <param name="sleepGoalPercent">100, 85 or 70.</param>
+    /// <returns>Back to the Sleep screen.</returns>
+    [HttpPost("/settings/sleep-goal")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SleepGoalAsync([FromForm] int sleepGoalPercent)
+    {
+        var model = new SettingModel(ApiClient);
+        var current = await model.GetSettingAsync(UserId);
+        if (current.Data is { } item)
+        {
+            item.SleepGoalPercent = sleepGoalPercent;
+            await model.SaveSettingAsync(item);
+        }
+
+        return Redirect("/sleep#tonight");
+    }
+
+    /// <summary>Saves the appearance for this browser.</summary>
+    /// <param name="theme">system, dark or light.</param>
+    /// <returns>Back to the settings.</returns>
+    [HttpPost("/settings/theme")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ThemeAsync([FromForm] string? theme)
+    {
+        Theme.Save(HttpContext, theme);
+        return Redirect("/settings?saved=theme#appearance");
+    }
+
+    /// <summary>The notification state of the account (JSON for push.js).</summary>
+    /// <returns>JSON <c>AjaxDataResult</c> with the devices and the key.</returns>
+    [HttpGet("/settings/push")]
+    public async Task<IActionResult> PushAsync() => Json(await new SettingModel(ApiClient).PushAsync(UserId));
+
+    /// <summary>Turns notifications on for this browser.</summary>
+    /// <param name="item">The browser's subscription.</param>
+    /// <returns>JSON <c>AjaxDataResult</c> with the state.</returns>
+    [HttpPost("/settings/push/subscribe")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PushSubscribeAsync([FromBody] PushSubscribeRequest item)
+    {
+        item.UserId = UserId;
+        return Json(await new SettingModel(ApiClient).PushSubscribeAsync(item));
+    }
+
+    /// <summary>Turns notifications off for a device.</summary>
+    /// <param name="item">The device.</param>
+    /// <returns>JSON <c>AjaxDataResult</c> with the state.</returns>
+    [HttpPost("/settings/push/unsubscribe")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PushUnsubscribeAsync([FromBody] PushUnsubscribeRequest item)
+    {
+        item.UserId = UserId;
+        return Json(await new SettingModel(ApiClient).PushUnsubscribeAsync(item));
+    }
+
+    /// <summary>Sends a test notification to the account's devices.</summary>
+    /// <returns>JSON <c>AjaxDataResult</c> with how many it reached.</returns>
+    [HttpPost("/settings/push/test")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PushTestAsync() => Json(await new SettingModel(ApiClient).PushTestAsync(UserId));
 
     /// <summary>Changes the password (and keeps this device signed in).</summary>
     /// <param name="currentPassword">The current password.</param>
@@ -127,9 +240,25 @@ public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOption
         return Json(await new SettingModel(ApiClient).DeleteUserAsync(identifier));
     }
 
+    private async Task<IActionResult> SaveSettingAsync(SettingModel model, SettingDTO item, string form)
+    {
+        item.UserId = UserId;
+        var result = await model.SaveSettingAsync(item);
+        if (result.IsValid)
+        {
+            return Redirect($"/settings?saved={form}#{form}");
+        }
+
+        var page = await PageAsync();
+        page.Errors = [.. result.ValidationErrors.Select(static error => error.Message)];
+        page.ErrorsFor = form;
+        return View("Index", page);
+    }
+
     private async Task<SettingPageModel> PageAsync()
     {
         var page = await new SettingModel(ApiClient).PageAsync(Shell(new SettingPageModel(), AppSection.Settings), UserId);
+        page.Theme = Theme.Of(HttpContext);
         var origin = string.IsNullOrWhiteSpace(options.Value.PublicUrl) ? $"{Request.Scheme}://{Request.Host}" : options.Value.PublicUrl.TrimEnd('/');
         page.SyncUrl = origin + "/api/sync";
         return page;

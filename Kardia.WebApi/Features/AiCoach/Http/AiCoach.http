@@ -1,0 +1,11 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### The last report
+GET {{HostAddress}}/aicoach?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Analyse the last 30 days
+POST {{HostAddress}}/aicoach/analyse?userId={{userId}}
+x-api-key: {{apiKey}}

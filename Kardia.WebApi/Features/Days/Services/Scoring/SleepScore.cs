@@ -50,6 +50,16 @@ internal static class SleepScore
         return new SleepNeed(baseMinutes, strain, debt);
     }
 
+    /// <summary>
+    /// The sleep to plan for with a goal below 100 % of the need (WHOOP's Peak 100 %, Perform 85 %, Get by 70 %),
+    /// rounded to 5 minutes (100 % is the need itself).
+    /// </summary>
+    /// <param name="needMinutes">The night's need.</param>
+    /// <param name="goalPercent">The goal: 100, 85 or 70.</param>
+    /// <returns>The minutes to plan for.</returns>
+    public static int Goal(int needMinutes, int goalPercent) =>
+        goalPercent >= 100 ? needMinutes : (int)(Math.Round(needMinutes * Math.Clamp(goalPercent, 50, 100) / 100.0 / 5) * 5);
+
     /// <summary>The minutes asleep in a night (core + deep + REM).</summary>
     /// <param name="night">The night.</param>
     /// <returns>The minutes.</returns>

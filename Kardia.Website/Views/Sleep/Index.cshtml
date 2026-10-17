@@ -8,7 +8,7 @@
     var tip = day.Coach.FirstOrDefault(static t => t.Area == CoachArea.Sleep);
     var stages = new[]
     {
-        (Name: "Awake", Minutes: sleep.AwakeMinutes, Colour: "#F2F4F7", Note: "Short wake-ups are normal"),
+        (Name: "Awake", Minutes: sleep.AwakeMinutes, Colour: "var(--awake)", Note: "Short wake-ups are normal"),
         (Name: "REM", Minutes: sleep.RemMinutes, Colour: "var(--slp-3)", Note: "Memory and mood"),
         (Name: "Light", Minutes: sleep.CoreMinutes, Colour: "var(--slp)", Note: "Most of the night"),
         (Name: "Deep", Minutes: sleep.DeepMinutes, Colour: "var(--slp-2)", Note: "Physical repair"),
@@ -78,7 +78,7 @@ else
     </div>
 
     <div class="row">
-        <section class="card rise" style="--d:3">
+        <section class="card rise" style="--d:3" id="tonight">
             <div class="card-head">
                 <h2>Tonight</h2>
                 @if (sleep.WakeAt is { } wake)
@@ -88,14 +88,35 @@ else
             </div>
             <div>
                 <span class="kicker">Be in bed by</span>
-                <div class="bedtime" style="color:#C4C3FF">@Fmt.Clock(sleep.Bedtime)</div>
+                <div class="bedtime" style="color:var(--slp-3)">@Fmt.Clock(sleep.Bedtime)</div>
             </div>
             <div class="need">
                 <div><span>Baseline need</span><span>@Fmt.Duration(sleep.NeedBaseMinutes)</span></div>
                 <div><span>+ today's strain</span><span>@Fmt.Duration(sleep.TonightStrainMinutes)</span></div>
                 <div><span>+ sleep debt</span><span>@Fmt.Duration(sleep.TonightDebtMinutes)</span></div>
                 <div class="total"><span>You need</span><span>@Fmt.Duration(sleep.TonightNeedMinutes)</span></div>
+                @if (sleep.GoalPercent < 100)
+                {
+                    <div class="total"><span>@Fmt.GoalName(sleep.GoalPercent) · @sleep.GoalPercent%</span><span>@Fmt.Duration(sleep.TonightGoalMinutes)</span></div>
+                }
             </div>
+            @if (Model.IsToday)
+            {
+                <form method="post" action="/settings/sleep-goal" class="form" data-autosubmit>
+                    @Html.AntiForgeryToken()
+                    <span class="kicker">Sleep goal</span>
+                    <div class="choices" style="grid-template-columns:repeat(3, minmax(0, 1fr))">
+                        @foreach (var (percent, name) in new[] { (100, "Peak"), (85, "Perform"), (70, "Get by") })
+                        {
+                            <label class="choice">
+                                <input type="radio" name="sleepGoalPercent" value="@percent" checked="@(sleep.GoalPercent == percent)" />
+                                <b>@name</b><small>@percent% · @Fmt.Duration((int)(Math.Round(sleep.TonightNeedMinutes * percent / 100.0 / 5) * 5))</small>
+                            </label>
+                        }
+                    </div>
+                    <noscript><button class="btn ghost small" type="submit">Set goal</button></noscript>
+                </form>
+            }
             @if (tip is not null)
             {
                 <p class="muted" style="font-size:13px;line-height:1.5">@tip.Text</p>

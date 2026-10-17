@@ -6,12 +6,19 @@ using Kardia.WebApi.Extensions.Mvc;
 using Kardia.WebApi.Extensions.Time;
 using Kardia.WebApi.Features;
 using Kardia.WebApi.Features.Ages.Services;
+using Kardia.WebApi.Features.AiCoach.Services;
 using Kardia.WebApi.Features.Days.Services;
 using Kardia.WebApi.Features.Demo.Services;
 using Kardia.WebApi.Features.Journals.Repositories;
 using Kardia.WebApi.Features.Journals.Services;
 using Kardia.WebApi.Features.Profiles.Repositories;
+using Kardia.WebApi.Features.Plans.Services;
 using Kardia.WebApi.Features.Profiles.Services;
+using Kardia.WebApi.Features.Push.Repositories;
+using Kardia.WebApi.Features.Push.Services;
+using Kardia.WebApi.Features.Reports.Services;
+using Kardia.WebApi.Features.Settings.Repositories;
+using Kardia.WebApi.Features.Settings.Services;
 using Kardia.WebApi.Features.Syncs.Repositories;
 using Kardia.WebApi.Features.Syncs.Services;
 using Kardia.WebApi.Features.Users.Repositories;
@@ -69,6 +76,9 @@ internal static class KardiaStartup
             services.AddSingleton<ISyncKeyRepository, MemorySyncKeyRepository>();
             services.AddSingleton<IHealthDataRepository, MemoryHealthDataRepository>();
             services.AddSingleton<IJournalRepository, MemoryJournalRepository>();
+            services.AddSingleton<ISettingRepository, MemorySettingRepository>();
+            services.AddSingleton<IPushRepository, MemoryPushRepository>();
+            services.AddSingleton<ISecretRepository, MemorySecretRepository>();
         }
         else
         {
@@ -78,6 +88,9 @@ internal static class KardiaStartup
             services.AddSingleton<ISyncKeyRepository, SyncKeyRepository>();
             services.AddSingleton<IHealthDataRepository, HealthDataRepository>();
             services.AddSingleton<IJournalRepository, JournalRepository>();
+            services.AddSingleton<ISettingRepository, SettingRepository>();
+            services.AddSingleton<IPushRepository, PushRepository>();
+            services.AddSingleton<ISecretRepository, SecretRepository>();
         }
 
         // Days (scores)
@@ -106,6 +119,20 @@ internal static class KardiaStartup
         // Ages, Journals
         services.AddSingleton<IAgeService, AgeService>();
         services.AddSingleton<IJournalService, JournalService>();
+
+        // Settings, Plans, Reports
+        services.AddSingleton<ISettingService, SettingService>();
+        services.AddSingleton<IPlanService, PlanService>();
+        services.AddSingleton<IReportService, ReportService>();
+
+        // AI coach
+        services.AddSingleton<IAiModelClient, AiModelClient>();
+        services.AddSingleton<IAiCoachService, AiCoachService>();
+
+        // Push notifications
+        services.AddSingleton<IPushSender, PushSender>();
+        services.AddSingleton<IPushService, PushService>();
+        services.AddHostedService<NotificationWorker>();
 
         return services;
     }

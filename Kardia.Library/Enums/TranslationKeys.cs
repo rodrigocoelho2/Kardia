@@ -55,4 +55,16 @@ public enum TranslationKeys
 
     /// <summary>The sync payload had nothing Kardia keeps.</summary>
     SyncNothingToImport,
+
+    /// <summary>Push notifications are turned off on this server.</summary>
+    PushDisabled,
+
+    /// <summary>An endpoint that isn't a browser push service.</summary>
+    PushEndpointNotAllowed,
+
+    /// <summary>Subscription keys that aren't a P-256 key and a 16-byte secret.</summary>
+    PushKeysInvalid,
+
+    /// <summary>No device has notifications on.</summary>
+    PushNoDevices,
 }

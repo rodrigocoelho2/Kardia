@@ -1,0 +1,16 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+# The id from GET /user/list
+@userId = 00000000000000000000000000000000
+
+### Goals and notification choices
+GET {{HostAddress}}/setting?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Save them
+POST {{HostAddress}}/setting
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{ "userId": "{{userId}}", "sleepGoalPercent": 85, "activeMinutesWeek": 180, "stepsDay": 9000, "sleepNightsWeek": 5, "bedtimeNightsWeek": 5,
+  "notifyMorning": true, "notifyBedtime": true, "bedtimeLeadMinutes": 30, "notifyHealth": true, "notifyStrain": false, "notifyReports": true }

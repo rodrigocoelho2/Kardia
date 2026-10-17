@@ -7,6 +7,7 @@
     var inv = System.Globalization.CultureInfo.InvariantCulture;
     var today = Clock.Today;
     var needHours = (profile.SleepNeedMinutes ?? profile.SleepNeedMinutesUsed) / 60.0;
+    var setting = Model.Setting;
 }
 
 <header class="head rise">
@@ -16,6 +17,9 @@
     </div>
     <nav class="tabs-seg" aria-label="Sections">
         <a class="seg" href="#profile">Profile</a>
+        <a class="seg" href="#goals">Goals</a>
+        <a class="seg" href="#notifications">Notifications</a>
+        <a class="seg" href="#appearance">Appearance</a>
         <a class="seg" href="#apple-watch">Apple Watch</a>
         <a class="seg" href="#account">Password</a>
         @if (Model.IsAdmin) { <a class="seg" href="#users">Accounts</a> }
@@ -67,6 +71,116 @@
         </form>
     </section>
 </div>
+
+<div class="row">
+    <section class="card rise" id="goals" style="--d:2">
+        <div class="card-head">
+            <h2>Goals</h2>
+            <a class="more" href="/plan">Weekly plan @Icons.Get("right")</a>
+        </div>
+        @if (Model.ErrorsFor == "goals" && Model.Errors.Count > 0)
+        {
+            <div class="alert err" role="alert">@foreach (var error in Model.Errors) { <p>@error</p> }</div>
+        }
+        <form class="form" method="post" action="/settings/goals">
+            @Html.AntiForgeryToken()
+            <span class="kicker">Sleep goal · how much of your need to plan for</span>
+            <div class="choices">
+                @foreach (var (percent, name, text) in new[] { (100, "Peak", "all of it, to wake fully recovered"), (85, "Perform", "enough for a good day"), (70, "Get by", "a short night, on purpose") })
+                {
+                    <label class="choice">
+                        <input type="radio" name="sleepGoalPercent" value="@percent" checked="@(setting.SleepGoalPercent == percent)" />
+                        <b>@name · @percent%</b><small>@text</small>
+                    </label>
+                }
+            </div>
+            <span class="kicker" style="margin-top:6px">Every week</span>
+            <div class="fields">
+                <label class="field">Nights on the sleep goal <small>of 7</small>
+                    <input class="input" type="number" name="sleepNightsWeek" min="0" max="7" step="1" value="@setting.SleepNightsWeek" inputmode="numeric" />
+                </label>
+                <label class="field">Nights in bed on time <small>within 30 min of your usual bedtime</small>
+                    <input class="input" type="number" name="bedtimeNightsWeek" min="0" max="7" step="1" value="@setting.BedtimeNightsWeek" inputmode="numeric" />
+                </label>
+                <label class="field">Zone 2+ minutes <small>a week; 150 is the WHO minimum</small>
+                    <input class="input" type="number" name="activeMinutesWeek" min="0" max="2000" step="10" value="@setting.ActiveMinutesWeek" inputmode="numeric" />
+                </label>
+                <label class="field">Steps <small>a day, on average</small>
+                    <input class="input" type="number" name="stepsDay" min="0" max="50000" step="500" value="@setting.StepsDay" inputmode="numeric" />
+                </label>
+            </div>
+            <div><button class="btn rec" type="submit">@Icons.Get("check")Save goals</button></div>
+        </form>
+    </section>
+
+    <section class="card rise" id="notifications" style="--d:2" data-push>
+        <div class="card-head">
+            <h2>Notifications</h2>
+            <span class="side-note" data-push-summary>on this device: checking…</span>
+        </div>
+        @if (Model.ErrorsFor == "notifications" && Model.Errors.Count > 0)
+        {
+            <div class="alert err" role="alert">@foreach (var error in Model.Errors) { <p>@error</p> }</div>
+        }
+        <div class="push-state">
+            <button class="btn rec small" type="button" data-push-on hidden>@Icons.Get("bell")Turn on for this device</button>
+            <button class="btn ghost small" type="button" data-push-off hidden>Turn off for this device</button>
+            <button class="btn ghost small" type="button" data-push-test hidden>Send a test</button>
+        </div>
+        <p class="muted small-note" data-push-problem hidden></p>
+        <div class="devices" data-push-devices></div>
+        <form class="form" method="post" action="/settings/notifications" style="gap:0">
+            @Html.AntiForgeryToken()
+            <label class="switch-row">
+                <span class="grow">Morning recovery<small>once last night is in: recovery, HRV, sleep and today's strain target</small></span>
+                <span class="switch"><input type="checkbox" name="notifyMorning" value="true" checked="@setting.NotifyMorning" /><i></i></span>
+            </label>
+            <label class="switch-row">
+                <span class="grow">Bedtime<small>before tonight's bedtime for your sleep goal
+                    <select class="input inline-select" name="bedtimeLeadMinutes" aria-label="How long before bedtime">
+                        @foreach (var lead in new[] { 0, 15, 30, 45, 60, 90 })
+                        {
+                            <option value="@lead" selected="@(setting.BedtimeLeadMinutes == lead)">@(lead == 0 ? "at bedtime" : $"{lead} min before")</option>
+                        }
+                    </select></small></span>
+                <span class="switch"><input type="checkbox" name="notifyBedtime" value="true" checked="@setting.NotifyBedtime" /><i></i></span>
+            </label>
+            <label class="switch-row">
+                <span class="grow">Health Monitor<small>when two or more overnight signs leave your typical range</small></span>
+                <span class="switch"><input type="checkbox" name="notifyHealth" value="true" checked="@setting.NotifyHealth" /><i></i></span>
+            </label>
+            <label class="switch-row">
+                <span class="grow">Weekly and monthly report<small>Sunday evening, and the 1st of each month</small></span>
+                <span class="switch"><input type="checkbox" name="notifyReports" value="true" checked="@setting.NotifyReports" /><i></i></span>
+            </label>
+            <label class="switch-row">
+                <span class="grow">Strain target<small>when you reach it, or pass it on a red day</small></span>
+                <span class="switch"><input type="checkbox" name="notifyStrain" value="true" checked="@setting.NotifyStrain" /><i></i></span>
+            </label>
+            <div style="padding-top:12px"><button class="btn ghost" type="submit">@Icons.Get("check")Save notification choices</button></div>
+        </form>
+    </section>
+</div>
+
+<section class="card rise" id="appearance" style="--d:2">
+    <div class="card-head">
+        <h2>Appearance</h2>
+        <span class="side-note">saved on this device</span>
+    </div>
+    <form method="post" action="/settings/theme" data-autosubmit>
+        @Html.AntiForgeryToken()
+        <div class="choices">
+            @foreach (var (value, name, icon, text) in new[] { ("system", "Automatic", "device", "follows your phone or computer"), ("dark", "Dark", "moon", "the default"), ("light", "Light", "sun", "for bright rooms") })
+            {
+                <label class="choice">
+                    <input type="radio" name="theme" value="@value" checked="@(Model.Theme == value)" />
+                    <b style="display:flex;align-items:center;gap:8px">@Icons.Get(icon)@name</b><small>@text</small>
+                </label>
+            }
+        </div>
+        <noscript><button class="btn ghost small" type="submit">Save</button></noscript>
+    </form>
+</section>
 
 <div class="row">
     <section class="card w2 rise" id="apple-watch" style="--d:2" data-key-panel data-has-key="@(sync.HasKey ? "true" : "false")">
@@ -188,4 +302,8 @@
         </div>
         <small class="dim">New people create their own account from the sign-in page (set Website__AllowRegistration=false to stop that).</small>
     </section>
+}
+
+@section Scripts {
+    <script src="~/js/push.js" asp-append-version="true"></script>
 }

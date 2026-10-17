@@ -1,0 +1,66 @@
+@model Kardia.Website.Model.Insights.HealthReportPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Health report";
+    var report = Model.Report;
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">Health Monitor · @Fmt.Range(report.From, report.To) @report.To.Year</div>
+        <h1>@(Model.Days == 180 ? "6-month" : "30-day") health report</h1>
+    </div>
+    <div class="head-acts no-print">
+        <nav class="tabs-seg" aria-label="Period">
+            <a class="seg" href="/health/report?days=30" aria-current="@(Model.Days == 30 ? "page" : null)">30 days</a>
+            <a class="seg" href="/health/report?days=180" aria-current="@(Model.Days == 180 ? "page" : null)">6 months</a>
+        </nav>
+        <button class="btn rec small" type="button" data-print>@Icons.Get("down")Print or save as PDF</button>
+    </div>
+</header>
+
+<section class="card report-sheet rise" style="--d:1">
+    <div class="tiles t4">
+        <div class="tile"><span class="k">Account</span><span class="v" style="font-size:18px">@Model.UserName</span></div>
+        <div class="tile"><span class="k">Period</span><span class="v" style="font-size:18px">@report.From.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) – @report.To.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)</span></div>
+        <div class="tile"><span class="k">Nights measured</span><span class="v">@report.DaysMeasured<small> of @((report.To.DayNumber - report.From.DayNumber) + 1)</small></span></div>
+        <div class="tile"><span class="k">Nights flagged</span><span class="v @(report.DaysFlagged > 0 ? "warn-t" : "good-t")">@report.DaysFlagged<small> 2+ signs outside</small></span></div>
+    </div>
+
+    <div class="scroll-x">
+        <table class="users report-table">
+            <thead><tr><th>Sign</th><th>Average</th><th>Lowest</th><th>Highest</th><th>Typical range now</th><th>In range</th><th>Outside</th></tr></thead>
+            <tbody>
+                @foreach (var sign in report.Signs)
+                {
+                    <tr>
+                        <td><b>@sign.Name</b></td>
+                        <td class="num">@Fmt.SignValue(sign.Key, sign.Average, sign.Unit, sign.Decimals)</td>
+                        <td class="num">@Fmt.SignValue(sign.Key, sign.Min, sign.Unit, sign.Decimals)</td>
+                        <td class="num">@Fmt.SignValue(sign.Key, sign.Max, sign.Unit, sign.Decimals)</td>
+                        <td class="num">@Fmt.SignRange(sign.Key, sign.Low, sign.High, sign.Unit, sign.Decimals)</td>
+                        <td class="num good-t">@sign.InRangeDays</td>
+                        <td class="num @(sign.OutsideDays > 0 ? "warn-t" : "")">@sign.OutsideDays</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@foreach (var sign in report.Signs)
+{
+    var points = sign.Days.Select(static d => new Charts.SeriesPoint(d.Date, d.Value, d.Low, d.High, Fmt.SignClass(d.Status))).ToList();
+    <section class="card report-sheet rise" style="--d:2">
+        <div class="card-head">
+            <h2>@sign.Name</h2>
+            <span class="side-note">shaded: your typical range · orange dots: outside it</span>
+        </div>
+        @Charts.Series(points, "ser-" + sign.Key, $"{sign.Name} over {Model.Days} days", sign.Decimals, 760, 170, dots: Model.Days <= 30)
+    </section>
+}
+
+<div class="notice">
+    @Icons.Get("info")
+    <p>Made by Kardia from Apple Watch data on @Clock.Today.ToString("d MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture). The typical range of each sign is the person's own 30-day mean ± 1.5 standard deviations, worked out for every night. This is a record of measurements for a conversation with a doctor, not a diagnosis.</p>
+</div>

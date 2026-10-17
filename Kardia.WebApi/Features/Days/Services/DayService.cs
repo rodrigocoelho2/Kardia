@@ -8,6 +8,8 @@ using Kardia.WebApi.Features.Journals.Repositories;
 using Kardia.WebApi.Features.Journals.Services;
 using Kardia.WebApi.Features.Profiles.Repositories;
 using Kardia.WebApi.Features.Profiles.Services;
+using Kardia.WebApi.Features.Settings.Models.Entities;
+using Kardia.WebApi.Features.Settings.Repositories;
 using Kardia.WebApi.Features.Syncs.Models.Entities;
 using Kardia.WebApi.Features.Syncs.Repositories;
 using Kardia.WebApi.Features.Users.Repositories;
@@ -31,6 +33,12 @@ internal interface IDayService
     /// <param name="to">Last day (at most 400 days after the first).</param>
     /// <returns>One summary per day.</returns>
     Task<ServiceApiResponse<List<DaySummaryDTO>>> RangeAsync(string userId, DateOnly from, DateOnly to);
+
+    /// <summary>Gets the Health Monitor over the last 30 or 180 days (the printable report).</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="days">30 or 180 (anything else becomes the nearer of the two).</param>
+    /// <returns>One series per sign.</returns>
+    Task<ServiceApiResponse<HealthReportDTO>> HealthReportAsync(string userId, int days);
 }
 
 /// <summary>
@@ -43,6 +51,7 @@ internal interface IDayService
 /// <param name="syncKeyRepository">Sync keys (the last sync time).</param>
 /// <param name="journalRepository">Journal (its biggest effect feeds the coach).</param>
 /// <param name="dayScoreReader">Scores ranges of days.</param>
+/// <param name="settingRepository">Goals (the sleep goal sets tonight's bedtime).</param>
 /// <param name="globalizationHelper">Messages.</param>
 /// <param name="clock">The app's clock.</param>
 internal sealed class DayService(
@@ -52,6 +61,7 @@ internal sealed class DayService(
     ISyncKeyRepository syncKeyRepository,
     IJournalRepository journalRepository,
     IDayScoreReader dayScoreReader,
+    ISettingRepository settingRepository,
     IGlobalizationHelper globalizationHelper,
     IAppClock clock) : IDayService
 {
@@ -66,6 +76,7 @@ internal sealed class DayService(
     private readonly ISyncKeyRepository _syncKeyRepository = syncKeyRepository;
     private readonly IJournalRepository _journalRepository = journalRepository;
     private readonly IDayScoreReader _dayScoreReader = dayScoreReader;
+    private readonly ISettingRepository _settingRepository = settingRepository;
     private readonly IGlobalizationHelper _globalizationHelper = globalizationHelper;
     private readonly IAppClock _clock = clock;
 
@@ -97,7 +108,12 @@ internal sealed class DayService(
         // Tonight: the need after today's strain and the recent shortfalls, and when to be in bed for the usual wake-up time.
         var tonight = SleepScore.Need(facts.SleepNeedMinutes, score.Strain, scores.TakeLast(3).Reverse().Select(static s => s.ShortfallMinutes));
         var nights = scores.Where(static s => s.Night is not null).Select(static s => s.Night!).TakeLast(7).ToList();
-        var bedtime = isToday ? SleepScore.Bedtime(nights, tonight.TotalMinutes, day) : null;
+        var setting = await _settingRepository.GetAsync(id) ?? UserSetting.Defaults;
+        var tonightGoal = SleepScore.Goal(tonight.TotalMinutes, setting.SleepGoalPercent);
+        var bedtime = isToday ? SleepScore.Bedtime(nights, tonightGoal, day) : null;
+        var sleep = Sleep(score, tonight, bedtime);
+        sleep.GoalPercent = setting.SleepGoalPercent;
+        sleep.TonightGoalMinutes = tonightGoal;
 
         var dto = new DayDTO
         {
@@ -106,10 +122,12 @@ internal sealed class DayService(
             HasData = score.HasData || samples.Count > 0,
             LastSyncAt = key?.LastUsedAt is { } used ? new DateTimeOffset(DateTime.SpecifyKind(used, DateTimeKind.Utc)) : null,
             Recovery = Recovery(score),
-            Sleep = Sleep(score, tonight, bedtime),
+            Sleep = sleep,
             Strain = Strain(score, facts, samples, workouts, isToday ? now : null),
             HeartRates = Curve(samples),
             Recent = scores.TakeLast(14).Select(Summary).ToList(),
+            Health = Health(score),
+            CardioLoad = Cardio(scores),
             HrvTrend = scores.TakeLast(30).Select(static s => new TrendPointDTO { Date = s.Date, Value = s.Value(HealthMetric.Hrv) }).ToList(),
             Coach = CoachWriter.Write(new CoachContext(score, recent, isToday, now, tonight, bedtime?.Bedtime, impact)),
         };
@@ -134,6 +152,110 @@ internal sealed class DayService(
         var scores = await _dayScoreReader.ScoresAsync(id, facts, from, to);
         return ServiceApiResponse<List<DaySummaryDTO>>.Success(scores.Select(Summary).ToList());
     }
+
+    /// <inheritdoc />
+    public async Task<ServiceApiResponse<HealthReportDTO>> HealthReportAsync(string userId, int days)
+    {
+        if (await UserAsync(userId) is not { } id)
+        {
+            return ServiceApiResponse<HealthReportDTO>.NotFound(await _globalizationHelper.TranslateAsync(nameof(TranslationKeys.NoRecordsFound), userId ?? string.Empty));
+        }
+
+        days = days > 90 ? 180 : 30;
+        var today = _clock.Today;
+        var from = today.AddDays(-(days - 1));
+        var facts = ProfileFacts.From(await _profileRepository.GetAsync(id), today);
+        var scores = await _dayScoreReader.ScoresAsync(id, facts, from, today);
+        var perDay = scores.Select(static score => (score.Date, Signs: HealthMonitor.Of(score))).ToList();
+        var series = perDay[^1].Signs.Select((last, index) =>
+        {
+            var points = perDay.Select(day => (day.Date, Sign: day.Signs[index])).ToList();
+            var values = points.Where(static p => p.Sign.Value is not null).Select(static p => p.Sign.Value!.Value).ToList();
+            return new HealthSeriesDTO
+            {
+                Key = last.Key,
+                Name = last.Name,
+                Unit = last.Unit,
+                Decimals = last.Decimals,
+                Average = values.Count > 0 ? Math.Round(values.Average(), last.Decimals) : null,
+                Min = values.Count > 0 ? values.Min() : null,
+                Max = values.Count > 0 ? values.Max() : null,
+                Low = last.Low,
+                High = last.High,
+                InRangeDays = points.Count(static p => p.Sign.Status is HealthSignStatus.InRange),
+                OutsideDays = points.Count(static p => p.Sign.Status is HealthSignStatus.Outside or HealthSignStatus.FarOutside),
+                Days = points.Select(static p => new HealthPointDTO { Date = p.Date, Value = p.Sign.Value, Low = p.Sign.Low, High = p.Sign.High, Status = p.Sign.Status }).ToList(),
+            };
+        }).ToList();
+
+        return ServiceApiResponse<HealthReportDTO>.Success(new HealthReportDTO
+        {
+            From = from,
+            To = today,
+            DaysMeasured = perDay.Count(static day => day.Signs.Any(static sign => sign.Value is not null)),
+            DaysFlagged = perDay.Count(static day => HealthMonitor.Outside(day.Signs) >= 2),
+            Signs = series,
+        });
+    }
+
+    /// <summary>The Health Monitor of a day.</summary>
+    /// <param name="score">The day.</param>
+    /// <returns>The monitor.</returns>
+    internal static HealthMonitorDTO Health(DayScore score)
+    {
+        var signs = HealthMonitor.Of(score);
+        var judged = signs.Count(static sign => sign.Status is not HealthSignStatus.None);
+        return new HealthMonitorDTO
+        {
+            Ready = judged > 0,
+            Judged = judged,
+            InRange = signs.Count(static sign => sign.Status is HealthSignStatus.InRange),
+            Signs = signs.Select(static sign => new HealthSignDTO
+            {
+                Key = sign.Key,
+                Name = sign.Name,
+                Value = sign.Value,
+                Unit = sign.Unit,
+                Typical = sign.Typical,
+                Low = sign.Low,
+                High = sign.High,
+                Status = sign.Status,
+                Decimals = sign.Decimals,
+            }).ToList(),
+        };
+    }
+
+    /// <summary>The cardio load on the last day of a list, with the ratio of the 8 weeks before.</summary>
+    /// <param name="scores">Scored days, oldest first.</param>
+    /// <returns>The load.</returns>
+    internal static CardioLoadDTO Cardio(IReadOnlyList<DayScore> scores)
+    {
+        var load = CardioLoad.Of(scores);
+        var history = new List<TrendPointDTO>();
+        for (var end = Math.Max(CardioLoad.ChronicDays, scores.Count - 56); end <= scores.Count; end++)
+        {
+            var window = scores.Take(end).ToList();
+            history.Add(new TrendPointDTO { Date = window[^1].Date, Value = CardioLoad.Of(window).Ratio });
+        }
+
+        return new CardioLoadDTO
+        {
+            Ready = load.Ratio is not null,
+            Ratio = load.Ratio,
+            Status = load.Status,
+            AcuteLoad = load.Acute,
+            ChronicLoad = load.Chronic,
+            StrainLow = load.StrainLow,
+            StrainHigh = load.StrainHigh,
+            History = history,
+        };
+    }
+
+    /// <summary>The minutes in heart-rate zone 2 or higher of a day.</summary>
+    /// <param name="score">The day.</param>
+    /// <returns>The minutes.</returns>
+    internal static int ActiveMinutes(DayScore score) => (int)Math.Round((score.Load?.ZoneSeconds ?? string.Empty)
+        .Split(',').Skip(1).Sum(static part => int.TryParse(part, out var seconds) ? seconds : 0) / 60.0);
 
     private static RecoveryDTO Recovery(DayScore score) => new()
     {
@@ -259,7 +381,10 @@ internal sealed class DayService(
         return Enumerable.Range(0, max).Select(index => values[(int)(index * step)]).ToList();
     }
 
-    private static DaySummaryDTO Summary(DayScore score) => new()
+    /// <summary>A day in short.</summary>
+    /// <param name="score">The day.</param>
+    /// <returns>The summary.</returns>
+    internal static DaySummaryDTO Summary(DayScore score) => new()
     {
         Date = score.Date,
         Recovery = score.Recovery.Score,
@@ -269,6 +394,17 @@ internal sealed class DayService(
         AsleepMinutes = score.AsleepMinutes,
         Hrv = Round(score.Value(HealthMetric.Hrv), 0),
         RestingHeartRate = Round(score.Value(HealthMetric.RestingHeartRate), 0),
+        RespiratoryRate = Round(score.Value(HealthMetric.RespiratoryRate), 1),
+        BloodOxygen = Round(score.Value(HealthMetric.BloodOxygen), 0),
+        WristTemperatureChange = score.TemperatureBaseline.Count >= 4 && score.Value(HealthMetric.WristTemperature) is { } temperature
+            ? Math.Round(temperature - score.TemperatureBaseline.Mean, 1)
+            : null,
+        Vo2Max = Round(score.Value(HealthMetric.Vo2Max), 1),
+        Steps = Round(score.Value(HealthMetric.Steps), 0),
+        ActiveMinutes = ActiveMinutes(score),
+        NeedMinutes = score.Need.TotalMinutes,
+        BedStart = score.Night?.BedStart,
+        HealthFlags = HealthMonitor.Of(score).Where(static sign => sign.Status is HealthSignStatus.Outside or HealthSignStatus.FarOutside).Select(static sign => sign.Key).ToList(),
     };
 
     private static double? Round(double? value, int digits) => value is { } number ? Math.Round(number, digits) : null;

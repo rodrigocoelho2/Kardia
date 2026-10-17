@@ -107,6 +107,43 @@
     });
   });
 
+  /* Forms that save as soon as a choice changes (sleep goal, appearance). */
+  document.querySelectorAll("form[data-autosubmit]").forEach(function (form) {
+    form.addEventListener("change", function () { form.submit(); });
+  });
+
+  /* Print or save as PDF. */
+  document.querySelectorAll("[data-print]").forEach(function (button) {
+    button.addEventListener("click", function () { window.print(); });
+  });
+
+  /* AI coach: start an analysis, then wait for the report (a local model can take minutes). */
+  var analyse = document.querySelector("[data-ai-analyse]");
+  if (analyse) {
+    var wait = document.querySelector("[data-ai-wait]");
+    var failure = document.querySelector("[data-ai-error]");
+    var poll = function () {
+      fetch("/coach/state", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (result) {
+          if (result.isValid && result.data && result.data.running) { setTimeout(poll, 3000); return; }
+          location.reload();
+        })
+        .catch(function () { setTimeout(poll, 5000); });
+    };
+    analyse.addEventListener("click", function () {
+      analyse.disabled = true;
+      analyse.querySelector("[data-label]").textContent = "Analysing…";
+      if (wait) wait.hidden = false;
+      if (failure) failure.hidden = true;
+      post("/coach/analyse").then(function (result) {
+        if (!result.isValid) { alert(errorText(result)); analyse.disabled = false; return; }
+        setTimeout(poll, 2500);
+      });
+    });
+    if (analyse.getAttribute("data-running") === "true") setTimeout(poll, 3000);
+  }
+
   /* Admin: delete an account. */
   document.querySelectorAll("[data-delete-user]").forEach(function (button) {
     button.addEventListener("click", function () {

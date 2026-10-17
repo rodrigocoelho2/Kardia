@@ -27,6 +27,9 @@ internal sealed class DayScore
     /// <summary>Gets the wrist temperature baseline.</summary>
     public required Baseline TemperatureBaseline { get; init; }
 
+    /// <summary>Gets the blood oxygen baseline.</summary>
+    public Baseline OxygenBaseline { get; init; } = new(97, 1.2, 0);
+
     /// <summary>Gets the night that ended this morning, if any.</summary>
     public SleepNightRow? Night { get; init; }
 
@@ -165,6 +168,7 @@ internal static class DayScoreBuilder
             var restingBaseline = Baseline.Of(Previous(day, HealthMetric.RestingHeartRate), 60, 4);
             var respiratoryBaseline = Baseline.Of(Previous(day, HealthMetric.RespiratoryRate), 15, 0.8);
             var temperatureBaseline = Baseline.Of(Previous(day, HealthMetric.WristTemperature), 36.3, 0.3);
+            var oxygenBaseline = Baseline.Of(Previous(day, HealthMetric.BloodOxygen), 97, 1.2);
             var recovery = RecoveryScore.Calculate(new RecoveryInputs(
                 Metric(day, HealthMetric.Hrv),
                 hrvBaseline,
@@ -184,6 +188,7 @@ internal static class DayScoreBuilder
                 RestingBaseline = restingBaseline,
                 RespiratoryBaseline = respiratoryBaseline,
                 TemperatureBaseline = temperatureBaseline,
+                OxygenBaseline = oxygenBaseline,
                 Night = night,
                 Need = need,
                 AsleepMinutes = asleep,

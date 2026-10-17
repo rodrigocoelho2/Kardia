@@ -1,0 +1,89 @@
+@model Kardia.Website.Model.Insights.TrendsPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Trends";
+    var days = Model.Summaries;
+    var weekly = Model.Days > 90;
+    List<Charts.SeriesPoint> Build(Func<DaySummaryDTO, double?> value)
+    {
+        if (!weekly)
+        {
+            return days.Select(d => new Charts.SeriesPoint(d.Date, value(d))).ToList();
+        }
+
+        return days.GroupBy(static d => d.Date.AddDays(-(((int)d.Date.DayOfWeek + 6) % 7)))
+            .Select(g =>
+            {
+                var known = g.Select(value).Where(static v => v is not null).Select(static v => v!.Value).ToList();
+                return new Charts.SeriesPoint(g.Key, known.Count > 0 ? known.Average() : null);
+            })
+            .ToList();
+    }
+
+    var metrics = new (string Key, string Name, string Unit, int Decimals, string Css, bool HigherIsBetter, Func<DaySummaryDTO, double?> Value, double? Floor)[]
+    {
+        ("recovery", "Recovery", "%", 0, "ser-rec", true, static d => d.Recovery, 0),
+        ("hrv", "Heart rate variability", "ms", 0, "ser-hrv", true, static d => d.Hrv, null),
+        ("resting", "Resting heart rate", "bpm", 0, "ser-resting", false, static d => d.RestingHeartRate, null),
+        ("asleep", "Time asleep", "h", 1, "ser-slp", true, static d => d.AsleepMinutes / 60.0, null),
+        ("sleep", "Sleep performance", "%", 0, "ser-slp", true, static d => d.SleepPerformance, null),
+        ("strain", "Strain", "", 1, "ser-str", true, static d => d.Strain, 0),
+        ("active", "Zone 2+ minutes", "min", 0, "ser-str", true, static d => d.Strain is null && d.ActiveMinutes == 0 ? null : d.ActiveMinutes, 0),
+        ("steps", "Steps", "", 0, "ser-sky", true, static d => d.Steps, 0),
+        ("vo2max", "VO₂ max", "ml/kg/min", 1, "ser-age", true, static d => d.Vo2Max, null),
+    };
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">@(weekly ? "Weekly averages" : "Every day") · @Fmt.Range(Model.Today.AddDays(-(Model.Days - 1)), Model.Today)</div>
+        <h1>Trends</h1>
+    </div>
+    <div class="head-acts">
+        <nav class="tabs-seg" aria-label="Period">
+            @foreach (var option in new[] { 30, 90, 365 })
+            {
+                <a class="seg" href="/trends?days=@option" aria-current="@(Model.Days == option ? "page" : null)">@(option == 365 ? "1 year" : $"{option} days")</a>
+            }
+        </nav>
+        <a class="btn ghost small" href="/report">@Icons.Get("trend")Weekly report</a>
+        <a class="btn ghost small" href="/report?period=month">@Icons.Get("calendar")Monthly report</a>
+    </div>
+</header>
+
+@if (days.All(static d => d.Recovery is null && d.Strain is null && d.AsleepMinutes is null))
+{
+    <partial name="_NoData" model="Model" />
+}
+else
+{
+    <div class="grid-2">
+        @foreach (var metric in metrics)
+        {
+            var points = Build(metric.Value);
+            var known = points.Where(static p => p.Value is not null).Select(static p => p.Value!.Value).ToList();
+            if (known.Count == 0)
+            {
+                continue;
+            }
+
+            var average = known.Average();
+            var window = Math.Max(1, Math.Min(weekly ? 4 : 7, known.Count / 3));
+            var change = known.Count >= 2 * window ? known.TakeLast(window).Average() - known.Take(window).Average() : (double?)null;
+            var better = change is { } c && Math.Abs(c) > Math.Abs(average) * 0.02 ? (c > 0) == metric.HigherIsBetter : (bool?)null;
+            <section class="card rise" style="--d:2">
+                <div class="card-head">
+                    <h2>@metric.Name</h2>
+                    <span class="side-note">
+                        average <b class="num" style="color:var(--text)">@(metric.Key == "steps" ? Fmt.Whole(average) : Fmt.Number(average, metric.Decimals))</b> @metric.Unit
+                        @if (change is { } delta)
+                        {
+                            <span class="trend-chip @(better switch { true => "good", false => "bad", _ => "flat" })">@(better is null ? "steady" : Fmt.Signed(delta, "", metric.Decimals))</span>
+                        }
+                    </span>
+                </div>
+                @Charts.Series(points, metric.Css, $"{metric.Name} over the last {Model.Days} days", metric.Key == "steps" ? 0 : metric.Decimals, 540, 150, floor: metric.Floor, smooth: Model.Days == 90 ? 7 : 0)
+            </section>
+        }
+    </div>
+}

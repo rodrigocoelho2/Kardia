@@ -37,6 +37,11 @@ SCREENS = [
     ("age", "/age"),
     ("journal", "/journal"),
     ("settings", "/settings"),
+    ("health", "/health"),
+    ("plan", "/plan"),
+    ("trends", "/trends?days=90"),
+    ("report", "/report"),
+    ("coach", "/coach"),
 ]
 
 
@@ -104,9 +109,24 @@ with sync_playwright() as p:
                 errors.append(f"sync failed: {result}")
         for shot, path in SCREENS:
             page.goto(base + path)
+            if shot == "coach" and page.locator("[data-ai-analyse]").count() > 0 and page.locator(".coach-lead").count() == 0:
+                # With an AI provider set up, ask for a report and wait for it.
+                page.click("[data-ai-analyse]")
+                try:
+                    page.wait_for_selector(".coach-lead", timeout=90000)
+                except Exception as error:  # noqa: BLE001 — no provider reachable: keep the page as it is
+                    print("ai coach:", error)
             page.wait_for_timeout(1700)
             page.screenshot(path=str(out / f"{name}-{shot}.png"))
             page.screenshot(path=str(out / f"{name}-{shot}-full.png"), full_page=True)
+
+        # The light theme.
+        context.add_cookies([{"name": "kardia-theme", "value": "light", "url": base}])
+        for shot, path in [("today-light", "/"), ("strain-light", "/strain")]:
+            page.goto(base + path)
+            page.wait_for_timeout(1700)
+            page.screenshot(path=str(out / f"{name}-{shot}.png"))
+        context.clear_cookies(name="kardia-theme")
         context.close()
     browser.close()
 

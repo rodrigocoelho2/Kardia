@@ -1,0 +1,85 @@
+@model Kardia.Website.Model.Insights.HealthPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Health Monitor";
+    var health = Model.Day.Health;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var outside = health.Signs.Count(static s => s.Status is HealthSignStatus.Outside or HealthSignStatus.FarOutside);
+    var state = !health.Ready ? "none" : outside >= 2 ? "far" : outside == 1 ? "out" : "in";
+    var headline = !health.Ready ? "Learning your ranges"
+        : outside == 0 ? $"All {health.Judged} signs in your range"
+        : outside == 1 ? "1 sign outside your range"
+        : $"{outside} signs outside your range";
+    var lead = !health.Ready ? "The Health Monitor compares last night's numbers with your own typical range. It needs a week of nights to learn it."
+        : outside == 0 ? "Everything your Apple Watch measured overnight sits where it usually does for you."
+        : outside == 1 ? "One number moved away from where it usually sits. On its own that's common: a late meal, a drink or a hard session can do it."
+        : "Several numbers moved together. That's often the first sign of a cold, stress or a big training load: take it easy today and see how you feel.";
+    string Pct(double value) => Math.Clamp(value, 0, 100).ToString("0.0", inv) + "%";
+}
+
+<partial name="_PageHead" model="Model" />
+
+<div class="row">
+    <section class="card hero hm-hero hm-@state rise" style="--d:1">
+        <div class="ambient" aria-hidden="true"></div>
+        <div class="hm-dots" aria-hidden="true">
+            @foreach (var sign in health.Signs)
+            {
+                <span class="hm-dot @Fmt.SignClass(sign.Status)">@Icons.Get(Fmt.SignIcon(sign.Key))</span>
+            }
+        </div>
+        <h2 style="font-size:24px">@headline</h2>
+        <p class="lead">@lead</p>
+        <div class="head-acts" style="justify-content:center">
+            <a class="btn ghost small" href="/health/report?days=30">@Icons.Get("calendar")30-day report</a>
+            <a class="btn ghost small" href="/health/report?days=180">@Icons.Get("calendar")6-month report</a>
+        </div>
+    </section>
+
+    <section class="card w2 rise" style="--d:2">
+        <div class="card-head">
+            <h2>Last night</h2>
+            <span class="side-note">against your typical range (30 days)</span>
+        </div>
+        @foreach (var sign in health.Signs)
+        {
+            var spread = Math.Max(sign.High - sign.Low, sign.Key == "temperature" ? 0.4 : 1);
+            var from = sign.Low - spread * 0.6;
+            var to = sign.High + spread * 0.6;
+            double At(double v) => (v - from) / (to - from) * 100;
+            <div class="list-row hm-row">
+                <span class="ico-chip hm-@Fmt.SignClass(sign.Status)">@Icons.Get(Fmt.SignIcon(sign.Key))</span>
+                <div class="grow">
+                    <span class="top"><span>@sign.Name</span><span class="num">@Fmt.SignValue(sign.Key, sign.Value, sign.Unit, sign.Decimals)</span></span>
+                    <div class="hm-range" aria-hidden="true">
+                        <i class="band" style="left:@Pct(At(sign.Low));width:@Pct(At(sign.High) - At(sign.Low))"></i>
+                        @if (sign.Value is { } value)
+                        {
+                            <b class="mark @Fmt.SignClass(sign.Status)" style="left:@Pct(At(value))"></b>
+                        }
+                    </div>
+                    <small><span class="hm-word @Fmt.SignClass(sign.Status)">@Fmt.SignWords(sign)</span> · usually @Fmt.SignRange(sign.Key, sign.Low, sign.High, sign.Unit, sign.Decimals)</small>
+                </div>
+            </div>
+        }
+    </section>
+</div>
+
+<div class="grid-2">
+    @foreach (var series in Model.History.Signs)
+    {
+        var points = series.Days.Select(static d => new Charts.SeriesPoint(d.Date, d.Value, d.Low, d.High, Fmt.SignClass(d.Status))).ToList();
+        <section class="card rise" style="--d:3">
+            <div class="card-head">
+                <h2>@series.Name</h2>
+                <span class="side-note">@series.InRangeDays in range · @series.OutsideDays outside</span>
+            </div>
+            @Charts.Series(points, "ser-" + series.Key, $"{series.Name} over 30 days with your typical range", series.Decimals, 520, 150)
+        </section>
+    }
+</div>
+
+<div class="notice rise" style="--d:4">
+    @Icons.Get("info")
+    <p>The Health Monitor shows when your overnight numbers leave the range that's typical for you; it can't tell you why. Kardia isn't a medical device and doesn't diagnose anything. If you feel unwell, or a sign stays outside its range for days, talk to a doctor.</p>
+</div>

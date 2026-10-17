@@ -78,6 +78,15 @@ services:
       Kardia__TimeZone: ${TIME_ZONE:-Europe/Lisbon}
       # "true" runs on sample data in memory, without SQL Server (to try it out).
       Kardia__DemoMode: ${KARDIA_DEMO_MODE:-false}
+      # Push notifications (morning recovery, bedtime, Health Monitor, reports). Keys are made on first use.
+      Kardia__PushEnabled: ${KARDIA_PUSH_ENABLED:-true}
+      Kardia__PushSubject: ${KARDIA_PUSH_SUBJECT:-https://github.com/rodrigocoelho2/Kardia}
+      # AI coach (optional): anthropic + API key, or openai + the address of Ollama / an OpenAI-compatible API.
+      Kardia__AiProvider: ${KARDIA_AI_PROVIDER:-}
+      Kardia__AiApiKey: ${KARDIA_AI_API_KEY:-}
+      Kardia__AiModel: ${KARDIA_AI_MODEL:-}
+      Kardia__AiBaseUrl: ${KARDIA_AI_BASE_URL:-}
+      Kardia__AiLanguage: ${KARDIA_AI_LANGUAGE:-English}
       # Workstation GC keeps the heap small; the limits below keep a big export from taking the whole NAS.
       DOTNET_gcServer: "0"
       TZ: ${TIME_ZONE:-Europe/Lisbon}

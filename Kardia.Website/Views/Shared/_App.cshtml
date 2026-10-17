@@ -1,6 +1,7 @@
 @model AppPageModel
 @{
     Layout = "_Layout";
+    ViewData["Themed"] = true;
     var currentSection = Model.Section;
     string Current(AppSection s) => s == currentSection ? "page" : null!;
     var tabs = new[]
@@ -11,7 +12,7 @@
         (AppSection.Strain, "/strain", "strain", "Strain"),
         (AppSection.Age, "/age", "age", "Age"),
     };
-    var dateQuery = Model.IsToday || currentSection is AppSection.Age or AppSection.Settings ? string.Empty : "?date=" + Fmt.Iso(Model.Date);
+    var dateQuery = Model.IsToday || currentSection is AppSection.Age or AppSection.Settings or AppSection.Plan or AppSection.Trends or AppSection.Report or AppSection.AiCoach or AppSection.More ? string.Empty : "?date=" + Fmt.Iso(Model.Date);
     var lastSync = Model.LastSyncAt;
 }
 <div class="app sec-@currentSection.ToString().ToLowerInvariant()">
@@ -23,6 +24,12 @@
             {
                 <a href="@(href)@(s is AppSection.Age ? string.Empty : dateQuery)" aria-current="@Current(s)">@Icons.Get(icon)@name</a>
             }
+            <span class="nav-h">Insights</span>
+            <a href="/health@(dateQuery)" aria-current="@Current(AppSection.Health)">@Icons.Get("shield")Health Monitor</a>
+            <a href="/plan" aria-current="@Current(AppSection.Plan)">@Icons.Get("calendar")Weekly plan</a>
+            <a href="/trends" aria-current="@Current(AppSection.Trends)">@Icons.Get("trend")Trends</a>
+            <a href="/report" aria-current="@Current(AppSection.Report)">@Icons.Get("check")Reports</a>
+            <a href="/coach" aria-current="@Current(AppSection.AiCoach)">@Icons.Get("sparkle")AI coach</a>
             <span class="nav-h">More</span>
             <a href="/journal@(dateQuery)" aria-current="@Current(AppSection.Journal)">@Icons.Get("journal")Journal</a>
             <a href="/settings" aria-current="@Current(AppSection.Settings)">@Icons.Get("settings")Settings</a>
@@ -55,7 +62,8 @@
         <header class="phone-top">
             <a class="brand" href="/">@Icons.Logo(28)Kardia</a>
             <div class="acts">
-                <a class="icon-btn" href="/journal@(dateQuery)" aria-label="Journal">@Icons.Get("journal")</a>
+                <a class="icon-btn" href="/health@(dateQuery)" aria-label="Health Monitor" aria-current="@Current(AppSection.Health)">@Icons.Get("shield")</a>
+                <a class="icon-btn" href="/more" aria-label="More: plan, trends, reports, journal" aria-current="@(currentSection is AppSection.More or AppSection.Plan or AppSection.Trends or AppSection.Report or AppSection.AiCoach or AppSection.Journal ? "page" : null)">@Icons.Get("grid")</a>
                 <a class="avatar" href="/settings" aria-label="Settings (@Model.UserName)">@Model.Initials</a>
             </div>
         </header>

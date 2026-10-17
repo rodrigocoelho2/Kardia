@@ -21,18 +21,24 @@
     <Folder Include="StoredProcedures\Profiles\" />
     <Folder Include="StoredProcedures\Syncs\" />
     <Folder Include="StoredProcedures\Users\" />
+    <Folder Include="StoredProcedures\Push\" />
+    <Folder Include="StoredProcedures\Settings\" />
     <Folder Include="Scripts\" />
   </ItemGroup>
 
   <ItemGroup>
+    <Build Include="Tables\dbo.AppSecret.sql" />
     <Build Include="Tables\dbo.DailyMetric.sql" />
     <Build Include="Tables\dbo.DayLoad.sql" />
     <Build Include="Tables\dbo.HeartRateMinute.sql" />
     <Build Include="Tables\dbo.JournalEntry.sql" />
+    <Build Include="Tables\dbo.PushSent.sql" />
+    <Build Include="Tables\dbo.PushSubscription.sql" />
     <Build Include="Tables\dbo.SleepNight.sql" />
     <Build Include="Tables\dbo.SyncKey.sql" />
     <Build Include="Tables\dbo.User.sql" />
     <Build Include="Tables\dbo.UserProfile.sql" />
+    <Build Include="Tables\dbo.UserSetting.sql" />
     <Build Include="Tables\dbo.Workout.sql" />
     <Build Include="StoredProcedures\Health\dbo.DailyMetricList.sql" />
     <Build Include="StoredProcedures\Health\dbo.DailyMetricSave.sql" />
@@ -48,6 +54,14 @@
     <Build Include="StoredProcedures\Journals\dbo.JournalSet.sql" />
     <Build Include="StoredProcedures\Profiles\dbo.UserProfileGet.sql" />
     <Build Include="StoredProcedures\Profiles\dbo.UserProfileSave.sql" />
+    <Build Include="StoredProcedures\Push\dbo.AppSecretEnsure.sql" />
+    <Build Include="StoredProcedures\Push\dbo.PushSentClaim.sql" />
+    <Build Include="StoredProcedures\Push\dbo.PushSubscriptionDelete.sql" />
+    <Build Include="StoredProcedures\Push\dbo.PushSubscriptionList.sql" />
+    <Build Include="StoredProcedures\Push\dbo.PushSubscriptionMark.sql" />
+    <Build Include="StoredProcedures\Push\dbo.PushSubscriptionSave.sql" />
+    <Build Include="StoredProcedures\Settings\dbo.UserSettingGet.sql" />
+    <Build Include="StoredProcedures\Settings\dbo.UserSettingSave.sql" />
     <Build Include="StoredProcedures\Syncs\dbo.SyncKeyDelete.sql" />
     <Build Include="StoredProcedures\Syncs\dbo.SyncKeyGet.sql" />
     <Build Include="StoredProcedures\Syncs\dbo.SyncKeyMark.sql" />

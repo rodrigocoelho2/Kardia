@@ -21,6 +21,7 @@
   <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start-docker-on-the-nas">Quick start</a> ·
   <a href="#connecting-the-apple-watch">Apple Watch</a> ·
+  <a href="#notifications-and-the-ai-coach">Notifications & AI</a> ·
   <a href="#how-the-scores-work">The scores</a> ·
   <a href="#development">Development</a>
 </p>
@@ -66,6 +67,46 @@
 - **Pace of ageing** over the last three months (0.6× = ageing slower than the calendar), and six months of history.
 - It needs two weeks of data and moves slowly on purpose: one bad week can't swing it.
 
+**Health Monitor** (like WHOOP's)
+
+- Last night's **HRV, resting heart rate, respiratory rate, blood oxygen and wrist temperature**, each against **your
+  own typical range** (your 30-day mean ± 1.5 spreads, learnt from a week of nights): green in range, orange outside,
+  red far outside. Two or more outside at once shows on Today and can send a notification.
+- A **30-day or 6-month report** with every night, the range and the days outside, to **print or save as PDF** for a
+  conversation with your doctor. It shows numbers, never a diagnosis.
+
+**Cardio load** (like Bevel's)
+
+- The last **7 days of heart load against the last 28**: detraining below 0.8, maintaining, **productive 1.0–1.3**,
+  overreaching, overtraining above 1.5 — with the daily strain that keeps you productive this week and 8 weeks of history.
+
+**Weekly plan and sleep goal** (like WHOOP's)
+
+- Four targets for **Monday to Sunday**: nights on your sleep goal, nights **in bed on time** (within 30 minutes of
+  your usual bedtime), **zone 2+ minutes** and **steps a day** — progress day by day, what it takes from here, last
+  week's recap, and the targets your last four weeks suggest (one tap to take them).
+- **Sleep goal Peak 100 % · Perform 85 % · Get by 70 %**: tonight's bedtime is planned for it.
+
+**Trends and reports**
+
+- **Trends** over 30 days, 90 days (with a 7-day average) or a year (weekly): recovery, HRV, resting heart rate, time
+  asleep, sleep performance, strain, zone 2+ minutes, steps and VO₂ max.
+- A **weekly and monthly performance assessment**: a 0–100 score (strain matched to recovery, sleep against need,
+  consistency) — Peak, Strong, Fair or Off track — what stood out, every number against the period before, and the
+  days one by one.
+
+**Notifications**
+
+- **Morning recovery** once last night is in, a **bedtime** reminder before tonight's bedtime, a **Health Monitor**
+  alert, the **weekly and monthly report**, and (off by default) the **strain target**. Web Push from your own server,
+  no third party; on iPhone add Kardia to the Home Screen first.
+
+**AI coach** (optional)
+
+- One tap and an AI reads your last 30 days and writes a short report: how you're doing, what went well, what to watch
+  and **three things to do this week**. Bring a **Claude API key**, or run a **local model with Ollama** so nothing
+  leaves your network. Only numbers are sent — never your name or account.
+
 **Journal**
 
 - Tap what happened yesterday — alcohol, late caffeine, screens in bed, a late meal, stretching, sauna, meditation,
@@ -80,7 +121,7 @@
 - **Accounts for the house**: everyone sees only their own data; the first account (protected by a setup key) is the
   admin. Sign-ups can be closed.
 - **Phone and computer**: the same pages, a tab bar on the phone and a sidebar on the computer; adds to the Home Screen
-  like an app.
+  like an app. **Dark** by default, **light** or **automatic** in Settings › Appearance.
 - **Demo mode**: four months of believable sample data in memory, no SQL Server needed — to try it, or to take
   screenshots.
 - **Nothing from the internet at runtime**: the fonts (Sora and Figtree) and the icons ship with the app.
@@ -93,6 +134,9 @@
 ### Age, journal and settings
 <img src="docs/images/body.png" alt="Phone: biological age, the journal, settings and sign-in">
 
+### Insights
+<img src="docs/images/insights.png" alt="Phone: Health Monitor, weekly plan, weekly report and the AI coach">
+
 ### On the computer
 <table>
 <tr>
@@ -102,6 +146,18 @@
 <tr>
 <td width="50%"><b>Strain</b><br><img src="docs/images/desktop-strain.png" alt="Strain: the ring with its target, heart-rate zones, the day's heart rate and workouts"></td>
 <td width="50%"><b>Biological age</b><br><img src="docs/images/desktop-age.png" alt="Biological age: the number, the scale, what makes it and six months of history"></td>
+</tr>
+<tr>
+<td width="50%"><b>Health Monitor</b><br><img src="docs/images/desktop-health.png" alt="Health Monitor: five overnight signs against your typical range, with 30 days of each"></td>
+<td width="50%"><b>Weekly plan</b><br><img src="docs/images/desktop-plan.png" alt="Weekly plan: sleep, bedtime, zone 2+ and steps for the week, suggested targets and last week"></td>
+</tr>
+<tr>
+<td width="50%"><b>Trends</b><br><img src="docs/images/desktop-trends.png" alt="Trends: 90 days of recovery, HRV, resting heart rate, sleep, strain, steps and VO2 max"></td>
+<td width="50%"><b>Weekly report</b><br><img src="docs/images/desktop-report.png" alt="Weekly report: the assessment, what stood out, every number against the week before"></td>
+</tr>
+<tr>
+<td width="50%"><b>AI coach</b> (an example report on the demo data)<br><img src="docs/images/desktop-coach.png" alt="AI coach: a short report on the last 30 days and three things to do this week"></td>
+<td width="50%"><b>Light theme</b><br><img src="docs/images/desktop-light.png" alt="Today in the light theme"></td>
 </tr>
 <tr>
 <td width="50%"><b>Journal</b><br><img src="docs/images/desktop-journal.png" alt="Journal: today's habits and what moves your recovery"></td>
@@ -152,6 +208,13 @@ project — creates the `Kardia` database the first time, applies schema changes
 | `SQL_MEMORY_LIMIT_MB` | `1024` | Keeps SQL Server from taking most of the NAS memory. |
 | `SQL_CPUS` · `KARDIA_CPUS` | `2` · `1.5` | CPU cores SQL Server and each Kardia container may use, so a big Apple Watch export never takes the whole NAS. |
 | `KARDIA_WEBAPI_MEMORY` · `KARDIA_WEBSITE_MEMORY` | `1g` · `512m` | Memory caps of the WebApi and the website. |
+| `KARDIA_PUSH_ENABLED` | `true` | Push notifications (morning recovery, bedtime, Health Monitor, reports). Needs Kardia on HTTPS. |
+| `KARDIA_PUSH_SUBJECT` | the GitHub page | A contact the push services see: `mailto:you@example.com` or your https address. |
+| `KARDIA_AI_PROVIDER` | — (off) | `anthropic` (Claude) or `openai` (OpenAI, **Ollama**, LM Studio — anything OpenAI-compatible). Empty hides the AI coach. |
+| `KARDIA_AI_API_KEY` | — | The provider's API key (not needed for a local Ollama). |
+| `KARDIA_AI_MODEL` | `claude-haiku-5-5` · `gpt-4o-mini` | The model, e.g. `claude-sonnet-5-5` or `llama3.1:8b`. |
+| `KARDIA_AI_BASE_URL` | OpenAI | For `openai`: e.g. `http://192.168.1.10:11434/v1` for Ollama on the NAS. |
+| `KARDIA_AI_LANGUAGE` | `English` | The language the AI writes in, e.g. `Portuguese (Portugal)`. |
 | `KARDIA_DEMO_MODE` | `false` | `true` runs on sample data in memory (sign in as `demo` / `kardia-demo`; every new account gets the data too). |
 
 **Nginx Proxy Manager:** the website joins `nas-net`, so a proxy host can forward to `http://kardia-website:8080`
@@ -197,6 +260,38 @@ segments (naps are skipped), a value sent again replaces the old one (totals lik
 heart load of each touched day is worked out again. The answer says what it brought:
 `1 day · 1 440 heart-rate minutes · 1 night · 1 workout · 9 daily values`.
 
+## Notifications and the AI coach
+
+**Notifications** are Web Push from your own server (the keys are made on first use and kept in the database). They
+need Kardia on **HTTPS** — your Cloudflare / Nginx Proxy Manager address, not the IP:
+
+- **iPhone / iPad** (iOS 16.4+): open Kardia in Safari, **Share › Add to Home Screen**, open it from the new icon, then
+  **Settings › Notifications › Turn on for this device** and allow.
+- **Android, Windows, Mac**: Settings › Notifications › Turn on for this device.
+
+Choose what you get in the same card: morning recovery (once last night is in), bedtime (0–90 minutes before),
+Health Monitor (two or more signs outside), the weekly report (Sunday 19:00) and the monthly one (the 1st, 10:00),
+and the strain target. The server checks every five minutes and sends each one once.
+
+The **AI coach** is off until you add a provider to `.env` and run `docker compose up -d` again:
+
+```env
+# Claude
+KARDIA_AI_PROVIDER=anthropic
+KARDIA_AI_API_KEY=sk-ant-...
+KARDIA_AI_LANGUAGE=Portuguese (Portugal)
+
+# …or a local model with Ollama (on the NAS or another machine)
+KARDIA_AI_PROVIDER=openai
+KARDIA_AI_BASE_URL=http://192.168.1.10:11434/v1
+KARDIA_AI_MODEL=llama3.1:8b
+```
+
+Then **Analyse with AI** appears on Today and in the menu. What's sent: the day's scores, the last 30 days as one line
+each (recovery, strain, hours asleep, bedtime, HRV, resting heart rate, steps, zone 2+ minutes), the Health Monitor, the
+cardio load, the weekly plan and the weekly assessment — no name, no account, no minute-by-minute heart rate. The
+report is kept until the WebApi restarts.
+
 ## How the scores work
 
 Everything compares you with **yourself**: a baseline is the mean and spread of your last 30 days (at least 4 days;
@@ -210,6 +305,10 @@ until then, typical values for adults).
 | **Sleep need** | base (7 h 30 or yours) + 4 min per strain point above 8 (max 40) + a quarter of the last three nights' shortfall (max 45). |
 | **Sleep** | performance = asleep / need; efficiency = asleep / in bed; consistency = 100 − 0.85 × the spread (in minutes) of your bed and wake times. Bedtime = your usual wake-up − need − 15 min to fall asleep. |
 | **Biological age** | each factor adds or takes off years against the typical value for your age and sex (e.g. VO₂ max: 0.45 years per ml/kg/min, up to ±5), the total is damped (× 0.85) and capped at ±12 years. Pace compares now with 90 days ago. |
+| **Health Monitor** | each sign against your last 30 days: mean ± 1.5 standard deviations is your typical range (blood oxygen only counts when low); beyond 2.5 is far outside. Needs 7 nights of your own values. |
+| **Cardio load** | mean daily TRIMP of the last 7 days ÷ that of the last 28 (needs 21 days with heart rate). Productive strain = the strain of 1.0–1.3 × your 28-day daily load. |
+| **Weekly plan** | Monday to Sunday. Sleep: asleep ≥ goal % × the night's need. On time: in bed within 30 min of the median bedtime of the 14 nights before. Suggested targets: your last four weeks, one step up. |
+| **Assessment** | 40 % strain on target (within the day's target ± 1, finished days), 40 % sleep performance, 20 % sleep consistency. 85+ Peak, 70+ Strong, 55+ Fair. |
 | **Journal** | mean next-morning recovery after days with a habit vs without, once there are at least 3 of each in the last 90 days. |
 
 The formulas live in `Kardia.WebApi/Features/Days/Services/Scoring` and `Features/Ages/Services/BiologicalAge.cs`,
@@ -222,13 +321,14 @@ each with its unit tests.
 ```
 Kardia.slnx
 ├── Kardia.Database/           SQL Server project (SDK-style .sqlproj → dacpac)
-│   ├── Tables/                User, UserProfile, SyncKey, DailyMetric, HeartRateMinute, SleepNight, Workout, DayLoad, JournalEntry
-│   ├── StoredProcedures/      Users, Profiles, Syncs, Health, Journals — the only way the WebApi touches data
+│   ├── Tables/                User, UserProfile, UserSetting, SyncKey, DailyMetric, HeartRateMinute, SleepNight, Workout,
+│   │                          DayLoad, JournalEntry, PushSubscription, PushSent, AppSecret
+│   ├── StoredProcedures/      Users, Profiles, Settings, Syncs, Health, Journals, Push — the only way the WebApi touches data
 │   └── Scripts/               post-deployment script and deploy.sh (used by the db-deploy container)
 ├── Kardia.Library/            enums, ServiceApiResponse, validation types, header names (no ASP.NET)
 ├── Kardia.WebApi/             ASP.NET Core API (x-api-key): the scores and the data
 │   ├── Extensions/            API-key authentication, data (Dapper over stored procedures, memory store), time, messages
-│   └── Features/              Users, Profiles, Syncs, Days, Ages, Journals, Demo, Health
+│   └── Features/              Users, Profiles, Settings, Syncs, Days, Ages, Journals, Plans, Reports, Push, AiCoach, Demo, Health
 │       └── <Feature>/         Controllers, Models (Entities, DTOs), Repositories (SQL + memory), Services, Http samples
 ├── Kardia.Sdk/                typed client of the WebApi and copies of its DTOs (the Website never references the WebApi)
 ├── Kardia.Website/            ASP.NET Core MVC: the landing page, sign-in, the app, and /api/sync for the iPhone
@@ -282,6 +382,12 @@ JSON, every call with the `x-api-key` header. `userId` is the account's id (32 h
 | `GET age?userId=` | biological age, factors, pace and history |
 | `GET journal?userId=&date=`, `POST journal` | habits of a day and what they do to recovery |
 | `GET`/`POST`/`DELETE sync/key?userId=`, `POST sync/ingest` | the Apple Watch key; what the Website forwards from `/api/sync` (with `X-Kardia-Key`) |
+| `GET day/health?userId=&days=30\|180` | the Health Monitor over 30 days or 6 months |
+| `GET`/`POST setting` | goals (sleep goal, weekly targets) and notification choices |
+| `GET plan?userId=` | this week's plan |
+| `GET report?userId=&period=Week\|Month&date=` | weekly or monthly assessment |
+| `GET push?userId=`, `POST push/subscribe`, `POST push/unsubscribe`, `POST push/test?userId=` | notification devices |
+| `GET aicoach?userId=`, `POST aicoach/analyse?userId=` | the AI coach (runs in the background; poll GET) |
 | `GET health` | status (no key needed) |
 
 ## Licences

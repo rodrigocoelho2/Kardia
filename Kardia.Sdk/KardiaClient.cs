@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kardia.Library.Constants;
+using Kardia.Library.Enums;
 using Kardia.Library.Validation;
 using Kardia.Sdk.Models;
 
@@ -81,6 +82,76 @@ public sealed class KardiaClient(HttpClient httpClient)
     /// <returns>One summary per day.</returns>
     public Task<List<DaySummaryDTO>> DayRangeAsync(string userId, DateOnly from, DateOnly to) =>
         GetAsync<List<DaySummaryDTO>>($"day/range?userId={Uri.EscapeDataString(userId)}&from={Iso(from)}&to={Iso(to)}");
+
+    /// <summary>Gets the Health Monitor over the last 30 or 180 days.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="days">30 or 180.</param>
+    /// <returns>One series per sign.</returns>
+    public Task<HealthReportDTO> DayHealthReportAsync(string userId, int days) =>
+        GetAsync<HealthReportDTO>($"day/health?userId={Uri.EscapeDataString(userId)}&days={days}");
+
+    // ----- Setting -----
+
+    /// <summary>Gets the goals and notification choices.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The settings.</returns>
+    public Task<SettingDTO> SettingGetAsync(string userId) => GetAsync<SettingDTO>($"setting?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>Saves the goals and notification choices.</summary>
+    /// <param name="item">The settings.</param>
+    /// <returns>The saved settings.</returns>
+    public Task<SettingDTO> SettingSaveAsync(SettingDTO item) => PostAsync<SettingDTO>("setting", item);
+
+    // ----- Plan -----
+
+    /// <summary>Gets this week's plan.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The plan.</returns>
+    public Task<PlanDTO> PlanGetAsync(string userId) => GetAsync<PlanDTO>($"plan?userId={Uri.EscapeDataString(userId)}");
+
+    // ----- Report -----
+
+    /// <summary>Gets the weekly or monthly assessment around a day.</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="period">Week or month.</param>
+    /// <param name="date">A day inside it (today when null).</param>
+    /// <returns>The report.</returns>
+    public Task<ReportDTO> ReportGetAsync(string userId, ReportPeriod period, DateOnly? date = null) =>
+        GetAsync<ReportDTO>($"report?userId={Uri.EscapeDataString(userId)}&period={period}{(date is { } day ? "&date=" + Iso(day) : string.Empty)}");
+
+    // ----- AI coach -----
+
+    /// <summary>Gets whether the AI coach is set up, whether it's working, and the last report.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The state.</returns>
+    public Task<AiCoachDTO> AiCoachGetAsync(string userId) => GetAsync<AiCoachDTO>($"aicoach?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>Starts an analysis of the last 30 days.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The state.</returns>
+    public Task<AiCoachDTO> AiCoachAnalyseAsync(string userId) => PostAsync<AiCoachDTO>($"aicoach/analyse?userId={Uri.EscapeDataString(userId)}", null);
+
+    // ----- Push -----
+
+    /// <summary>Gets whether notifications are on, the key to subscribe with and the devices.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>The state.</returns>
+    public Task<PushDTO> PushGetAsync(string userId) => GetAsync<PushDTO>($"push?userId={Uri.EscapeDataString(userId)}");
+
+    /// <summary>Turns notifications on for a browser.</summary>
+    /// <param name="item">The subscription.</param>
+    /// <returns>The state.</returns>
+    public Task<PushDTO> PushSubscribeAsync(PushSubscribeRequest item) => PostAsync<PushDTO>("push/subscribe", item);
+
+    /// <summary>Turns notifications off for a device.</summary>
+    /// <param name="item">The device.</param>
+    /// <returns>The state.</returns>
+    public Task<PushDTO> PushUnsubscribeAsync(PushUnsubscribeRequest item) => PostAsync<PushDTO>("push/unsubscribe", item);
+
+    /// <summary>Sends a test notification.</summary>
+    /// <param name="userId">The account.</param>
+    /// <returns>How many devices it reached.</returns>
+    public Task<PushTestResultDTO> PushTestAsync(string userId) => PostAsync<PushTestResultDTO>($"push/test?userId={Uri.EscapeDataString(userId)}", null);
 
     // ----- Age -----
 

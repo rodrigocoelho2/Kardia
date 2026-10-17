@@ -1,0 +1,159 @@
+@model Kardia.Website.Model.Insights.ReportPageModel
+@{
+    Layout = "_App";
+    var report = Model.Report;
+    var month = report.Period == ReportPeriod.Month;
+    var noun = month ? "month" : "week";
+    ViewData["Title"] = month ? "Monthly report" : "Weekly report";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var previous = report.PreviousTo;
+    var next = report.To.AddDays(1);
+    var palette = report.Score switch { >= 85 => "rec", >= 70 => "age", >= 55 => "mid", null => "age", _ => "low" };
+    var total = Math.Max(1, report.RecoveryDays);
+    string Value(ReportMetricDTO metric, double? value) => value is not { } v ? "—"
+        : metric.Key == "asleep" ? Fmt.Duration((int)Math.Round(v))
+        : metric.Key == "steps" ? Fmt.Whole(v)
+        : Fmt.Number(v, metric.Decimals) + (metric.Unit.Length > 0 && metric.Unit != "steps" ? (metric.Unit == "%" ? "%" : " " + metric.Unit) : "");
+    string Change(ReportMetricDTO metric) => metric.Change is not { } c ? "" : metric.Key == "asleep" ? (c >= 0 ? "+" : "−") + Fmt.Duration((int)Math.Round(Math.Abs(c))) : metric.Key == "steps" ? (c >= 0 ? "+" : "−") + Fmt.Whole(Math.Abs(c)) : Fmt.Signed(c, metric.Unit == "%" ? "" : "", metric.Decimals);
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">@(month ? "Monthly" : "Weekly") performance assessment · @Fmt.Range(report.From, report.To)@(report.InProgress ? " · so far" : "")</div>
+        <h1>@report.Title</h1>
+    </div>
+    <div class="head-acts">
+        <nav class="tabs-seg" aria-label="Period">
+            <a class="seg" href="/report" aria-current="@(month ? null : "page")">Week</a>
+            <a class="seg" href="/report?period=month" aria-current="@(month ? "page" : null)">Month</a>
+        </nav>
+        <nav class="datenav" aria-label="@(month ? "Month" : "Week")">
+            <a href="/report?period=@noun&date=@Fmt.Iso(previous)" aria-label="Previous @noun">@Icons.Get("left")</a>
+            <span class="label">@(month ? report.From.ToString("MMM yyyy", inv) : Fmt.Range(report.From, report.To))</span>
+            @if (report.InProgress)
+            {
+                <span class="off" aria-hidden="true">@Icons.Get("right")</span>
+            }
+            else
+            {
+                <a href="/report?period=@noun&date=@Fmt.Iso(next)" aria-label="Next @noun">@Icons.Get("right")</a>
+            }
+        </nav>
+    </div>
+</header>
+
+@if (report.DaysWithData == 0)
+{
+    <section class="card empty rise">
+        <span class="ico-chip sky">@Icons.Get("calendar")</span>
+        <h2>No Apple Watch data this @noun</h2>
+        <p>The assessment fills in as your iPhone syncs. Try the @noun before.</p>
+        <a class="btn ghost" href="/report?period=@noun&date=@Fmt.Iso(previous)">@Icons.Get("left")Previous @noun</a>
+    </section>
+}
+else
+{
+    <div class="row">
+        <section class="card hero rise" style="--d:1">
+            <div class="ambient" aria-hidden="true" style="--amb: rgba(124,199,255,0.18)"></div>
+            <div class="ring-box" style="--size:200px">
+                @Charts.Ring((report.Score ?? 0) / 100.0, palette)
+                <div class="center">
+                    <span class="big num">@(report.Score?.ToString() ?? "—")</span>
+                    <span class="lbl">Assessment</span>
+                </div>
+            </div>
+            <h2 style="font-size:24px">@(report.Assessment.Length > 0 ? report.Assessment : "Not enough days yet")</h2>
+            <p class="lead">How well your strain matched your recovery, how much of your sleep need you got, and how regular your nights were@(report.InProgress ? $" — {noun} still running" : "").</p>
+            <div class="tiles t3" style="align-self:stretch">
+                <div class="tile center"><span class="k">Strain on target</span><span class="v">@report.StrainOnTargetDays<small>/@report.StrainDays</small></span></div>
+                <div class="tile center"><span class="k">Sleep</span><span class="v">@(report.Metrics.FirstOrDefault(static m => m.Key == "sleep")?.Value?.ToString("0") ?? "—")<small>%</small></span></div>
+                <div class="tile center"><span class="k">Consistency</span><span class="v">@(report.Metrics.FirstOrDefault(static m => m.Key == "consistency")?.Value?.ToString("0") ?? "—")<small>%</small></span></div>
+            </div>
+        </section>
+
+        <section class="card w2 coach rise" style="--d:2">
+            <div class="coach-head">
+                <span class="coach-ico">@Icons.Get("sparkle")</span>
+                <span class="kicker" style="color:var(--slp-text)">Your @noun</span>
+            </div>
+            <ul class="tips">
+                @foreach (var line in report.Highlights)
+                {
+                    <li class="Neutral">@line</li>
+                }
+            </ul>
+            <div class="card-head" style="margin-top:6px">
+                <h2 style="font-size:15px">Recovery days</h2>
+                <span class="side-note">@report.HighDays green · @report.MediumDays yellow · @report.LowDays red</span>
+            </div>
+            <div class="zone-split" aria-hidden="true">
+                @if (report.HighDays > 0) { <i class="zbg-High" style="flex:@report.HighDays"></i> }
+                @if (report.MediumDays > 0) { <i class="zbg-Medium" style="flex:@report.MediumDays"></i> }
+                @if (report.LowDays > 0) { <i class="zbg-Low" style="flex:@report.LowDays"></i> }
+                @if (report.RecoveryDays == 0) { <i class="zbg-None" style="flex:1"></i> }
+            </div>
+            @if (report.CardioRatio is { } ratio)
+            {
+                <div class="list-row" style="padding-bottom:0">
+                    <span class="ico-chip str">@Icons.Get("trend")</span>
+                    <div class="grow">
+                        <span class="top"><span>Cardio load</span><span class="num" style="color:@Fmt.CardioColor(report.CardioStatus)">@Fmt.CardioName(report.CardioStatus) · @ratio.ToString("0.00", inv)</span></span>
+                        <small>last 7 days of heart load against the last 28</small>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+
+    <section class="card rise" style="--d:3">
+        <div class="card-head">
+            <h2>Against the @noun before</h2>
+            <span class="side-note">@Fmt.Range(report.PreviousFrom, report.PreviousTo)</span>
+        </div>
+        <div class="metrics">
+            @foreach (var metric in report.Metrics.Where(static m => m.Value is not null))
+            {
+                <div class="metric">
+                    <span class="k">@metric.Name</span>
+                    <span class="v num">@Value(metric, metric.Value)</span>
+                    <span class="trend-chip @(metric.Trend switch { "better" => "good", "worse" => "bad", _ => "flat" })">
+                        @(metric.Trend switch { "better" => Icons.Get("up"), "worse" => Icons.Get("down"), _ => Microsoft.AspNetCore.Html.HtmlString.Empty })
+                        @(metric.Trend.Length == 0 ? "new" : metric.Trend == "steady" ? "steady" : Change(metric))
+                    </span>
+                    <small>was @Value(metric, metric.Previous)</small>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="card rise" style="--d:4">
+        <div class="card-head">
+            <h2>Day by day</h2>
+            <div class="legend">
+                <span><i class="swatch" style="background:var(--rec)"></i>Recovery</span>
+                <span><i class="swatch" style="background:var(--str);height:3px;width:14px"></i>Strain</span>
+            </div>
+        </div>
+        <div class="scroll-x">
+            <div class="bars14" style="--cols:@report.Days.Count">
+                <div class="plot" style="grid-template-columns:repeat(@report.Days.Count, minmax(0, 1fr))">
+                    <span class="gl" style="bottom:66%"></span><span class="gl" style="bottom:33%"></span>
+                    @for (var i = 0; i < report.Days.Count; i++)
+                    {
+                        var item = report.Days[i];
+                        var height = Math.Max(2, (item.Recovery ?? 0) * 0.83);
+                        <div class="col"><a class="bar zbg-@item.Zone" href="/?date=@Fmt.Iso(item.Date)" style="height:@(height.ToString("0.0", inv))%;--i:@i" title="@Fmt.ShortDate(item.Date): recovery @(item.Recovery?.ToString() ?? "—")%, strain @Fmt.One(item.Strain)"></a></div>
+                    }
+                    @Charts.StrainLine(report.Days.Select(static r => r.Strain).ToList())
+                </div>
+                <div class="labels" style="grid-template-columns:repeat(@report.Days.Count, minmax(0, 1fr))">
+                    @foreach (var item in report.Days)
+                    {
+                        <span>@(month ? item.Date.Day.ToString(inv) : Fmt.Weekday(item.Date))</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}

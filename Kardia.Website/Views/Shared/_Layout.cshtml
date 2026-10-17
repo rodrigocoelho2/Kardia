@@ -2,17 +2,36 @@
 @{
     var antiforgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
     var title = ViewData["Title"] as string;
+    // The app follows Settings › Appearance; the public pages (landing, sign-in) are always dark.
+    var theme = ViewData["Themed"] is true ? Kardia.Website.Helpers.Theme.Of(Context) : "dark";
 }
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="@(theme == "light" ? "light" : "dark")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="request-verification-token" content="@antiforgeryToken" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="@(theme == "light" ? "light" : theme == "system" ? "dark light" : "dark")" />
     <title>@(string.IsNullOrEmpty(title) || title == "Kardia" ? "Kardia" : $"{title} · Kardia")</title>
     <meta name="description" content="Kardia turns your Apple Watch data into recovery, sleep, strain and biological age. Self-hosted, on your phone and your computer." />
-    <meta name="theme-color" content="#07080A" />
+    <meta name="theme-color" content="@(theme == "light" ? "#F3F4F6" : "#07080A")" data-theme-color />
+    @if (theme == "system")
+    {
+        @* Follow the device: pick before the first paint, and again when it changes. *@
+        <script>
+            (function () {
+                var media = window.matchMedia("(prefers-color-scheme: light)");
+                var apply = function () {
+                    var light = media.matches;
+                    document.documentElement.setAttribute("data-theme", light ? "light" : "dark");
+                    var meta = document.querySelector("meta[data-theme-color]");
+                    if (meta) meta.setAttribute("content", light ? "#F3F4F6" : "#07080A");
+                };
+                apply();
+                if (media.addEventListener) media.addEventListener("change", apply);
+            })();
+        </script>
+    }
     <meta name="application-name" content="Kardia" />
     <meta name="apple-mobile-web-app-title" content="Kardia" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

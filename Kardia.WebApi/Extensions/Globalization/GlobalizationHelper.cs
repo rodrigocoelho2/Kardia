@@ -53,6 +53,10 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         [nameof(TranslationKeys.UnknownTag)] = "'{0}' isn't a journal entry Kardia knows.",
         [nameof(TranslationKeys.SyncKeyInvalid)] = "Missing or unknown Kardia key. Copy it again from Settings › Apple Watch.",
         [nameof(TranslationKeys.SyncPayloadInvalid)] = "Kardia couldn't read this. Send Health Auto Export JSON (REST API, version 2) or the Kardia Shortcut's dictionary.",
+        [nameof(TranslationKeys.PushDisabled)] = "Notifications are turned off on this server (Kardia__PushEnabled).",
+        [nameof(TranslationKeys.PushEndpointNotAllowed)] = "isn't a browser push service.",
+        [nameof(TranslationKeys.PushKeysInvalid)] = "sent keys Kardia can't use. Turn notifications off and on again.",
+        [nameof(TranslationKeys.PushNoDevices)] = "None of your devices has notifications on yet.",
         [nameof(TranslationKeys.SyncNothingToImport)] = "Nothing new in the last sync (if this keeps happening with data on the phone, check the metrics picked in Health Auto Export).",
 
         ["UserName"] = "User name",
@@ -69,6 +73,15 @@ internal sealed class GlobalizationHelper : IGlobalizationHelper
         ["Tag"] = "Journal entry",
         ["Key"] = "Kardia key",
         ["Body"] = "Export",
+        ["SleepGoalPercent"] = "Sleep goal",
+        ["ActiveMinutesWeek"] = "Minutes in zone 2+ a week",
+        ["StepsDay"] = "Daily steps",
+        ["SleepNightsWeek"] = "Nights on the sleep goal",
+        ["BedtimeNightsWeek"] = "Nights on time",
+        ["BedtimeLeadMinutes"] = "Reminder before bedtime",
+        ["Endpoint"] = "This browser",
+        ["Devices"] = "Notifications",
+        ["Period"] = "Period",
     };
 
     /// <inheritdoc />

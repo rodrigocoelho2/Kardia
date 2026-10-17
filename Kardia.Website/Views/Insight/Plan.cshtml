@@ -1,0 +1,116 @@
+@model Kardia.Website.Model.Insights.PlanPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "Weekly plan";
+    var plan = Model.Plan;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string Show(PlanGoalDTO goal, double value) => goal.Unit switch
+    {
+        "steps" => Fmt.Whole(value),
+        "min" => value.ToString("0", inv),
+        _ => value.ToString("0", inv),
+    };
+    string Icon(string key) => key switch { "sleep" => "sleep", "bedtime" => "clock", "active" => "heart", _ => "steps" };
+    string Css(string key) => key switch { "sleep" => "slp", "bedtime" => "sky", "active" => "str", _ => "rec" };
+    var differs = plan.Goals.Any(static g => Math.Abs(g.Suggested - g.Target) >= (g.Unit == "steps" ? 500 : g.Unit == "min" ? 10 : 1));
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">Week of @plan.WeekStart.ToString("d MMMM", inv) · @(plan.DaysLeft == 1 ? "last day" : $"{plan.DaysLeft} days left")</div>
+        <h1>Weekly plan</h1>
+    </div>
+    <div class="head-acts">
+        <span class="chip @(plan.GoalsMet == plan.Goals.Count ? "sync" : "")">@Icons.Get("check")@plan.GoalsMet of @plan.Goals.Count goals met</span>
+        <a class="btn ghost small" href="/settings#goals">@Icons.Get("settings")Change targets</a>
+    </div>
+</header>
+
+@if (Model.Notice is not null)
+{
+    <div class="alert ok rise" role="status">@Model.Notice</div>
+}
+
+<div class="grid-2">
+    @foreach (var goal in plan.Goals)
+    {
+        <section class="card plan-goal pg-@Css(goal.Key) rise" style="--d:1">
+            <div class="pg-top">
+                <div class="ring-box" style="--size:86px">
+                    @Charts.Ring(goal.Percent / 100.0, goal.Key switch { "sleep" => "slp", "active" => "str", "bedtime" => "age", _ => "rec" }, thin: true)
+                    <div class="center"><span class="ico-chip @Css(goal.Key)" style="width:36px;height:36px;background:none">@Icons.Get(Icon(goal.Key))</span></div>
+                </div>
+                <div class="grow">
+                    <span class="kicker">@goal.Name</span>
+                    <div class="pg-val num">@Show(goal, goal.Value)<small> / @Show(goal, goal.Target) @goal.Unit</small></div>
+                    <p class="muted" style="font-size:13px">@goal.Hint</p>
+                </div>
+                @if (goal.Met)
+                {
+                    <span class="pill soft-rec">Done</span>
+                }
+            </div>
+            <div class="pg-days" aria-label="Each day of the week">
+                @foreach (var day in goal.Days)
+                {
+                    var state = day.Future ? "future" : goal.Unit == "nights" ? (day.Met switch { true => "met", false => "miss", _ => "none" })
+                        : day.Value is null ? "none" : goal.Unit == "steps" ? (day.Value >= goal.Target ? "met" : "part") : (day.Value > 0 ? "met" : "miss");
+                    <span class="pd @state" title="@Fmt.ShortDate(day.Date)@(day.Value is { } v && goal.Unit != "nights" ? ": " + Show(goal, v) + " " + goal.Unit : "")">
+                        <i></i>@Fmt.Weekday(day.Date)[..1]
+                    </span>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+<div class="row">
+    <section class="card rise" style="--d:2">
+        <div class="card-head">
+            <h2>Targets from your last 4 weeks</h2>
+            <span class="side-note">a step above what you've been doing</span>
+        </div>
+        @foreach (var goal in plan.Goals)
+        {
+            <div class="list-row">
+                <span class="ico-chip @Css(goal.Key)">@Icons.Get(Icon(goal.Key))</span>
+                <div class="grow">
+                    <span class="top"><span>@goal.Name</span><span class="num">@Show(goal, goal.Suggested) <small class="dim">@goal.Unit</small></span></span>
+                    <small>now @Show(goal, goal.Target) @goal.Unit@(goal.Unit == "nights" ? " a week" : goal.Unit == "min" ? " a week" : " a day")</small>
+                </div>
+            </div>
+        }
+        @if (differs)
+        {
+            <form method="post" action="/plan/suggested">
+                @Html.AntiForgeryToken()
+                <button class="btn rec small" type="submit">@Icons.Get("check")Use these targets</button>
+            </form>
+        }
+        else
+        {
+            <small class="dim">Your targets already match what your last four weeks suggest.</small>
+        }
+    </section>
+
+    <section class="card w2 rise" style="--d:3">
+        <div class="card-head">
+            <h2>Last week</h2>
+            <span class="side-note">@Fmt.Range(plan.WeekStart.AddDays(-7), plan.WeekStart.AddDays(-1)) · @plan.LastWeek.Count(static g => g.Met) of @plan.LastWeek.Count met</span>
+        </div>
+        @foreach (var goal in plan.LastWeek)
+        {
+            <div class="list-row">
+                <span class="ico-chip @(goal.Met ? "rec" : "")">@Icons.Get(goal.Met ? "check" : Icon(goal.Key))</span>
+                <div class="grow">
+                    <span class="top"><span>@goal.Name</span><span class="num">@Show(goal, goal.Value) <small class="dim">/ @Show(goal, goal.Target)</small></span></span>
+                    <div class="meter" style="--fill:@(goal.Met ? "var(--rec)" : "var(--mid)")"><i style="width:@goal.Percent%"></i></div>
+                </div>
+            </div>
+        }
+        <div class="notice" style="margin-top:auto">
+            @Icons.Get("info")
+            <p>Sleep counts a night when you slept @(plan.SleepGoalPercent)% of what you needed (@Fmt.GoalName(plan.SleepGoalPercent)). On time means in bed within 30 minutes of your usual bedtime@(plan.UsualBedtime is { } usual ? $" ({usual.ToString("HH:mm", inv)})" : ""). Zone 2+ is every minute above 60% of your maximum heart rate.</p>
+        </div>
+    </section>
+</div>

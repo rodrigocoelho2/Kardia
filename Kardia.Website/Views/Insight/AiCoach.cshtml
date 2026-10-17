@@ -1,0 +1,94 @@
+@model Kardia.Website.Model.Insights.AiCoachPageModel
+@{
+    Layout = "_App";
+    ViewData["Title"] = "AI coach";
+    var coach = Model.Coach;
+    var report = coach.Report;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+<header class="head rise">
+    <div>
+        <div class="eyebrow">@(coach.Enabled ? $"{(coach.Provider == "anthropic" ? "Claude" : "AI")} · {coach.Model}" : "Not set up")</div>
+        <h1>AI coach</h1>
+    </div>
+    @if (coach.Enabled)
+    {
+        <div class="head-acts">
+            <button class="btn slp" type="button" data-ai-analyse data-running="@(coach.Running ? "true" : "false")" @(coach.Running ? "disabled" : "")>
+                @Icons.Get("sparkle")<span data-label>@(coach.Running ? "Analysing…" : report is null ? "Analyse my data" : "Analyse again")</span>
+            </button>
+        </div>
+    }
+</header>
+
+@if (!coach.Enabled)
+{
+    <section class="card empty rise">
+        <span class="ico-chip slp">@Icons.Get("sparkle")</span>
+        <h2>The AI coach isn't set up on this server</h2>
+        <p>Whoever runs Kardia adds an AI provider to the <code>.env</code> file: a Claude API key (<code>KARDIA_AI_PROVIDER=anthropic</code> and <code>KARDIA_AI_API_KEY</code>), or a local model with Ollama (<code>KARDIA_AI_PROVIDER=openai</code>, <code>KARDIA_AI_BASE_URL=http://ollama:11434/v1</code>). The everyday coach on Today works without it.</p>
+        <a class="btn ghost" href="/">@Icons.Get("left")Back to Today</a>
+    </section>
+}
+else
+{
+    <p class="alert err" role="alert" data-ai-error @(coach.Error.Length == 0 ? "hidden" : "")>@coach.Error</p>
+    <section class="card rise ai-wait" data-ai-wait @(coach.Running ? "" : "hidden")>
+        <div class="ai-pulse" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="muted">Reading your last 30 days: recovery, sleep, strain, HRV, Health Monitor and your weekly plan. A cloud model takes a few seconds; a local one on the NAS can take a minute or two.</p>
+    </section>
+
+    @if (report is not null)
+    {
+        <div class="row">
+            <section class="card w2 coach rise" style="--d:1">
+                <div class="coach-head">
+                    <span class="coach-ico">@Icons.Get("sparkle")</span>
+                    <span class="kicker" style="color:var(--slp-text)">@TimeZoneInfo.ConvertTime(report.GeneratedAt, Clock.Zone).ToString("d MMM, HH:mm", inv) · @report.DaysAnalysed days analysed</span>
+                </div>
+                <p class="coach-lead" style="font-size:22px">@report.Headline</p>
+                <p style="color:var(--text-2);line-height:1.6;white-space:pre-line">@report.Summary</p>
+            </section>
+            <section class="card rise" style="--d:2">
+                <div class="card-head"><h2>This week, do this</h2></div>
+                <ol class="steps">
+                    @foreach (var action in report.Actions)
+                    {
+                        <li>@action</li>
+                    }
+                </ol>
+            </section>
+        </div>
+
+        <div class="row">
+            @if (report.WentWell.Count > 0)
+            {
+                <section class="card rise" style="--d:3">
+                    <div class="card-head"><h2>Going well</h2></div>
+                    <ul class="tips">@foreach (var line in report.WentWell) { <li class="Good">@line</li> }</ul>
+                </section>
+            }
+            @if (report.Watch.Count > 0)
+            {
+                <section class="card rise" style="--d:4">
+                    <div class="card-head"><h2>Keep an eye on</h2></div>
+                    <ul class="tips">@foreach (var line in report.Watch) { <li class="Caution">@line</li> }</ul>
+                </section>
+            }
+        </div>
+    }
+    else if (!coach.Running)
+    {
+        <section class="card empty rise">
+            <span class="ico-chip slp">@Icons.Get("sparkle")</span>
+            <h2>A second opinion on your numbers</h2>
+            <p>Tap <b>Analyse my data</b> and the AI reads your last 30 days and writes a short report: how you're doing, what changed and three things to do this week.</p>
+        </section>
+    }
+
+    <div class="notice rise">
+        @Icons.Get("shield")
+        <p>Only numbers are sent to @(coach.Provider == "anthropic" ? "Anthropic" : "the AI provider") — daily scores, sleep times and averages for the last 30 days. Not your name, your account or your heart rate minute by minute. The AI can be wrong and isn't medical advice.</p>
+    </div>
+}

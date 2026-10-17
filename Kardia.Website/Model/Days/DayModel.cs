@@ -17,6 +17,12 @@ public sealed class DayPageModel : AppPageModel
 
     /// <summary>Gets or sets the day's journal (Today only).</summary>
     public JournalDayDTO? Journal { get; set; }
+
+    /// <summary>Gets or sets the AI coach (Today only: its button and last headline).</summary>
+    public AiCoachDTO? AiCoach { get; set; }
+
+    /// <summary>Gets or sets this week's plan (Today only).</summary>
+    public PlanDTO? Plan { get; set; }
 }
 
 /// <summary>
@@ -47,6 +53,8 @@ public sealed class DayModel(KardiaClient apiClient) : WebsiteBaseModel(apiClien
         {
             page.Age = (await CallAsync(() => ApiClient.AgeGetAsync(userId))).Data;
             page.Journal = (await CallAsync(() => ApiClient.JournalGetAsync(userId, page.Date))).Data;
+            page.Plan = (await CallAsync(() => ApiClient.PlanGetAsync(userId))).Data;
+            page.AiCoach = (await CallAsync(() => ApiClient.AiCoachGetAsync(userId))).Data;
         }
 
         return page;

@@ -23,6 +23,24 @@ public enum AppSection
 
     /// <summary>Settings.</summary>
     Settings,
+
+    /// <summary>Health Monitor.</summary>
+    Health,
+
+    /// <summary>Trends.</summary>
+    Trends,
+
+    /// <summary>Weekly and monthly assessments.</summary>
+    Report,
+
+    /// <summary>Weekly plan.</summary>
+    Plan,
+
+    /// <summary>The AI coach.</summary>
+    AiCoach,
+
+    /// <summary>Everything else (the phone's menu).</summary>
+    More,
 }
 
 /// <summary>
@@ -34,7 +52,7 @@ public class AppPageModel
     public const string ProductName = "Kardia";
 
     /// <summary>The version shown in the app.</summary>
-    public const string CurrentVersion = "v1.0";
+    public const string CurrentVersion = "v1.1";
 
     /// <summary>Gets or sets the signed-in user name.</summary>
     public string UserName { get; set; } = string.Empty;

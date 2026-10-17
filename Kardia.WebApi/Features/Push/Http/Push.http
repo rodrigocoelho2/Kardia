@@ -1,0 +1,11 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### Devices and the key to subscribe with
+GET {{HostAddress}}/push?userId={{userId}}
+x-api-key: {{apiKey}}
+
+### Test notification
+POST {{HostAddress}}/push/test?userId={{userId}}
+x-api-key: {{apiKey}}

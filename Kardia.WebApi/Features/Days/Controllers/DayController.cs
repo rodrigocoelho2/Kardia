@@ -45,4 +45,13 @@ internal sealed class DayController(IDayService dayService) : InternalController
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [SwaggerOperation(Summary = "DayRange", OperationId = "DayRange")]
     public async Task<ActionResult<List<DaySummaryDTO>>> DayRangeAsync(string userId, DateOnly from, DateOnly to) => (await _dayService.RangeAsync(userId, from, to)).ToActionResult();
+
+    /// <summary>Gets the Health Monitor over the last 30 or 180 days (the printable report).</summary>
+    /// <param name="userId">The account.</param>
+    /// <param name="days">30 or 180.</param>
+    /// <returns>One series per sign.</returns>
+    [HttpGet("health")]
+    [ProducesResponseType<HealthReportDTO>((int)HttpStatusCode.OK)]
+    [SwaggerOperation(Summary = "DayHealthReport", OperationId = "DayHealthReport")]
+    public async Task<ActionResult<HealthReportDTO>> DayHealthReportAsync(string userId, int days = 30) => (await _dayService.HealthReportAsync(userId, days)).ToActionResult();
 }

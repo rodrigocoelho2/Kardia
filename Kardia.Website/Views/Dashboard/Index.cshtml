@@ -8,6 +8,8 @@
     var strain = day.Strain;
     var recent = day.Recent;
     var lead = day.Coach.FirstOrDefault();
+    var flagged = day.Health.Signs.Where(static s => s.Status is HealthSignStatus.Outside or HealthSignStatus.FarOutside).ToList();
+    var dateLink = Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date);
 }
 
 <header class="head rise">
@@ -23,6 +25,10 @@
         else
         {
             <a class="chip warn" href="/settings#apple-watch">@Icons.Get("watch")Connect your Apple Watch</a>
+        }
+        @if (flagged.Count >= 2)
+        {
+            <a class="chip warn" href="/health@(dateLink)">@Icons.Get("shield")Health Monitor · @flagged.Count signs outside your range</a>
         }
         <partial name="_DateNav" model="Model" />
     </div>
@@ -94,8 +100,64 @@ else
             {
                 <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
             }
-            <a class="btn ghost small" href="/journal" style="margin-top:auto">@Icons.Get("journal")Log today in the journal</a>
+            <div class="head-acts" style="margin-top:auto">
+                @if (Model.AiCoach is { Enabled: true })
+                {
+                    <a class="btn slp small" href="/coach">@Icons.Get("sparkle")Analyse with AI</a>
+                }
+                <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
+            </div>
         </section>
+    </div>
+
+    <div class="row">
+        <section class="card rise" style="--d:3">
+            <div class="card-head">
+                <h2>Health Monitor</h2>
+                <a class="more" href="/health@(dateLink)">@(day.Health.Ready ? $"{day.Health.InRange} of {day.Health.Judged} in range" : "Learning") @Icons.Get("right")</a>
+            </div>
+            <div class="hm-dots" style="justify-content:flex-start;margin:0">
+                @foreach (var sign in day.Health.Signs)
+                {
+                    <span class="hm-dot @Fmt.SignClass(sign.Status)" title="@sign.Name: @Fmt.SignWords(sign)" style="width:44px;height:44px;border-radius:15px">@Icons.Get(Fmt.SignIcon(sign.Key))</span>
+                }
+            </div>
+            <p class="muted" style="font-size:14px">
+                @if (!day.Health.Ready)
+                {
+                    @:A week of nights teaches Kardia your typical range for HRV, resting heart rate, breathing, blood oxygen and wrist temperature.
+                }
+                else if (flagged.Count == 0)
+                {
+                    @:Last night's HRV, resting heart rate, breathing, blood oxygen and wrist temperature all sit in your usual range.
+                }
+                else
+                {
+                    @(string.Join(" · ", flagged.Select(static f => $"{f.Name} {Fmt.SignWords(f).ToLowerInvariant()}")))
+                }
+            </p>
+        </section>
+
+        @if (Model.Plan is { } plan)
+        {
+            <section class="card w2 rise" style="--d:3">
+                <div class="card-head">
+                    <h2>This week</h2>
+                    <a class="more" href="/plan">@plan.GoalsMet of @plan.Goals.Count goals · @(plan.DaysLeft == 1 ? "last day" : $"{plan.DaysLeft} days left") @Icons.Get("right")</a>
+                </div>
+                <div class="plan-mini">
+                    @foreach (var goal in plan.Goals)
+                    {
+                        var colour = goal.Key switch { "sleep" => "var(--slp)", "bedtime" => "var(--sky)", "active" => "var(--str)", _ => "var(--rec)" };
+                        <div class="tile">
+                            <span class="k">@goal.Name @if (goal.Met) { <span class="d good-t">done</span> }</span>
+                            <span class="v">@(goal.Unit == "steps" ? Fmt.Whole(goal.Value) : goal.Value.ToString("0"))<small> / @(goal.Unit == "steps" ? Fmt.Whole(goal.Target) : goal.Target.ToString("0")) @goal.Unit</small></span>
+                            <div class="meter" style="--fill:@colour"><i style="width:@goal.Percent%"></i></div>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
     </div>
 
     <div class="row">
@@ -163,7 +225,7 @@ else
                 @Charts.Hypnogram(sleep)
             }
             <div class="tiles t4">
-                <div class="tile"><span class="k"><span><i class="swatch" style="background:#F2F4F7"></i> Awake</span></span><span class="v">@Fmt.Duration(sleep.AwakeMinutes)</span></div>
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--awake)"></i> Awake</span></span><span class="v">@Fmt.Duration(sleep.AwakeMinutes)</span></div>
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-3)"></i> REM</span></span><span class="v">@Fmt.Duration(sleep.RemMinutes)</span></div>
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp)"></i> Light</span></span><span class="v">@Fmt.Duration(sleep.CoreMinutes)</span></div>
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-2)"></i> Deep</span></span><span class="v">@Fmt.Duration(sleep.DeepMinutes)</span></div>

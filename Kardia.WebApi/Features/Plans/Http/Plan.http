@@ -1,0 +1,7 @@
+@HostAddress = http://127.0.0.1:5091
+@apiKey = devkey
+@userId = 00000000000000000000000000000000
+
+### This week's plan
+GET {{HostAddress}}/plan?userId={{userId}}
+x-api-key: {{apiKey}}

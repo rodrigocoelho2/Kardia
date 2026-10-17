@@ -20,6 +20,18 @@ internal sealed class MemoryStore
     /// <summary>Gets the profiles, by account.</summary>
     public Dictionary<Guid, UserProfile> Profiles { get; } = [];
 
+    /// <summary>Gets the goals and notification choices, by account.</summary>
+    public Dictionary<Guid, Kardia.WebApi.Features.Settings.Models.Entities.UserSetting> Settings { get; } = [];
+
+    /// <summary>Gets the push devices.</summary>
+    public List<Kardia.WebApi.Features.Push.Models.Entities.PushSubscriptionRow> PushSubscriptions { get; } = [];
+
+    /// <summary>Gets the notifications already sent, as (account, key).</summary>
+    public HashSet<(Guid UserId, string Key)> PushSent { get; } = [];
+
+    /// <summary>Gets server secrets (the VAPID keys), by name.</summary>
+    public Dictionary<string, string> Secrets { get; } = [];
+
     /// <summary>Gets the sync keys, by account.</summary>
     public Dictionary<Guid, SyncKeyRow> SyncKeys { get; } = [];
 
