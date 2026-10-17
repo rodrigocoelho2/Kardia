@@ -744,3 +744,98 @@ a.bar { display: block; }
   [data-theme="light"] .hero-rings .cell.c-slp { background: linear-gradient(160deg, rgba(91, 87, 232, 0.12) 0%, rgba(91, 87, 232, 0.02) 55%), #FFF; }
   [data-theme="light"] .hero-rings .cell.c-str { background: linear-gradient(160deg, rgba(238, 106, 30, 0.12) 0%, rgba(238, 106, 30, 0.02) 55%), #FFF; }
 }
+
+/* ================================================================ motion == */
+/* Page changes cross-fade (and slide between days and tabs) with the browser's own view transitions; the side bar and
+   the tab bar stay put while the highlight glides to the new item. Cards come in as they scroll into view, numbers
+   count up, lines draw themselves, and everything you can tap gives a little under the finger. All of it switches off
+   with "reduce motion". */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  html { scroll-behavior: smooth; }
+
+  .side { view-transition-name: side; }
+  .tabbar { view-transition-name: tabbar; }
+  .phone-top { view-transition-name: phone-top; }
+  .nav .nav-pill { view-transition-name: nav-pill; }
+  .tabbar .nav-pill { view-transition-name: tab-pill; }
+
+  ::view-transition-group(*) { animation-duration: 0.38s; animation-timing-function: var(--ease); }
+  ::view-transition-old(root) { animation: vt-fade-out 0.16s ease-in both; }
+  ::view-transition-new(root) { animation: vt-rise-in 0.42s var(--ease) both; }
+  html:active-view-transition-type(next)::view-transition-old(root) { animation: vt-out-left 0.24s ease-in both; }
+  html:active-view-transition-type(next)::view-transition-new(root) { animation: vt-in-right 0.42s var(--ease) both; }
+  html:active-view-transition-type(prev)::view-transition-old(root) { animation: vt-out-right 0.24s ease-in both; }
+  html:active-view-transition-type(prev)::view-transition-new(root) { animation: vt-in-left 0.42s var(--ease) both; }
+  ::view-transition-old(side), ::view-transition-new(side), ::view-transition-old(tabbar), ::view-transition-new(tabbar),
+  ::view-transition-old(phone-top), ::view-transition-new(phone-top) { animation: none; mix-blend-mode: normal; }
+  /* During a page change the cards of the new page arrive with it, not one by one after it. */
+  html:active-view-transition .rise { animation-duration: 0.01ms; }
+}
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-rise-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes vt-out-left { to { opacity: 0; transform: translateX(-28px); } }
+@keyframes vt-in-right { from { opacity: 0; transform: translateX(36px); } }
+@keyframes vt-out-right { to { opacity: 0; transform: translateX(28px); } }
+@keyframes vt-in-left { from { opacity: 0; transform: translateX(-36px); } }
+
+/* The highlight behind the current item of the side bar and the tab bar (moved by the view transition). */
+.nav a, .tabbar a { position: relative; z-index: 0; }
+.nav-pill { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; }
+.nav a[aria-current="page"], .tabbar a[aria-current="page"] { background: none !important; }
+.nav .nav-pill { background: linear-gradient(90deg, var(--accent-soft, var(--rec-soft)) 0%, rgba(255, 255, 255, 0.01) 100%); }
+.tabbar .nav-pill { background: var(--accent-soft, var(--rec-soft)); }
+.tabbar a .ic { transition: transform 0.3s var(--ease); }
+.tabbar a[aria-current="page"] .ic { transform: translateY(-1px) scale(1.08); }
+
+/* Cards below the fold wait, then come in as they're scrolled to. */
+.rise.reveal-wait { animation: none; opacity: 0; transform: translateY(22px); }
+.reveal-wait *, .reveal-wait *::before, .reveal-wait *::after { animation-play-state: paused !important; }
+@media print { .rise.reveal-wait { opacity: 1; transform: none; } .reveal-wait * { animation: none !important; } .draw { stroke-dashoffset: 0; } }
+
+/* Lines draw themselves. */
+@media (prefers-reduced-motion: no-preference) {
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-line 1.4s var(--ease) 0.15s forwards; }
+}
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+
+/* Everything you tap gives a little. */
+a, button, summary, label.choice, .tag { -webkit-tap-highlight-color: transparent; }
+.card, .tile, .list-row, .week a, .tabbar a, .nav a, .icon-btn, .avatar, .choice, .tag, .datenav a, .hero-rings .cell, .metric, .pd, .switch-row {
+  transition: transform 0.22s var(--ease), background 0.2s, border-color 0.2s, box-shadow 0.25s, opacity 0.2s;
+}
+@media (prefers-reduced-motion: no-preference) {
+  a.card:active, .hero-rings .cell:active, a.list-row:active, .week a:active, .tabbar a:active, .nav a:active, .icon-btn:active,
+  .avatar:active, .choice:active, .datenav a:active, .switch-row:active, .tag:active { transform: scale(0.965); }
+  .btn:active { transform: scale(0.95); }
+  @media (hover: hover) {
+    .hero-rings .cell:hover { transform: translateY(-2px); }
+    a.list-row:hover { transform: translateX(3px); }
+    .tile:hover, .metric:hover { border-color: var(--line-2); }
+  }
+}
+.switch i, .switch i::after { transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); transition-duration: 0.32s; }
+
+/* The phone's top bar turns to glass once you scroll. */
+@media (max-width: 1023px) {
+  .phone-top { position: sticky; top: 0; z-index: 15; padding-bottom: 10px; transition: background 0.3s, box-shadow 0.3s, -webkit-backdrop-filter 0.3s, backdrop-filter 0.3s; }
+  .phone-top.scrolled { background: color-mix(in srgb, var(--bg) 72%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 1px 0 var(--line); }
+  .page { padding-top: 6px; }
+}
+
+/* A thin bar at the top while the next page loads. */
+.nav-progress { position: fixed; left: 0; top: 0; z-index: 100; height: 3px; width: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, var(--rec), var(--sky), var(--slp)); box-shadow: 0 0 10px var(--sky);
+  transition: width 2.4s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.2s; }
+.nav-progress.on { width: 82%; opacity: 1; }
+
+/* Swiping between days: the page follows the finger a little. */
+.page.swiping { transition: none; }
+.page.swipe-back { transition: transform 0.35s var(--ease), opacity 0.35s; }
+.swipe-hint { position: fixed; top: 50%; z-index: 30; width: 44px; height: 44px; margin-top: -22px; border-radius: 22px; display: grid; place-items: center;
+  background: var(--surface-flat); border: 1px solid var(--line-2); box-shadow: var(--drop); color: var(--text); opacity: 0; transform: scale(0.6); transition: opacity 0.15s, transform 0.2s var(--ease); pointer-events: none; }
+.swipe-hint.prev { left: 12px; } .swipe-hint.next { right: 12px; }
+.swipe-hint.ready { opacity: 1; transform: scale(1); }
+
+details[open] > :not(summary) { animation: fade-in 0.35s var(--ease) both; }

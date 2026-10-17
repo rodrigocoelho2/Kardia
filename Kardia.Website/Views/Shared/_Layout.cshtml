@@ -44,6 +44,13 @@
     <link rel="preload" href="~/fonts/figtree-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="~/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    @if (ViewData["Themed"] is true)
+    {
+        @* Pages are fetched as soon as a finger lands on a link (Chrome, Edge, Android), so they open at once. *@
+        <script type="speculationrules">
+            { "prefetch": [ { "where": { "and": [ { "href_matches": "/*" }, { "not": { "href_matches": "/about" } }, { "not": { "selector_matches": "[data-no-prefetch]" } } ] }, "eagerness": "moderate" } ] }
+        </script>
+    }
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>

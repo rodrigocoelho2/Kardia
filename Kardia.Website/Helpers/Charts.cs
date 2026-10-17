@@ -137,7 +137,7 @@ public static class Charts
             var line = string.Join(" L", points.Select(p => string.Create(Invariant, $"{X(p.At):0.0},{Y(p.Bpm):0.0}")));
             var last = points[^1];
             svg.Append(Invariant, $"<path d=\"M{X(points[0].At):0.0},{bottom} L{line} L{X(last.At):0.0},{bottom} Z\" fill=\"url(#{id})\"/>");
-            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"line-heart\"/>");
+            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"line-heart draw\" pathLength=\"1\"/>");
             if (now is { } clock)
             {
                 var x = X(clock < last.At.AddMinutes(10) ? clock : last.At);
@@ -258,7 +258,7 @@ public static class Charts
         svg.Append(Invariant, $"<svg class=\"chart-trend {cssClass}\" viewBox=\"0 0 350 100\" role=\"img\" aria-label=\"{Escape(label)}\"><defs><linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" class=\"stop-a\"/><stop offset=\"1\" class=\"stop-b\"/></linearGradient></defs>");
         svg.Append(Invariant, $"<rect x=\"0\" y=\"{Y(baseline) - 10:0.0}\" width=\"350\" height=\"20\" rx=\"6\" class=\"band-normal\"/><line x1=\"0\" y1=\"{Y(baseline):0.0}\" x2=\"350\" y2=\"{Y(baseline):0.0}\" class=\"baseline\"/>");
         svg.Append(Invariant, $"<path d=\"M{line} L{X(lastIndex):0.0},100 L{X(firstIndex):0.0},100 Z\" fill=\"url(#{id})\"/>");
-        svg.Append(Invariant, $"<path d=\"M{line}\" class=\"trend-line\"/>");
+        svg.Append(Invariant, $"<path d=\"M{line}\" class=\"trend-line draw\" pathLength=\"1\"/>");
         svg.Append(Invariant, $"<circle cx=\"{X(lastIndex):0.0}\" cy=\"{Y(last):0.0}\" r=\"9\" class=\"trend-halo\"/><circle cx=\"{X(lastIndex):0.0}\" cy=\"{Y(last):0.0}\" r=\"4.5\" class=\"trend-dot\"/>");
         svg.Append("</svg>");
         return new HtmlString(svg.ToString());
@@ -424,7 +424,7 @@ public static class Charts
                 svg.Append(Invariant, $"<path d=\"M{line} L{segment[^1].X:0.0},{bottom:0.0} L{segment[0].X:0.0},{bottom:0.0} Z\" fill=\"url(#{id})\"/>");
             }
 
-            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"series-line{(smooth > 1 ? " faded" : string.Empty)}\"/>");
+            svg.Append(Invariant, $"<path d=\"M{line}\" class=\"series-line draw{(smooth > 1 ? " faded" : string.Empty)}\" pathLength=\"1\"/>");
         }
 
         if (smooth > 1)
@@ -436,7 +436,7 @@ public static class Charts
             }).Where(static x => x.Value is not null).ToList();
             if (averaged.Count > 1)
             {
-                svg.Append(Invariant, $"<path d=\"M{string.Join(" L", averaged.Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.Value!.Value):0.0}")))}\" class=\"series-line smooth\"/>");
+                svg.Append(Invariant, $"<path d=\"M{string.Join(" L", averaged.Select(x => string.Create(Invariant, $"{X(x.i):0.0},{Y(x.Value!.Value):0.0}")))}\" class=\"series-line smooth draw\" pathLength=\"1\"/>");
             }
         }
 
