@@ -55,15 +55,8 @@
     var output = function (name) { return demo.querySelector('[data-out="' + name + '"]'); };
     var ring = demo.querySelector("[data-ring] svg");
     var values = ring ? ring.querySelectorAll(".ring-val") : [];
-    var knob = ring ? ring.querySelector(".ring-knob") : null;
-    var stops = ring ? ring.querySelectorAll("stop") : [];
     var LENGTH = 565.49;
     var NEED = 495;
-    var PALETTES = {
-      High: ["#C6FFE6", "#5BE3A6", "#1FB57A"],
-      Medium: ["#FFE7A3", "#F5C451", "#E0A21C"],
-      Low: ["#FFC2C2", "#FF6B6B", "#E04848"]
-    };
     var WORDS = {
       High: ["Ready to push", "var(--rec)", "Your body is ready: intervals, a long ride or a heavy session will pay off."],
       Medium: ["Steady day", "var(--mid)", "A normal day: train, but keep the hardest work for a green day."],
@@ -99,10 +92,9 @@
       output("advice").textContent = WORDS[zone][2];
       output("target").textContent = (centre - 1).toFixed(1) + "–" + (centre + 1).toFixed(1);
 
-      var fraction = score / 100, length = fraction * LENGTH, angle = fraction * 2 * Math.PI;
+      var length = score / 100 * LENGTH;
       values.forEach(function (circle) { circle.setAttribute("stroke-dasharray", length.toFixed(1) + " " + LENGTH); });
-      if (knob) { knob.setAttribute("cx", (110 + 90 * Math.cos(angle)).toFixed(1)); knob.setAttribute("cy", (110 + 90 * Math.sin(angle)).toFixed(1)); }
-      stops.forEach(function (stop, i) { stop.setAttribute("stop-color", PALETTES[zone][i] || PALETTES[zone][2]); });
+      if (ring) ring.style.setProperty("--ring", WORDS[zone][1]);
     };
 
     demo.addEventListener("input", paint);

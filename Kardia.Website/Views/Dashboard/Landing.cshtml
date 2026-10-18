@@ -34,7 +34,13 @@
         ("Bedtime", "23:10", "pays back 35 min", "slp"),
         ("Zone 2", "38 min", "about 25 more to target", "str"),
         ("Alcohol", "−21 pts", "next-morning recovery", "age"),
+        ("Stress", "0.6", "low day", "mid"),
+        ("Energy", "62", "left at 6 pm", "sky"),
+        ("Heart-rate recovery", "−27 bpm", "in the first minute", "rec"),
+        ("Daylight", "70 min", "over your 30", "mid"),
     };
+    var strip = new (string Day, int Score)[] { ("Sat", 46), ("Sun", 87), ("Mon", 55), ("Tue", 59), ("Wed", 66), ("Thu", 43), ("Fri", 84) };
+    var stressBars = new[] { 6, 8, 0, 0, 18, 26, 30, 22, 0, 12, 6, 10, 14, 44, 50, 40, 28, 0, 20, 16, 10, 8 };
 }
 @section Head {
     <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
@@ -67,7 +73,7 @@
             <div class="lp-copy">
                 <span class="lp-eyebrow in-1"><i class="ping"></i>Apple Watch · self-hosted</span>
                 <h1 class="lp-h1 in-2"><span>Wake up</span><span>knowing how</span><span class="grad-text">ready you are.</span></h1>
-                <p class="lp-lede in-3">Kardia turns what your Apple Watch already measures into a morning recovery score, a sleep coach, a daily strain target and a biological age you can move. No new band, no subscription: it runs on your own server, on your phone and your computer.</p>
+                <p class="lp-lede in-3">Kardia turns what your Apple Watch already measures into a morning recovery score, a sleep coach, a daily strain target, stress and energy through the day, and a biological age you can move. No new band, no subscription: it runs on your own server, on your phone and your computer.</p>
                 <div class="lp-cta in-4">
                     @if (Model.SignedIn)
                     {
@@ -90,22 +96,32 @@
                 <div class="phone" data-tilt aria-hidden="true">
                     <span class="notch"></span>
                     <div class="screen">
-                        <div>
-                            <div class="p-date">Friday, 16 October</div>
-                            <div class="p-title">Good morning, Rita</div>
+                        <div class="p-head">
+                            <div>
+                                <div class="p-date">Friday, 16 October</div>
+                                <div class="p-title">Good morning, Rita</div>
+                            </div>
+                            <span class="p-av">R</span>
                         </div>
-                        <div class="p-hero">
-                            <div class="ambient" style="width:220px;height:220px;margin-left:-110px;top:0"></div>
-                            <div class="ring-box">@Charts.Ring(0.84, "rec")<div class="center"><span class="big num">84<small>%</small></span></div></div>
-                            <span class="kicker" style="font-size:10px">Recovery</span>
-                            <span style="font-size:12px;font-weight:600;color:var(--rec)">Ready to push</span>
+                        <div class="p-week">
+                            @foreach (var (day, score) in strip)
+                            {
+                                <span class="@(day == "Fri" ? "on" : "")"><small>@day</small><span class="mr">@Charts.MiniRing(score / 100.0, Colour(score))<b>@score</b></span></span>
+                            }
+                        </div>
+                        <div class="p-rings">
+                            <div><div class="ring-box">@Charts.Ring(0.84, "rec")<div class="center"><span class="big num">84<small>%</small></span></div></div><small>Recovery</small></div>
+                            <div><div class="ring-box">@Charts.Ring(0.92, "slp")<div class="center"><span class="big num">92<small>%</small></span></div></div><small>Sleep</small></div>
+                            <div><div class="ring-box">@Charts.Ring(12.4 / 21, "str", (14.3 / 21, 16.3 / 21))<div class="center"><span class="big num">12.4</span></div></div><small>Strain</small></div>
                         </div>
                         <div class="p-pair">
-                            <div class="p-mini s"><div class="ring-box">@Charts.Ring(0.92, "slp", thin: true)<div class="center"><span class="big num">92</span></div></div><div><small>Sleep</small><b>7h 40m</b></div></div>
-                            <div class="p-mini t"><div class="ring-box">@Charts.Ring(12.4 / 21, "str", thin: true)<div class="center"><span class="big num">12.4</span></div></div><div><small>Strain</small><b>14–16</b></div></div>
+                            <div class="p-tile"><small>Energy</small><b>62 <em>/ 100</em></b><span class="p-bar"><i style="width:62%"></i></span></div>
+                            <div class="p-tile"><small>Stress</small><b>0.6 <em style="color:var(--rec)">Low</em></b>
+                                <span class="p-stress">@foreach (var h in stressBars) { <i style="height:@(Math.Max(3, h))%;background:@(h == 0 ? "var(--line-2)" : h >= 40 ? "var(--low)" : h >= 18 ? "var(--mid)" : "var(--rec)")"></i> }</span>
+                            </div>
                         </div>
                         <div class="p-coach"><b>Coach</b>Your HRV is 13% above normal. A good day for intervals: aim for strain 14–16, then be in bed by 23:10.</div>
-                        <div class="p-tab"><i class="on">@Icons.Get("today")</i><i>@Icons.Get("recovery")</i><i>@Icons.Get("sleep")</i><i>@Icons.Get("strain")</i><i>@Icons.Get("age")</i></div>
+                        <div class="p-tab"><i class="on">@Icons.Get("today")</i><i>@Icons.Get("recovery")</i><i>@Icons.Get("sleep")</i><i>@Icons.Get("strain")</i><i>@Icons.Get("grid")</i></div>
                     </div>
                 </div>
 
@@ -122,7 +138,7 @@
                         {
                             var (height, colour) = stage switch
                             {
-                                SleepStage.Awake => (100, "#F2F4F7"),
+                                SleepStage.Awake => (100, "var(--awake)"),
                                 SleepStage.Rem => (72, "var(--rem)"),
                                 SleepStage.Core => (46, "var(--slp)"),
                                 _ => (22, "var(--slp-2)"),
@@ -276,12 +292,44 @@
                     </ul>
                 </div>
             </div>
+            <div class="lp-tile t-hm reveal">
+                <h3>Health Monitor</h3>
+                <p>Last night's HRV, resting heart rate, breathing, blood oxygen and wrist temperature against your own range, with a report to print for your doctor.</p>
+                <div class="vis hm-vis">
+                    <span class="hm-dot in">@Icons.Get("recovery")</span><span class="hm-dot in">@Icons.Get("heart")</span><span class="hm-dot out">@Icons.Get("lungs")</span><span class="hm-dot in">@Icons.Get("drop")</span><span class="hm-dot in">@Icons.Get("temp")</span>
+                </div>
+            </div>
+            <div class="lp-tile t-stress reveal" style="--i:1">
+                <h3>Stress and energy, all day</h3>
+                <p>Stress from 0 to 3 whenever your heart races while you sit still, and an energy bank that starts at your recovery and drains with the day.</p>
+                <div class="vis stress-vis">
+                    <div class="bars" aria-hidden="true">@foreach (var h in stressBars) { <i style="height:@(Math.Max(4, h * 1.6))%;background:@(h == 0 ? "var(--line-2)" : h >= 40 ? "var(--low)" : h >= 18 ? "var(--mid)" : "var(--rec)")"></i> }</div>
+                    <div class="energy"><span><b class="num">62</b> energy left</span><span class="p-bar"><i style="width:62%"></i></span><small>woke up with 84 · −14 moving · −8 stress</small></div>
+                </div>
+            </div>
             <div class="lp-tile t-jou reveal">
                 <h3>A journal that answers back</h3>
                 <p>Tap what you did yesterday. After a few weeks Kardia shows what really moves your recovery.</p>
                 <div class="vis" style="display:flex;flex-direction:column;gap:14px">
                     <div class="jou-tags"><span class="on">Alcohol</span><span>Late caffeine</span><span class="on">Stretching</span><span>Sauna</span><span>Screens in bed</span><span>Magnesium</span></div>
                     <div class="jou-effect"><b>−21</b>points of recovery the morning after alcohol, over 21 days.</div>
+                </div>
+            </div>
+            <div class="lp-tile t-coach reveal" style="--i:1">
+                <h3>An AI coach, when you ask</h3>
+                <p>Tap Ask AI on any screen and a model reads your numbers: Claude, Gemini or a local one with Ollama. Only numbers are sent, never your name.</p>
+                <div class="vis coach-vis">
+                    <span class="k">@Icons.Get("sparkle")AI coach</span>
+                    <b>Recovery is solid; sleep is the lever.</b>
+                    <ul><li>Bed by 23:10 three nights this week.</li><li>Keep Saturday's long run in zone 2.</li><li>Skip late coffee: it costs you 6 points.</li></ul>
+                </div>
+            </div>
+            <div class="lp-tile t-more reveal">
+                <h3>And the rest</h3>
+                <p>Everything else a good morning needs, with nothing to log.</p>
+                <div class="vis more-chips">
+                    <span>@Icons.Get("heart")Heart-rate recovery</span><span>@Icons.Get("target")Weekly plan</span><span>@Icons.Get("check")Weekly &amp; monthly reports</span><span>@Icons.Get("calendar")Recovery calendar</span>
+                    <span>@Icons.Get("trend")Trends to a year</span><span>@Icons.Get("sun")Time in daylight</span><span>@Icons.Get("wind")Guided breathing</span><span>@Icons.Get("bell")Notifications</span><span>@Icons.Get("moon")Light &amp; dark</span>
                 </div>
             </div>
             <div class="lp-tile t-self reveal" style="--i:1" id="self-hosted">
