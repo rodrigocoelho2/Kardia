@@ -86,7 +86,7 @@ else
             </div>
             <div class="energy-top">
                 <div class="ring-box" style="--size:120px">
-                    @Charts.Ring((energy.Now ?? 0) / 100.0, palette, thin: true)
+                    @Charts.Ring((energy.Now ?? 0) / 100.0, "nrg", thin: true)
                     <div class="center"><span class="big num" style="font-size:34px">@(energy.Now?.ToString() ?? "—")</span><span class="lbl">@(Model.IsToday ? "left now" : "left at night")</span></div>
                 </div>
                 <div class="grow">

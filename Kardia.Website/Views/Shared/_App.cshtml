@@ -12,6 +12,8 @@
         (AppSection.Strain, "/strain", "strain", "Strain"),
         (AppSection.Age, "/age", "age", "Age"),
     };
+    var inMore = currentSection is AppSection.More or AppSection.Age or AppSection.Plan or AppSection.Trends or AppSection.Report or AppSection.AiCoach
+        or AppSection.Journal or AppSection.Stress or AppSection.Calendar or AppSection.Breathe or AppSection.Health or AppSection.Settings;
     var dateQuery = Model.IsToday || currentSection is AppSection.Age or AppSection.Settings or AppSection.Plan or AppSection.Trends or AppSection.Report or AppSection.AiCoach or AppSection.More or AppSection.Calendar or AppSection.Breathe ? string.Empty : "?date=" + Fmt.Iso(Model.Date);
     var lastSync = Model.LastSyncAt;
 }
@@ -65,8 +67,7 @@
         <header class="phone-top">
             <a class="brand" href="/">@Icons.Logo(28)Kardia</a>
             <div class="acts">
-                <a class="icon-btn" href="/health@(dateQuery)" aria-label="Health Monitor" aria-current="@Current(AppSection.Health)">@Icons.Get("shield")</a>
-                <a class="icon-btn" href="/more" aria-label="More: stress, calendar, plan, trends, reports, journal" aria-current="@(currentSection is AppSection.More or AppSection.Plan or AppSection.Trends or AppSection.Report or AppSection.AiCoach or AppSection.Journal or AppSection.Stress or AppSection.Calendar or AppSection.Breathe ? "page" : null)">@Icons.Get("grid")</a>
+                <a class="icon-btn" href="/calendar" aria-label="Recovery calendar" aria-current="@Current(AppSection.Calendar)">@Icons.Get("calendar")</a>
                 <a class="avatar" href="/settings" aria-label="Settings (@Model.UserName)">@Model.Initials</a>
             </div>
         </header>
@@ -88,10 +89,11 @@
     </div>
 
     <nav class="tabbar" aria-label="Kardia">
-        @foreach (var (s, href, icon, name) in tabs)
+        @foreach (var (s, href, icon, name) in tabs.Take(4))
         {
-            <a href="@(href)@(s is AppSection.Age ? string.Empty : dateQuery)" aria-current="@Current(s)">@Icons.Get(icon)@name</a>
+            <a href="@(href)@dateQuery" aria-current="@Current(s)">@Icons.Get(icon)@name</a>
         }
+        <a href="/more" aria-current="@(inMore ? "page" : null)">@Icons.Get("grid")More</a>
     </nav>
 </div>
 @section Head {

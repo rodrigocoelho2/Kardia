@@ -19,19 +19,9 @@ public static class Charts
     private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
     private static int _ids;
 
-    /// <summary>The gradient stops of each palette.</summary>
-    private static readonly Dictionary<string, string[]> Palettes = new(StringComparer.Ordinal)
-    {
-        ["rec"] = ["#C6FFE6", "#5BE3A6", "#17A86F"],
-        ["mid"] = ["#FFEDB8", "#F5C451", "#D9951A"],
-        ["low"] = ["#FFC9C9", "#FF6B6B", "#E0444A"],
-        ["slp"] = ["#ECEBFF", "#8E8CFF", "#5A57F0"],
-        ["str"] = ["#FFD3A8", "#FF8A47", "#FF4D6D"],
-        ["age"] = ["#C6FFE6", "#7CC7FF", "#8E8CFF"],
-    };
-
     /// <summary>
-    /// A score ring: track, scale ticks, the value in a gradient with a soft glow, and a knob at its end.
+    /// A score ring: a flat track and the value in the pillar's colour with round caps, plus (for strain) the target
+    /// arc just outside it.
     /// </summary>
     /// <param name="fraction">How full, 0–1.</param>
     /// <param name="palette">rec, mid, low, slp, str or age.</param>
@@ -40,39 +30,35 @@ public static class Charts
     /// <returns>The SVG.</returns>
     public static IHtmlContent Ring(double fraction, string palette, (double From, double To)? target = null, bool thin = false)
     {
-        var id = NextId();
-        var stops = Palettes.TryGetValue(palette, out var colors) ? colors : Palettes["rec"];
+        var colour = palette switch
+        {
+            "mid" => "var(--mid)",
+            "low" => "var(--low)",
+            "slp" => "var(--slp)",
+            "str" => "var(--str)",
+            "age" => "var(--sky)",
+            "nrg" => "var(--nrg)",
+            _ => "var(--rec)",
+        };
         var value = Math.Clamp(fraction, 0, 1);
         var length = value * RingLength;
-        var angle = value * 2 * Math.PI;
-        var knobX = 110 + 90 * Math.Cos(angle);
-        var knobY = 110 + 90 * Math.Sin(angle);
-        var width = thin ? 16 : 14;
+        var width = thin ? 18 : 16;
 
         var svg = new StringBuilder();
-        svg.Append(Invariant, $"<svg class=\"ring\" viewBox=\"0 0 220 220\" aria-hidden=\"true\"><defs>");
-        svg.Append(Invariant, $"<linearGradient id=\"{id}\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"{stops[0]}\"/><stop offset=\"0.5\" stop-color=\"{stops[1]}\"/><stop offset=\"1\" stop-color=\"{stops[2]}\"/></linearGradient>");
-        svg.Append(Invariant, $"<filter id=\"{id}g\" x=\"-30%\" y=\"-30%\" width=\"160%\" height=\"160%\"><feGaussianBlur stdDeviation=\"7\"/></filter></defs>");
-        if (!thin)
-        {
-            svg.Append("<circle cx=\"110\" cy=\"110\" r=\"104\" fill=\"none\" class=\"ring-ticks\" stroke-width=\"5\" stroke-dasharray=\"1.2 9.69\"/>");
-        }
-
+        svg.Append(Invariant, $"<svg class=\"ring p-{palette}\" viewBox=\"0 0 220 220\" aria-hidden=\"true\" style=\"--ring:{colour}\">");
         svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-track\" stroke-width=\"{width}\"/>");
         svg.Append("<g transform=\"rotate(-90 110 110)\">");
         if (target is { } arc && !thin)
         {
-            const double outer = 2 * Math.PI * 104;
+            const double outer = 2 * Math.PI * 106;
             var from = Math.Clamp(arc.From, 0, 1) * outer;
             var span = Math.Max(2, (Math.Clamp(arc.To, 0, 1) - Math.Clamp(arc.From, 0, 1)) * outer);
-            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"104\" fill=\"none\" class=\"ring-target\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-dasharray=\"{span:0.0} {outer:0.0}\" stroke-dashoffset=\"{-from:0.0}\"/>");
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"106\" fill=\"none\" class=\"ring-target\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-dasharray=\"{span:0.0} {outer:0.0}\" stroke-dashoffset=\"{-from:0.0}\"/>");
         }
 
         if (length > 0.5)
         {
-            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke=\"url(#{id})\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\" filter=\"url(#{id}g)\" opacity=\"0.6\"/>");
-            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke=\"url(#{id})\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\"/>");
-            svg.Append(Invariant, $"<circle class=\"ring-knob\" cx=\"{knobX:0.0}\" cy=\"{knobY:0.0}\" r=\"{(thin ? 10 : 9)}\"/>");
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\"/>");
         }
 
         svg.Append("</g></svg>");
@@ -89,7 +75,7 @@ public static class Charts
     {
         var length = Math.Clamp(fraction, 0, 1) * 94.25;
         return new HtmlString(string.Create(Invariant,
-            $"<svg class=\"mini-ring\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" class=\"ring-track\" stroke-width=\"4\"/><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" stroke=\"{cssColor}\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} 94.25\" transform=\"rotate(-90 20 20)\" class=\"ring-val\"/></svg>"));
+            $"<svg class=\"mini-ring\" viewBox=\"0 0 40 40\" aria-hidden=\"true\" style=\"--ring:{cssColor}\"><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" class=\"ring-track\" stroke-width=\"4\"/><circle cx=\"20\" cy=\"20\" r=\"15\" fill=\"none\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} 94.25\" transform=\"rotate(-90 20 20)\" class=\"ring-val\"/></svg>"));
     }
 
     /// <summary>

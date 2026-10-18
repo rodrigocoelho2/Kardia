@@ -40,6 +40,7 @@
 }
 else
 {
+    <partial name="_WeekStrip" model="Model" />
     <div class="row">
         <section class="card w2 hero-rings rise" style="--d:1" aria-label="Recovery, sleep and strain">
             <a class="cell" href="/recovery@(Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date))" style="--amb: rgba(91,227,166,0.2)">
@@ -114,6 +115,46 @@ else
         }
     </div>
     <div class="row">
+        <section class="card w2 rise" style="--d:3">
+            <div class="card-head">
+                <h2>Stress</h2>
+                <a class="more" href="/stress@(dateLink)">@(day.Stress.Ready ? $"{Fmt.StressWord(day.Stress.Average).ToLowerInvariant()} day · average {day.Stress.Average:0.0}" : "Stress monitor") @Icons.Get("right")</a>
+            </div>
+            @if (day.Stress.Blocks.Count > 0)
+            {
+                @Charts.Stress(Model.Date, day.Stress.Blocks, "Stress through the day", 640)
+                <div class="legend">
+                    <span><i class="swatch st-low"></i>Low @Fmt.Duration(day.Stress.LowMinutes)</span>
+                    <span><i class="swatch st-mid"></i>Medium @Fmt.Duration(day.Stress.MediumMinutes)</span>
+                    <span><i class="swatch st-high"></i>High @Fmt.Duration(day.Stress.HighMinutes)</span>
+                    <span><i class="swatch st-active"></i>Moving</span>
+                </div>
+            }
+            else
+            {
+                <p class="muted small-note">Stress shows up once the Watch's heart rate from after you woke up has synced.</p>
+            }
+        </section>
+
+        <a class="card rise" style="--d:3" href="/stress@(dateLink)#energy">
+            <div class="card-head">
+                <h2>Energy bank</h2>
+                <span class="more">@Icons.Get("right")</span>
+            </div>
+            <div class="se-mini">
+                <div class="ring-box" style="--size:96px">
+                    @Charts.Ring((day.Energy.Now ?? 0) / 100.0, "nrg", thin: true)
+                    <div class="center"><span class="big num" style="font-size:28px">@(day.Energy.Now?.ToString() ?? "—")</span></div>
+                </div>
+                <div class="grow">
+                    <span class="kicker">@(Model.IsToday ? "Left now" : "Left at night")</span>
+                    <p class="muted" style="font-size:13px;margin:4px 0 0">Woke up with @(day.Energy.Start?.ToString() ?? "—"). Spent @day.Energy.ActivityDrain moving and @day.Energy.StressDrain on stress.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="row">
         <section class="card rise" style="--d:3">
             <div class="card-head">
                 <h2>Health Monitor</h2>
@@ -161,46 +202,6 @@ else
                 </div>
             </section>
         }
-    </div>
-
-    <div class="row">
-        <section class="card w2 rise" style="--d:3">
-            <div class="card-head">
-                <h2>Stress</h2>
-                <a class="more" href="/stress@(dateLink)">@(day.Stress.Ready ? $"{Fmt.StressWord(day.Stress.Average).ToLowerInvariant()} day · average {day.Stress.Average:0.0}" : "Stress monitor") @Icons.Get("right")</a>
-            </div>
-            @if (day.Stress.Blocks.Count > 0)
-            {
-                @Charts.Stress(Model.Date, day.Stress.Blocks, "Stress through the day", 640)
-                <div class="legend">
-                    <span><i class="swatch st-low"></i>Low @Fmt.Duration(day.Stress.LowMinutes)</span>
-                    <span><i class="swatch st-mid"></i>Medium @Fmt.Duration(day.Stress.MediumMinutes)</span>
-                    <span><i class="swatch st-high"></i>High @Fmt.Duration(day.Stress.HighMinutes)</span>
-                    <span><i class="swatch st-active"></i>Moving</span>
-                </div>
-            }
-            else
-            {
-                <p class="muted small-note">Stress shows up once the Watch's heart rate from after you woke up has synced.</p>
-            }
-        </section>
-
-        <a class="card rise" style="--d:3" href="/stress@(dateLink)#energy">
-            <div class="card-head">
-                <h2>Energy bank</h2>
-                <span class="more">@Icons.Get("right")</span>
-            </div>
-            <div class="se-mini">
-                <div class="ring-box" style="--size:96px">
-                    @Charts.Ring((day.Energy.Now ?? 0) / 100.0, (day.Energy.Now ?? 0) switch { >= 60 => "rec", >= 30 => "mid", _ => "low" }, thin: true)
-                    <div class="center"><span class="big num" style="font-size:28px">@(day.Energy.Now?.ToString() ?? "—")</span></div>
-                </div>
-                <div class="grow">
-                    <span class="kicker">@(Model.IsToday ? "Left now" : "Left at night")</span>
-                    <p class="muted" style="font-size:13px;margin:4px 0 0">Woke up with @(day.Energy.Start?.ToString() ?? "—"). Spent @day.Energy.ActivityDrain moving and @day.Energy.StressDrain on stress.</p>
-                </div>
-            </div>
-        </a>
     </div>
 
     <div class="row">
@@ -269,7 +270,7 @@ else
             }
             <div class="tiles t4">
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--awake)"></i> Awake</span></span><span class="v">@Fmt.Duration(sleep.AwakeMinutes)</span></div>
-                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-3)"></i> REM</span></span><span class="v">@Fmt.Duration(sleep.RemMinutes)</span></div>
+                <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--rem)"></i> REM</span></span><span class="v">@Fmt.Duration(sleep.RemMinutes)</span></div>
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp)"></i> Light</span></span><span class="v">@Fmt.Duration(sleep.CoreMinutes)</span></div>
                 <div class="tile"><span class="k"><span><i class="swatch" style="background:var(--slp-2)"></i> Deep</span></span><span class="v">@Fmt.Duration(sleep.DeepMinutes)</span></div>
             </div>

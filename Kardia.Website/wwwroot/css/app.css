@@ -1,48 +1,47 @@
 /* ==========================================================================
-   Kardia — the app. Near-black with one colour per pillar: mint for recovery, periwinkle for sleep, ember for
-   strain (and a mint → sky → periwinkle blend for biological age). Rings in gradients with a soft glow, ambient light
-   at the top of each screen in its pillar's colour, raised cards, a floating tab bar on the phone and a side bar on
-   the computer. Sora for numbers and titles, Figtree for text, both shipped with the app.
+   Kardia — the app (v1.3). Calm, flat and airy: near-black or soft grey ground, plain cards, one colour per pillar
+   (green for recovery, violet for sleep, orange for strain, amber for stress, blue for energy), flat rings with round
+   caps, big bold numbers in Manrope, a floating tab bar on the phone and a side bar on the computer. Dark by default,
+   light in Settings › Appearance. Manrope ships with the app.
    ========================================================================== */
 
-@font-face { font-family: "Sora"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/sora-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Sora"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/sora-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Sora"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/sora-latin-600-normal.woff2") format("woff2"); }
-@font-face { font-family: "Sora"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/sora-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "Figtree"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/figtree-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Figtree"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/figtree-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: "Figtree"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/figtree-latin-600-normal.woff2") format("woff2"); }
-@font-face { font-family: "Figtree"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/figtree-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/manrope-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/manrope-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/manrope-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/manrope-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 800; font-display: swap; src: url("../fonts/manrope-latin-800-normal.woff2") format("woff2"); }
 
 :root {
   color-scheme: dark;
-  --bg: #07080A;
-  --bg-2: #0D0F13;
-  --surface: linear-gradient(180deg, #14171D 0%, #0D0F13 100%);
-  --surface-flat: #111318;
-  --tile: rgba(255, 255, 255, 0.04);
-  --tile-line: rgba(255, 255, 255, 0.06);
-  --line: rgba(255, 255, 255, 0.08);
+  --bg: #0B0C0F;
+  --bg-2: #111216;
+  --surface: #17181D;
+  --surface-flat: #17181D;
+  --tile: #202228;
+  --tile-line: rgba(255, 255, 255, 0.04);
+  --line: rgba(255, 255, 255, 0.07);
   --line-2: rgba(255, 255, 255, 0.12);
-  --hi: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --drop: 0 30px 60px -30px rgba(0, 0, 0, 0.9);
-  --text: #F2F4F7;
-  --text-2: #C4CAD3;
-  --muted: #9BA3AF;
-  --dim: #8B93A0;
-  --awake: #F2F4F7;
-  --rec: #5BE3A6; --rec-2: #17A86F; --rec-soft: rgba(91, 227, 166, 0.14);
-  --slp: #8E8CFF; --slp-2: #5A57F0; --slp-3: #C4C3FF; --slp-soft: rgba(142, 140, 255, 0.16); --slp-text: #C9C8FF;
-  --str: #FF8A47; --str-2: #FF4D6D; --str-3: #FFB08A; --str-soft: rgba(255, 138, 71, 0.14);
-  --mid: #F5C451; --low: #FF6B6B; --sky: #7CC7FF; --rose: #FF6B8A;
-  --grad-rec: linear-gradient(135deg, #C6FFE6 0%, #5BE3A6 55%, #1FB57A 100%);
-  --grad-slp: linear-gradient(135deg, #C4C3FF 0%, #8E8CFF 55%, #6E6BFF 100%);
-  --grad-str: linear-gradient(135deg, #FFC38A 0%, #FF8A47 60%, #FF4D6D 100%);
-  --grad-age: linear-gradient(135deg, #5BE3A6 0%, #7CC7FF 50%, #8E8CFF 100%);
-  --font: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Sora", "Figtree", system-ui, sans-serif;
-  --radius: 26px;
-  --focus: 0 0 0 3px rgba(124, 199, 255, 0.55);
+  --hi: none;
+  --drop: none;
+  --text: #F3F4F6;
+  --text-2: #C8CCD4;
+  --muted: #9AA1AD;
+  --dim: #8B93A1;
+  --awake: #FF9F7A;
+  --rec: #3DD68C; --rec-2: #1E9E5F; --rec-soft: rgba(61, 214, 140, 0.14);
+  --slp: #8B80FF; --slp-2: #4C3FD6; --slp-3: #C2B9FF; --slp-soft: rgba(139, 128, 255, 0.16); --slp-text: #B3AAFF;
+  --str: #FF8A47; --str-2: #F0555A; --str-3: #FFA36E; --str-soft: rgba(255, 138, 71, 0.15);
+  --mid: #F2B32F; --low: #F0555A; --sky: #7DB4FF; --rose: #FF7A8F;
+  --nrg: #7DB4FF; --nrg-soft: rgba(47, 128, 237, 0.16);
+  --rem: #C2B9FF;
+  --grad-rec: linear-gradient(135deg, #5BE3A0 0%, #2FB872 100%);
+  --grad-slp: linear-gradient(135deg, #A79BFF 0%, #6E62E5 100%);
+  --grad-str: linear-gradient(135deg, #FFA36E 0%, #F0782F 100%);
+  --grad-age: linear-gradient(135deg, #5BE3A0 0%, #7DB4FF 50%, #A79BFF 100%);
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 24px;
+  --focus: 0 0 0 3px rgba(125, 180, 255, 0.55);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -666,26 +665,28 @@ a.bar { display: block; }
 
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #F3F4F6;
+  --bg: #F2F3F5;
   --bg-2: #FFFFFF;
-  --surface: linear-gradient(180deg, #FFFFFF 0%, #FCFCFD 100%);
+  --surface: #FFFFFF;
   --surface-flat: #FFFFFF;
-  --tile: rgba(15, 23, 42, 0.035);
-  --tile-line: rgba(15, 23, 42, 0.06);
-  --line: rgba(15, 23, 42, 0.08);
-  --line-2: rgba(15, 23, 42, 0.14);
-  --hi: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --drop: 0 18px 40px -28px rgba(15, 23, 42, 0.3);
-  --text: #0E1116;
-  --text-2: #39404B;
-  --muted: #5E6672;
-  --dim: #6B7380;
-  --awake: #B5BCC7;
-  --rec: #0FA06A; --rec-2: #0A7C51; --rec-soft: rgba(15, 160, 106, 0.11);
-  --slp: #5B57E8; --slp-2: #3F3BD6; --slp-3: #5B57E8; --slp-soft: rgba(91, 87, 232, 0.11); --slp-text: #4743C9;
-  --str: #EE6A1E; --str-2: #DE3A5A; --str-3: #D2591B; --str-soft: rgba(238, 106, 30, 0.11);
-  --mid: #C48708; --low: #DD4545; --sky: #1E8BDB; --rose: #DD4569;
-  --focus: 0 0 0 3px rgba(30, 139, 219, 0.35);
+  --tile: #F6F7F9;
+  --tile-line: rgba(16, 24, 40, 0.03);
+  --line: rgba(16, 24, 40, 0.07);
+  --line-2: rgba(16, 24, 40, 0.13);
+  --hi: none;
+  --drop: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 28px rgba(16, 24, 40, 0.05);
+  --text: #111318;
+  --text-2: #3F4652;
+  --muted: #5F6774;
+  --dim: #6B7280;
+  --awake: #FF9F7A;
+  --rec: #1FA463; --rec-2: #17804C; --rec-soft: rgba(52, 199, 123, 0.13);
+  --slp: #6E62E5; --slp-2: #3B2FB0; --slp-3: #5146C9; --slp-soft: rgba(110, 98, 229, 0.11); --slp-text: #5146C9;
+  --str: #F0782F; --str-2: #E5484D; --str-3: #C25A1C; --str-soft: rgba(240, 120, 47, 0.12);
+  --mid: #D9960F; --low: #E5484D; --sky: #2F80ED; --rose: #E0476A;
+  --nrg: #2F6FDB; --nrg-soft: rgba(47, 128, 237, 0.1);
+  --rem: #A79BFF;
+  --focus: 0 0 0 3px rgba(47, 128, 237, 0.35);
 }
 [data-theme="light"] .side { background: rgba(255, 255, 255, 0.72); }
 [data-theme="light"] .nav-h { color: #8A919C; }
@@ -913,3 +914,154 @@ a.cal-day:hover { transform: translateY(-2px); transition: transform 0.2s var(--
 .week-bars.dl .b { background: linear-gradient(180deg, rgba(245, 196, 81, 0.55) 0%, rgba(245, 196, 81, 0.12) 100%); }
 .week-bars.dl .col.on .b { background: linear-gradient(180deg, #FFE08A, var(--mid)); box-shadow: 0 0 20px rgba(245, 196, 81, 0.45); }
 .dl-ico { width: 18px; height: 18px; vertical-align: -3px; margin-right: 6px; color: var(--mid); }
+
+/* ==================================================== v1.3 redesign == */
+/* Flat and airy: plain cards (a hairline in the dark, a soft shadow in the light), flat rings, pill buttons, Manrope
+   800 for numbers and titles. These rules come last so they win over the older ones above. */
+
+body { font-weight: 500; }
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.025em; }
+.num { font-weight: 800; letter-spacing: -0.03em; }
+.glow-top { display: none; }
+.ambient { opacity: 0.5; }
+[data-theme="light"] .ambient { display: none; }
+
+/* Shell. */
+.side { background: var(--bg); border-right: 1px solid var(--line); }
+[data-theme="light"] .side { background: #FFFFFF; border-right-color: rgba(16, 24, 40, 0.06); }
+.brand { font-weight: 800; }
+.nav-h { color: var(--dim); letter-spacing: 0.12em; font-weight: 700; }
+.nav a { font-weight: 600; }
+.nav a[aria-current="page"]::before { display: none; }
+.nav .nav-pill { background: var(--tile); }
+.nav a[aria-current="page"] .ic { color: var(--accent, var(--text)); }
+.device { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--drop); }
+[data-theme="light"] .device { border-color: rgba(16, 24, 40, 0.06); box-shadow: none; background: #F6F7F9; }
+.avatar { background: var(--text); color: var(--bg); font-weight: 800; }
+.icon-btn { background: var(--surface); border-color: var(--line); }
+[data-theme="light"] .icon-btn { border-color: transparent; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06); }
+
+/* Headers. */
+.head .eyebrow { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600; }
+.head h1 { font-size: 36px; font-weight: 800; letter-spacing: -0.035em; }
+.datenav, .tabs-seg { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; }
+.datenav a, .datenav span.off { border-radius: 18px; }
+.tabs-seg a.seg, .tabs-seg button { border-radius: 16px; font-weight: 600; }
+[data-theme="light"] .datenav, [data-theme="light"] .tabs-seg { border-color: transparent; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06); }
+.chip { background: var(--surface); border: 1px solid var(--line); font-weight: 600; }
+.chip.sync { background: var(--rec-soft); border-color: transparent; color: var(--rec); }
+.chip.warn { background: color-mix(in srgb, var(--mid) 15%, transparent); border-color: transparent; color: var(--mid); }
+[data-theme="light"] .chip.sync { color: var(--rec-2); }
+[data-theme="light"] .chip.warn { color: #8A5A00; }
+
+/* Cards and tiles. */
+.card { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--drop); }
+[data-theme="light"] .card { border-color: transparent; }
+.card h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.015em; }
+.card.tint-slp { background: linear-gradient(165deg, color-mix(in srgb, var(--slp) 14%, var(--surface)) 0%, var(--surface) 55%); }
+.card.tint-str { background: linear-gradient(165deg, color-mix(in srgb, var(--str) 13%, var(--surface)) 0%, var(--surface) 55%); }
+.card.tint-age { background: linear-gradient(165deg, color-mix(in srgb, var(--sky) 12%, var(--surface)) 0%, var(--surface) 55%); }
+[data-theme="light"] .card.tint-slp, [data-theme="light"] .card.tint-str, [data-theme="light"] .card.tint-age { border-color: transparent; }
+.kicker { letter-spacing: 0.1em; font-weight: 700; }
+.tile, .metric, .workout, .need { background: var(--tile); border: 0; }
+.tile { border-radius: 16px; }
+.tile .v, .metric .v, .hero-foot b, .pg-val, .cl-ratio, .bedtime { font-weight: 800; letter-spacing: -0.03em; }
+.tile .v small { font-weight: 600; }
+.hero-foot > div { background: var(--tile); border: 0; }
+.ico-chip { border-radius: 12px; }
+.notice { background: var(--surface); border: 1px solid var(--line); }
+[data-theme="light"] .notice { border-color: transparent; box-shadow: var(--drop); background: #FFFFFF; }
+.list-row { border-top-color: var(--line); }
+
+/* The coach and the AI coach: a deep violet card in the dark, a near-black one in the light. */
+.card.coach, .card.ai-card { background: linear-gradient(160deg, #262148 0%, #17181D 100%); border: 1px solid rgba(167, 155, 255, 0.22); }
+[data-theme="light"] .card.coach, [data-theme="light"] .card.ai-card {
+  background: #111318; border-color: transparent; color: #F3F4F6; color-scheme: dark;
+  --text: #F3F4F6; --text-2: #D5D8DE; --muted: #AEB4BF; --dim: #AEB4BF; --line: rgba(255, 255, 255, 0.1); --line-2: rgba(255, 255, 255, 0.16);
+  --tile: rgba(255, 255, 255, 0.06); --slp: #A79BFF; --slp-text: #C9C5FF; --rec: #5BE3A0; --str: #FF9A5C;
+}
+.coach-ico { background: rgba(201, 197, 255, 0.16); color: #C9C5FF; box-shadow: none; }
+.coach-lead, .ai-headline { font-weight: 800; letter-spacing: -0.02em; }
+.tips { color: var(--text-2); }
+
+/* Buttons: pills. */
+.btn { font-weight: 700; border-radius: 999px; }
+.btn.small { border-radius: 999px; }
+.btn.rec { background: var(--rec); color: #06140C; box-shadow: none; }
+.btn.slp { background: var(--slp); color: #FFFFFF; box-shadow: none; }
+.btn.str { background: var(--str); color: #1A0E06; box-shadow: none; }
+.btn.light { background: var(--text); color: var(--bg); }
+.btn.ghost { background: var(--tile); box-shadow: none; }
+.btn.outline { background: var(--surface); border: 1px solid var(--line-2); }
+[data-theme="light"] .btn.ghost { background: #FFFFFF; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08); }
+[data-theme="light"] .card .btn.ghost { background: var(--tile); box-shadow: none; }
+
+/* Rings: flat track, value in the pillar's colour. */
+.ring-track { stroke: color-mix(in srgb, var(--ring, var(--rec)) 15%, transparent); }
+.ring-val { stroke: var(--ring, var(--rec)); }
+.ring-target { stroke: var(--ring, var(--str)); opacity: 0.5; }
+.ring-box .big { font-weight: 800; letter-spacing: -0.045em; }
+.ring-box .big small { font-weight: 700; }
+.ring-box .lbl { letter-spacing: 0.1em; font-weight: 700; }
+.mini-ring .ring-track { stroke: var(--line-2); }
+[data-theme="light"] .ring-track { stroke: color-mix(in srgb, var(--ring, var(--rec)) 13%, transparent); }
+[data-theme="light"] .mini-ring .ring-track { stroke: rgba(16, 24, 40, 0.08); }
+
+/* Week strip. */
+.week { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; }
+.week a[aria-current="date"] { background: var(--tile); box-shadow: inset 0 0 0 1.5px var(--text); }
+[data-theme="light"] .week { border-color: transparent; box-shadow: var(--drop); }
+
+/* Bars and meters: flat colours. */
+.zbg-High { background: var(--rec); } .zbg-Medium { background: var(--mid); } .zbg-Low { background: var(--low); } .zbg-None { background: var(--line-2); }
+.bars14 .bar.today { box-shadow: none; outline-color: var(--text); }
+.week-bars .b { background: color-mix(in srgb, var(--str) 32%, transparent); }
+.week-bars .col.on .b { background: var(--str); box-shadow: none; }
+.week-bars.slp .b { background: color-mix(in srgb, var(--slp) 32%, transparent); }
+.week-bars.slp .col.on .b { background: var(--slp); box-shadow: none; }
+.week-bars.dl .b { background: color-mix(in srgb, var(--mid) 32%, transparent); }
+.week-bars.dl .col.on .b { background: var(--mid); box-shadow: none; }
+.target .track, .meter, .progress, .diverge { background: var(--line-2); }
+[data-theme="light"] .target .track, [data-theme="light"] .meter, [data-theme="light"] .progress, [data-theme="light"] .diverge { background: rgba(16, 24, 40, 0.08); }
+.target .fill { background: var(--str); box-shadow: none; }
+.pill.str { background: var(--str); color: #1A0E06; }
+.lane { stroke: var(--line); }
+.band-sleep { fill: color-mix(in srgb, var(--slp) 10%, transparent); }
+
+/* Fields and choices. */
+.input { background: var(--tile); border-color: var(--line); }
+[data-theme="light"] .input { background: #FFFFFF; border-color: rgba(16, 24, 40, 0.12); }
+.choice { background: var(--tile); border-color: transparent; }
+.cal-day { border: 0; }
+
+/* Phone: the three rings side by side in one card, a floating tab bar. */
+@media (max-width: 1023px) {
+  .phone-top .brand { font-size: 19px; }
+  .head h1 { font-size: 32px; }
+  .hero-rings, .card.hero-rings {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 20px 8px 14px;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--drop);
+  }
+  [data-theme="light"] .hero-rings { border-color: transparent; }
+  .hero-rings .cell, .hero-rings .cell.c-slp, .hero-rings .cell.c-str, [data-theme="light"] .hero-rings .cell.c-slp, [data-theme="light"] .hero-rings .cell.c-str {
+    background: none; border: 0; box-shadow: none; padding: 0; overflow: visible;
+  }
+  .hero-rings .cell:first-child { grid-column: auto; padding: 0; }
+  .hero-rings .cell .ring-box, .hero-rings .cell:first-child .ring-box, .hero-rings .cell:not(:first-child) .ring-box { --size: min(100px, 27vw); }
+  .hero-rings .cell .ring-box .big, .hero-rings .cell:first-child .ring-box .big, .hero-rings .cell:not(:first-child) .ring-box .big { font-size: 24px; }
+  .hero-rings .cell .t .kicker { font-size: 11px; }
+  .hero-rings .cell .t .sub { font-size: 12px; }
+  .hero-rings .ambient { display: none; }
+  .hero-foot { grid-column: 1 / -1; margin: 14px 6px 2px; }
+  .tabbar { padding: 8px; border-radius: 28px; background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
+  [data-theme="light"] .tabbar { background: rgba(255, 255, 255, 0.94); border-color: transparent; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12); }
+  .tabbar a { font-weight: 700; color: var(--dim); }
+  .tabbar a[aria-current="page"] { color: var(--text); }
+  .tabbar a[aria-current="page"] .ic { color: var(--accent, var(--text)); }
+  .tabbar .nav-pill { background: var(--tile); }
+}
+.sec-today { --accent: var(--text); --accent-soft: var(--tile); }
+.sec-stress { --accent: var(--mid); --accent-soft: color-mix(in srgb, var(--mid) 14%, transparent); }
+.sec-calendar { --accent: var(--rec); --accent-soft: var(--rec-soft); }
+.sec-breathe { --accent: var(--sky); --accent-soft: color-mix(in srgb, var(--sky) 14%, transparent); }
+.st-rem, [data-theme="light"] .st-rem { fill: var(--rem); } .st-core, [data-theme="light"] .st-core { fill: var(--slp); } .st-deep, [data-theme="light"] .st-deep { fill: var(--slp-2); }

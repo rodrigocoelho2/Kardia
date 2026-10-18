@@ -146,10 +146,11 @@
 - **Accounts for the house**: everyone sees only their own data; the first account (protected by a setup key) is the
   admin. Sign-ups can be closed.
 - **Phone and computer**: the same pages, a tab bar on the phone and a sidebar on the computer; adds to the Home Screen
-  like an app. **Dark** by default, **light** or **automatic** in Settings › Appearance.
+  like an app. A calm, flat look (plain cards, flat rings, Manrope): **dark** by default, **light** or **automatic** in
+  Settings › Appearance.
 - **Demo mode**: four months of believable sample data in memory, no SQL Server needed — to try it, or to take
   screenshots.
-- **Nothing from the internet at runtime**: the fonts (Sora and Figtree) and the icons ship with the app.
+- **Nothing from the internet at runtime**: the font (Manrope) and the icons ship with the app.
 
 ## Screenshots
 
@@ -439,5 +440,5 @@ JSON, every call with the `x-api-key` header. `userId` is the account's id (32 h
 
 ## Licences
 
-Fonts: Sora and Figtree, SIL Open Font License (`Kardia.Website/wwwroot/fonts`).
+Font: Manrope, SIL Open Font License (`Kardia.Website/wwwroot/fonts`).
 Not affiliated with Apple, WHOOP or Bevel; Apple Watch and Apple Health are trademarks of Apple Inc.

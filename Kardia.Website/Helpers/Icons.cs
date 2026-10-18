@@ -73,10 +73,10 @@ public static class Icons
         new HtmlString($"<svg class=\"ic{(cssClass is null ? string.Empty : " " + cssClass)}\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">{(Paths.TryGetValue(name, out var path) ? path : Paths["other"])}</svg>");
 
     /// <summary>
-    /// The Kardia mark: a ring that's three-quarters full with a heartbeat across it.
+    /// The Kardia mark: a flat green ring, three-quarters full, with a heartbeat across it.
     /// </summary>
     /// <param name="size">The size in px.</param>
     /// <returns>The SVG.</returns>
     public static IHtmlContent Logo(int size = 32) => new HtmlString(
-        $"<svg class=\"logo-mark\" width=\"{size}\" height=\"{size}\" viewBox=\"0 0 32 32\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"16\" cy=\"16\" r=\"13\" stroke=\"#5BE3A6\" stroke-width=\"3\" stroke-dasharray=\"62 82\" stroke-linecap=\"round\" transform=\"rotate(-90 16 16)\"/><path d=\"M8 16h4l2-4 4 8 2-4h4\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>");
+        $"<svg class=\"logo-mark\" width=\"{size}\" height=\"{size}\" viewBox=\"0 0 32 32\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"16\" cy=\"16\" r=\"12.5\" stroke=\"#34C77B\" stroke-opacity=\"0.18\" stroke-width=\"3.4\"/><circle cx=\"16\" cy=\"16\" r=\"12.5\" stroke=\"#34C77B\" stroke-width=\"3.4\" stroke-dasharray=\"58.9 78.5\" stroke-linecap=\"round\" transform=\"rotate(-90 16 16)\"/><path d=\"M7.6 16h3.6l1.8-3.6 3.6 7.2 1.8-3.6h6\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>");
 }

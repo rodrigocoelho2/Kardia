@@ -61,7 +61,7 @@ public class AppPageModel
     public const string ProductName = "Kardia";
 
     /// <summary>The version shown in the app.</summary>
-    public const string CurrentVersion = "v1.2";
+    public const string CurrentVersion = "v1.3";
 
     /// <summary>Gets or sets the signed-in user name.</summary>
     public string UserName { get; set; } = string.Empty;
