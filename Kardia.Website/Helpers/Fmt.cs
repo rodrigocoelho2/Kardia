@@ -283,4 +283,16 @@ public static class Fmt
         >= 1 => "st-mid",
         _ => "st-low",
     };
+
+    /// <summary>Why the stress monitor has nothing to show yet, with the numbers it had.</summary>
+    /// <param name="stress">The day's stress.</param>
+    /// <returns>A sentence.</returns>
+    public static string StressWhy(StressDTO stress)
+    {
+        var since = stress.From is { } from ? $"Since {from.ToString("HH:mm", English)}" : "Since you woke up";
+        var still = stress.LowMinutes + stress.MediumMinutes + stress.HighMinutes;
+        return stress.Readings == 0
+            ? $"{since} no heart rate has synced yet. It shows up after the next sync from your iPhone."
+            : $"{since}: {stress.Readings} heart-rate readings, {Duration(stress.ActiveMinutes)} moving and {Duration(still)} still. Stress needs an hour of still time with heart rate.";
+    }
 }

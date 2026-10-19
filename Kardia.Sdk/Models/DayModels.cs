@@ -78,6 +78,12 @@ public sealed class StressDTO
     /// <summary>Gets or sets the resting heart rate stress is measured from.</summary>
     public int RestingBpm { get; set; }
 
+    /// <summary>Gets or sets the heart-rate readings since waking up the blocks were built from.</summary>
+    public int Readings { get; set; }
+
+    /// <summary>Gets or sets when the blocks start (waking up), local time.</summary>
+    public DateTime? From { get; set; }
+
     /// <summary>Gets or sets the awake day in 10-minute blocks.</summary>
     public List<StressBlockDTO> Blocks { get; set; } = [];
 }

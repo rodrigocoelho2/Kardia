@@ -166,4 +166,33 @@ public sealed class StressTests
         Assert.Equal((short)25, saved.Hrr1);
         Assert.Equal((short)40, saved.Hrr2);
     }
+
+    [Fact]
+    public async Task AHealthAutoExportSync_GivesTheDayItsStress()
+    {
+        // Like a real export: heart rate every 5 minutes while still, steps and daylight by the minute, last night's sleep.
+        var app = new TestApp();
+        var user = await app.CreateUserAsync();
+        var key = (await app.SyncService.KeyCreateAsync(user)).Result!.Key;
+        var heart = string.Join(",", Enumerable.Range(0, 100).Select(i => $$"""{ "date": "2026-10-16 {{new TimeOnly(7, 40).AddMinutes(i * 5):HH:mm}}:00 +0100", "Min": 64, "Avg": {{66 + i % 7}}, "Max": 75 }"""));
+        var steps = string.Join(",", Enumerable.Range(0, 400).Where(static i => i % 3 == 0).Select(i => $$"""{ "date": "2026-10-16 {{new TimeOnly(7, 40).AddMinutes(i):HH:mm}}:00 +0100", "qty": 12 }"""));
+        var daylight = string.Join(",", Enumerable.Range(0, 30).Select(i => $$"""{ "date": "2026-10-16 {{new TimeOnly(8, 0).AddMinutes(i):HH:mm}}:00 +0100", "qty": 1 }"""));
+        using var document = JsonDocument.Parse($$"""
+            { "data": { "metrics": [
+              { "name": "sleep_analysis", "units": "hr", "data": [
+                { "startDate": "2026-10-15 23:30:00 +0100", "endDate": "2026-10-16 03:00:00 +0100", "value": "Core" },
+                { "startDate": "2026-10-16 03:00:00 +0100", "endDate": "2026-10-16 07:20:00 +0100", "value": "REM" } ] },
+              { "name": "resting_heart_rate", "units": "count/min", "data": [ { "date": "2026-10-16 00:00:00 +0100", "qty": 55 } ] },
+              { "name": "heart_rate", "units": "count/min", "data": [ {{heart}} ] },
+              { "name": "step_count", "units": "count", "data": [ {{steps}} ] },
+              { "name": "time_in_daylight", "units": "min", "data": [ {{daylight}} ] }
+            ] } }
+            """);
+        Assert.True((await app.SyncService.IngestAsync(key, document.RootElement.Clone())).IsSuccess);
+
+        var stress = (await app.DayService.GetAsync(user, null)).Result!.Stress;
+
+        Assert.True(stress.Readings >= 90);
+        Assert.True(stress.Ready, $"{stress.Readings} readings, {stress.ActiveMinutes} moving, {stress.LowMinutes + stress.MediumMinutes + stress.HighMinutes} still");
+    }
 }

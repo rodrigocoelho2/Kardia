@@ -29,6 +29,12 @@ internal sealed record DayStressResult(
     double StressDrain,
     double BaseDrain)
 {
+    /// <summary>Gets the heart-rate readings the day's blocks were built from.</summary>
+    public int Readings { get; init; }
+
+    /// <summary>Gets when the blocks start (waking up).</summary>
+    public DateTime? From { get; init; }
+
     /// <summary>Gets the blocks with a stress level.</summary>
     public IEnumerable<StressBlock> Judged => Blocks.Where(static block => block.Level is not null);
 
@@ -168,7 +174,11 @@ internal static class DayStress
             energy.Add(new EnergyPoint(block.At.AddMinutes(span), Math.Round(charge, 1)));
         }
 
-        return new DayStressResult(blocks, energy, startCharge, Math.Round(activity), Math.Round(stress), Math.Round(baseline));
+        return new DayStressResult(blocks, energy, startCharge, Math.Round(activity), Math.Round(stress), Math.Round(baseline))
+        {
+            Readings = minutes.Values.Sum(static values => values.Count),
+            From = from,
+        };
     }
 
     /// <summary>The heart rate a workout must end at for its recovery to mean something (a stroll doesn't count).</summary>

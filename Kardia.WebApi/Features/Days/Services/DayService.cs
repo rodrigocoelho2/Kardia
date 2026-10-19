@@ -339,6 +339,8 @@ internal sealed class DayService(
             HighMinutes = high,
             ActiveMinutes = result.Blocks.Count(static block => block.Active) * DayStress.BlockMinutes,
             RestingBpm = (int)Math.Round(rest),
+            Readings = result.Readings,
+            From = result.From,
             Blocks = result.Blocks.Select(static block => new StressBlockDTO { At = block.At, Bpm = block.Bpm, Level = block.Level, Active = block.Active }).ToList(),
         };
     }
