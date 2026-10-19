@@ -120,7 +120,8 @@ internal static class DayStress
         for (var at = from; at < end; at = at.AddMinutes(BlockMinutes))
         {
             var blockEnd = at.AddMinutes(BlockMinutes);
-            if (!minutes.TryGetValue(at, out var values) || values.Count < 3)
+            // While you're still the Watch only measures every few minutes, so one reading is enough for a block.
+            if (!minutes.TryGetValue(at, out var values) || values.Count == 0)
             {
                 blocks.Add(new StressBlock(at, null, null, false));
                 continue;

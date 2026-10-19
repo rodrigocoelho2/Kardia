@@ -30,6 +30,18 @@ public sealed class StressTests
     }
 
     [Fact]
+    public void ReadingsEveryFewMinutes_AreEnough()
+    {
+        // While you sit still the Watch measures every 4–6 minutes, not every minute.
+        var sparse = Enumerable.Range(0, 72).Select(i => new HeartRateRow { MinuteAt = Wake.AddMinutes(i * 5), Bpm = (short)(i % 2 == 0 ? 66 : 70) });
+
+        var result = Compute(sparse);
+
+        Assert.NotNull(result.Average);
+        Assert.True(result.Judged.Count() >= 30);
+    }
+
+    [Fact]
     public void HeartRateUpWhileStill_IsHighStress()
     {
         var result = Compute(Minutes(Wake, 120, 58).Concat(Minutes(Wake.AddHours(2), 60, 95)).Concat(Minutes(Wake.AddHours(3), 180, 60)));
