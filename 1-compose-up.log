@@ -1,0 +1,507 @@
+ sqlserver Pulling 
+ cb5e374be662 Pulling fs layer 
+ cf76e47c237f Pulling fs layer 
+ 16e8436c0cba Pulling fs layer 
+ cb5e374be662 Downloading [>                                                  ]  325.7kB/31.56MB
+ 16e8436c0cba Downloading [>                                                  ]  538.7kB/93.03MB
+ cf76e47c237f Downloading [>                                                  ]  538.7kB/502.1MB
+ cb5e374be662 Downloading [============================>                      ]  17.69MB/31.56MB
+ 16e8436c0cba Downloading [========>                                          ]   16.2MB/93.03MB
+ cf76e47c237f Downloading [=>                                                 ]  10.26MB/502.1MB
+ cb5e374be662 Verifying Checksum 
+ cb5e374be662 Download complete 
+ cf76e47c237f Downloading [==>                                                ]  29.72MB/502.1MB
+ 16e8436c0cba Downloading [=================>                                 ]  31.88MB/93.03MB
+ cb5e374be662 Extracting [>                                                  ]  327.7kB/31.56MB
+ 16e8436c0cba Downloading [======================>                            ]  42.16MB/93.03MB
+ cf76e47c237f Downloading [===>                                               ]  39.99MB/502.1MB
+ cb5e374be662 Extracting [==>                                                ]  1.311MB/31.56MB
+ 16e8436c0cba Downloading [===========================>                       ]  51.35MB/93.03MB
+ cf76e47c237f Downloading [=====>                                             ]  56.75MB/502.1MB
+ cb5e374be662 Extracting [====>                                              ]  2.949MB/31.56MB
+ 16e8436c0cba Downloading [======================================>            ]  71.35MB/93.03MB
+ cf76e47c237f Downloading [=======>                                           ]  79.46MB/502.1MB
+ cb5e374be662 Extracting [=======>                                           ]  4.588MB/31.56MB
+ 16e8436c0cba Verifying Checksum 
+ 16e8436c0cba Download complete 
+ cf76e47c237f Downloading [==========>                                        ]  100.5MB/502.1MB
+ cb5e374be662 Extracting [==========>                                        ]  6.881MB/31.56MB
+ cf76e47c237f Downloading [============>                                      ]  122.2MB/502.1MB
+ cb5e374be662 Extracting [==============>                                    ]  8.847MB/31.56MB
+ cf76e47c237f Downloading [==============>                                    ]  144.9MB/502.1MB
+ cb5e374be662 Extracting [=================>                                 ]  10.81MB/31.56MB
+ cf76e47c237f Downloading [================>                                  ]    166MB/502.1MB
+ cf76e47c237f Downloading [==================>                                ]  189.2MB/502.1MB
+ cb5e374be662 Extracting [======================>                            ]  14.42MB/31.56MB
+ cf76e47c237f Downloading [=====================>                             ]    213MB/502.1MB
+ cb5e374be662 Extracting [=============================>                     ]  18.68MB/31.56MB
+ cf76e47c237f Downloading [=======================>                           ]  236.3MB/502.1MB
+ cb5e374be662 Extracting [====================================>              ]  22.94MB/31.56MB
+ cf76e47c237f Downloading [=========================>                         ]    259MB/502.1MB
+ cb5e374be662 Extracting [==========================================>        ]  26.87MB/31.56MB
+ cf76e47c237f Downloading [============================>                      ]  282.2MB/502.1MB
+ cf76e47c237f Downloading [==============================>                    ]  304.9MB/502.1MB
+ cb5e374be662 Extracting [===========================================>       ]  27.53MB/31.56MB
+ cf76e47c237f Downloading [================================>                  ]  329.3MB/502.1MB
+ cb5e374be662 Extracting [===============================================>   ]  29.82MB/31.56MB
+ cf76e47c237f Downloading [==================================>                ]  349.3MB/502.1MB
+ cb5e374be662 Extracting [================================================>  ]  30.47MB/31.56MB
+ cf76e47c237f Downloading [=====================================>             ]  372.5MB/502.1MB
+ cf76e47c237f Downloading [=======================================>           ]  394.7MB/502.1MB
+ cb5e374be662 Extracting [=================================================> ]  31.46MB/31.56MB
+ cb5e374be662 Extracting [==================================================>]  31.56MB/31.56MB
+ cf76e47c237f Downloading [=========================================>         ]  415.2MB/502.1MB
+ cf76e47c237f Downloading [==========================================>        ]  428.2MB/502.1MB
+ cb5e374be662 Pull complete 
+ cf76e47c237f Downloading [===========================================>       ]  441.7MB/502.1MB
+ cf76e47c237f Downloading [=============================================>     ]  460.6MB/502.1MB
+ cf76e47c237f Downloading [================================================>  ]  483.9MB/502.1MB
+ cf76e47c237f Verifying Checksum 
+ cf76e47c237f Download complete 
+ cf76e47c237f Extracting [>                                                  ]  557.1kB/502.1MB
+ cf76e47c237f Extracting [>                                                  ]  8.913MB/502.1MB
+ cf76e47c237f Extracting [=>                                                 ]   15.6MB/502.1MB
+ cf76e47c237f Extracting [==>                                                ]  21.73MB/502.1MB
+ cf76e47c237f Extracting [==>                                                ]  26.74MB/502.1MB
+ cf76e47c237f Extracting [===>                                               ]  32.31MB/502.1MB
+ cf76e47c237f Extracting [===>                                               ]  38.44MB/502.1MB
+ cf76e47c237f Extracting [====>                                              ]  42.89MB/502.1MB
+ cf76e47c237f Extracting [====>                                              ]  47.35MB/502.1MB
+ cf76e47c237f Extracting [=====>                                             ]  51.25MB/502.1MB
+ cf76e47c237f Extracting [=====>                                             ]  56.82MB/502.1MB
+ cf76e47c237f Extracting [======>                                            ]  64.06MB/502.1MB
+ cf76e47c237f Extracting [=======>                                           ]  71.86MB/502.1MB
+ cf76e47c237f Extracting [========>                                          ]  80.77MB/502.1MB
+ cf76e47c237f Extracting [========>                                          ]  85.23MB/502.1MB
+ cf76e47c237f Extracting [========>                                          ]  88.57MB/502.1MB
+ cf76e47c237f Extracting [=========>                                         ]  95.26MB/502.1MB
+ cf76e47c237f Extracting [==========>                                        ]  105.8MB/502.1MB
+ cf76e47c237f Extracting [============>                                      ]    122MB/502.1MB
+ cf76e47c237f Extracting [============>                                      ]  129.2MB/502.1MB
+ cf76e47c237f Extracting [=============>                                     ]  135.4MB/502.1MB
+ cf76e47c237f Extracting [==============>                                    ]  142.6MB/502.1MB
+ cf76e47c237f Extracting [==============>                                    ]  148.7MB/502.1MB
+ cf76e47c237f Extracting [===============>                                   ]  155.4MB/502.1MB
+ cf76e47c237f Extracting [================>                                  ]  162.1MB/502.1MB
+ cf76e47c237f Extracting [================>                                  ]  168.2MB/502.1MB
+ cf76e47c237f Extracting [=================>                                 ]  178.3MB/502.1MB
+ cf76e47c237f Extracting [==================>                                ]  190.5MB/502.1MB
+ cf76e47c237f Extracting [===================>                               ]  197.8MB/502.1MB
+ cf76e47c237f Extracting [====================>                              ]  202.2MB/502.1MB
+ cf76e47c237f Extracting [====================>                              ]  206.1MB/502.1MB
+ cf76e47c237f Extracting [====================>                              ]  210.6MB/502.1MB
+ cf76e47c237f Extracting [=====================>                             ]  215.6MB/502.1MB
+ cf76e47c237f Extracting [======================>                            ]  223.4MB/502.1MB
+ cf76e47c237f Extracting [======================>                            ]  228.4MB/502.1MB
+ cf76e47c237f Extracting [=======================>                           ]  231.2MB/502.1MB
+ cf76e47c237f Extracting [=======================>                           ]  234.5MB/502.1MB
+ cf76e47c237f Extracting [=======================>                           ]  238.4MB/502.1MB
+ cf76e47c237f Extracting [========================>                          ]  246.2MB/502.1MB
+ cf76e47c237f Extracting [=========================>                         ]  252.3MB/502.1MB
+ cf76e47c237f Extracting [=========================>                         ]  258.5MB/502.1MB
+ cf76e47c237f Extracting [==========================>                        ]  264.6MB/502.1MB
+ cf76e47c237f Extracting [===========================>                       ]  271.8MB/502.1MB
+ cf76e47c237f Extracting [===========================>                       ]  279.6MB/502.1MB
+ cf76e47c237f Extracting [============================>                      ]  287.4MB/502.1MB
+ cf76e47c237f Extracting [=============================>                     ]  295.2MB/502.1MB
+ cf76e47c237f Extracting [==============================>                    ]    303MB/502.1MB
+ cf76e47c237f Extracting [==============================>                    ]  309.7MB/502.1MB
+ cf76e47c237f Extracting [===============================>                   ]    317MB/502.1MB
+ cf76e47c237f Extracting [================================>                  ]  325.9MB/502.1MB
+ cf76e47c237f Extracting [=================================>                 ]    332MB/502.1MB
+ cf76e47c237f Extracting [=================================>                 ]  338.7MB/502.1MB
+ cf76e47c237f Extracting [==================================>                ]  345.4MB/502.1MB
+ cf76e47c237f Extracting [===================================>               ]  352.1MB/502.1MB
+ cf76e47c237f Extracting [===================================>               ]  357.6MB/502.1MB
+ cf76e47c237f Extracting [====================================>              ]  363.8MB/502.1MB
+ cf76e47c237f Extracting [====================================>              ]  370.4MB/502.1MB
+ cf76e47c237f Extracting [=====================================>             ]    376MB/502.1MB
+ cf76e47c237f Extracting [======================================>            ]  382.7MB/502.1MB
+ cf76e47c237f Extracting [======================================>            ]  389.4MB/502.1MB
+ cf76e47c237f Extracting [=======================================>           ]  396.1MB/502.1MB
+ cf76e47c237f Extracting [========================================>          ]  403.9MB/502.1MB
+ cf76e47c237f Extracting [========================================>          ]  410.6MB/502.1MB
+ cf76e47c237f Extracting [=========================================>         ]  417.2MB/502.1MB
+ cf76e47c237f Extracting [==========================================>        ]  422.2MB/502.1MB
+ cf76e47c237f Extracting [==========================================>        ]  428.4MB/502.1MB
+ cf76e47c237f Extracting [===========================================>       ]  435.1MB/502.1MB
+ cf76e47c237f Extracting [===========================================>       ]  441.2MB/502.1MB
+ cf76e47c237f Extracting [============================================>      ]  447.3MB/502.1MB
+ cf76e47c237f Extracting [=============================================>     ]  455.1MB/502.1MB
+ cf76e47c237f Extracting [=============================================>     ]  461.2MB/502.1MB
+ cf76e47c237f Extracting [==============================================>    ]  468.5MB/502.1MB
+ cf76e47c237f Extracting [===============================================>   ]  475.7MB/502.1MB
+ cf76e47c237f Extracting [===============================================>   ]  481.9MB/502.1MB
+ cf76e47c237f Extracting [================================================>  ]  488.5MB/502.1MB
+ cf76e47c237f Extracting [=================================================> ]  494.7MB/502.1MB
+ cf76e47c237f Extracting [=================================================> ]  501.4MB/502.1MB
+ cf76e47c237f Extracting [==================================================>]  502.1MB/502.1MB
+ cf76e47c237f Pull complete 
+ 16e8436c0cba Extracting [>                                                  ]  557.1kB/93.03MB
+ 16e8436c0cba Extracting [===>                                               ]  6.685MB/93.03MB
+ 16e8436c0cba Extracting [======>                                            ]   11.7MB/93.03MB
+ 16e8436c0cba Extracting [========>                                          ]  16.71MB/93.03MB
+ 16e8436c0cba Extracting [=============>                                     ]  25.62MB/93.03MB
+ 16e8436c0cba Extracting [==================>                                ]  34.54MB/93.03MB
+ 16e8436c0cba Extracting [===================>                               ]  36.77MB/93.03MB
+ 16e8436c0cba Extracting [=====================>                             ]  39.55MB/93.03MB
+ 16e8436c0cba Extracting [=====================>                             ]  40.67MB/93.03MB
+ 16e8436c0cba Extracting [=======================>                           ]  42.89MB/93.03MB
+ 16e8436c0cba Extracting [==========================>                        ]  49.02MB/93.03MB
+ 16e8436c0cba Extracting [==============================>                    ]  57.38MB/93.03MB
+ 16e8436c0cba Extracting [===================================>               ]  65.18MB/93.03MB
+ 16e8436c0cba Extracting [=======================================>           ]  73.53MB/93.03MB
+ 16e8436c0cba Extracting [==========================================>        ]  79.66MB/93.03MB
+ 16e8436c0cba Extracting [============================================>      ]  81.89MB/93.03MB
+ 16e8436c0cba Extracting [============================================>      ]  83.56MB/93.03MB
+ 16e8436c0cba Extracting [=============================================>     ]  84.12MB/93.03MB
+ 16e8436c0cba Extracting [===============================================>   ]  87.46MB/93.03MB
+ 16e8436c0cba Extracting [================================================>  ]  89.69MB/93.03MB
+ 16e8436c0cba Extracting [================================================>  ]  90.24MB/93.03MB
+ 16e8436c0cba Extracting [=================================================> ]  91.36MB/93.03MB
+ 16e8436c0cba Extracting [=================================================> ]  91.91MB/93.03MB
+ 16e8436c0cba Extracting [==================================================>]  93.03MB/93.03MB
+ 16e8436c0cba Pull complete 
+ sqlserver Pulled 
+#1 [internal] load local bake definitions
+#1 reading from stdin 996B done
+#1 DONE 0.0s
+
+#2 [website internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 1.46kB done
+#2 DONE 0.0s
+
+#3 [db-deploy internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.02kB done
+#3 DONE 0.0s
+
+#4 [webapi internal] load build definition from Dockerfile
+#4 transferring dockerfile: 1.00kB done
+#4 DONE 0.0s
+
+#5 [website internal] load metadata for mcr.microsoft.com/dotnet/sdk:10.0
+#5 DONE 0.1s
+
+#6 [website internal] load metadata for mcr.microsoft.com/dotnet/aspnet:10.0
+#6 DONE 0.1s
+
+#7 [db-deploy internal] load .dockerignore
+#7 transferring context: 137B done
+#7 DONE 0.0s
+
+#8 [db-deploy internal] load build context
+#8 transferring context: 57.54kB 0.0s done
+#8 DONE 0.0s
+
+#9 [db-deploy build 1/4] FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
+#9 resolve mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa 0.0s done
+#9 ...
+
+#10 [website internal] load build context
+#10 transferring context: 913.25kB 0.1s done
+#10 DONE 0.1s
+
+#11 [webapi internal] load build context
+#11 transferring context: 543.62kB 0.1s done
+#11 DONE 0.1s
+
+#9 [db-deploy build 1/4] FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
+#9 sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118 0B / 16.78MB 0.1s
+#9 sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa 1.08kB / 1.08kB done
+#9 sha256:3a48280a9a7c6276c3eeaba1efa6a08820f18c84fb9e6274c187719ecfaf9fbc 2.64kB / 2.64kB done
+#9 sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 1.05MB / 29.77MB 0.1s
+#9 sha256:9cd0d6fa04def99891bf4d5a29eb9a3878b6041f9cc25cb389ea0df2177d23fd 5.64kB / 5.64kB done
+#9 sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f 0B / 3.56kB 0.1s
+#9 sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118 14.68MB / 16.78MB 0.2s
+#9 sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 20.97MB / 29.77MB 0.2s
+#9 sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f 3.56kB / 3.56kB 0.1s done
+#9 sha256:bc2779583e092a64db5ff30d209b65ba7aa647631e450ab0f77f0749ae1e8353 8.39MB / 36.63MB 0.2s
+#9 sha256:1b69909a9b9db255575c1f0597207fb4f3bc7e621bed93f871e7e26d3b6ce07b 5.24MB / 23.84MB 0.3s
+#9 sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118 16.78MB / 16.78MB 0.2s done
+#9 sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 29.77MB / 29.77MB 0.2s done
+#9 sha256:bc2779583e092a64db5ff30d209b65ba7aa647631e450ab0f77f0749ae1e8353 36.63MB / 36.63MB 0.3s done
+#9 sha256:1b69909a9b9db255575c1f0597207fb4f3bc7e621bed93f871e7e26d3b6ce07b 23.84MB / 23.84MB 0.4s
+#9 sha256:5ddf84f0f9ba7e1acb2deb5295d242abed105bc3847526a412d80657151f8c0c 12.75MB / 12.75MB 0.4s
+#9 sha256:550612595a7e8a6d7aa7d04b8e3d39322ef59c1ce74d2e54564f747f98f12752 155B / 155B 0.2s done
+#9 extracting sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 8.39MB / 189.68MB 0.4s
+#9 sha256:1b69909a9b9db255575c1f0597207fb4f3bc7e621bed93f871e7e26d3b6ce07b 23.84MB / 23.84MB 0.5s done
+#9 sha256:5ddf84f0f9ba7e1acb2deb5295d242abed105bc3847526a412d80657151f8c0c 12.75MB / 12.75MB 0.5s done
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 51.38MB / 189.68MB 0.6s
+#9 sha256:5ba41fa125ed418009c363055e24737041fd7e8d6ca79deba3e4b90da68f35ec 537B / 537B 0.5s done
+#9 sha256:c5fd568b59b9f63c70351425bb4d879d3648371930a7461c4242274ce6197921 0B / 21.03MB 0.5s
+#9 sha256:de471c2a5ff60e1eab27f50ddcd0e09ce95cb670b60050d8984d334e2d3b9c17 4.19MB / 20.57MB 0.6s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 68.16MB / 189.68MB 0.7s
+#9 sha256:5ba41fa125ed418009c363055e24737041fd7e8d6ca79deba3e4b90da68f35ec 537B / 537B 0.5s done
+#9 sha256:c5fd568b59b9f63c70351425bb4d879d3648371930a7461c4242274ce6197921 21.03MB / 21.03MB 0.6s done
+#9 sha256:de471c2a5ff60e1eab27f50ddcd0e09ce95cb670b60050d8984d334e2d3b9c17 20.57MB / 20.57MB 0.7s done
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 92.27MB / 189.68MB 0.8s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 117.44MB / 189.68MB 0.9s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 134.22MB / 189.68MB 1.0s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 146.80MB / 189.68MB 1.1s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 171.97MB / 189.68MB 1.2s
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 189.68MB / 189.68MB 1.4s
+#9 extracting sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 1.5s done
+#9 sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 189.68MB / 189.68MB 1.9s done
+#9 extracting sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118
+#9 extracting sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118 0.6s done
+#9 extracting sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f
+#9 extracting sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f done
+#9 extracting sha256:bc2779583e092a64db5ff30d209b65ba7aa647631e450ab0f77f0749ae1e8353 0.1s
+#9 extracting sha256:bc2779583e092a64db5ff30d209b65ba7aa647631e450ab0f77f0749ae1e8353 0.5s done
+#9 extracting sha256:550612595a7e8a6d7aa7d04b8e3d39322ef59c1ce74d2e54564f747f98f12752
+#9 extracting sha256:550612595a7e8a6d7aa7d04b8e3d39322ef59c1ce74d2e54564f747f98f12752 done
+#9 extracting sha256:5ddf84f0f9ba7e1acb2deb5295d242abed105bc3847526a412d80657151f8c0c 0.1s
+#9 ...
+
+#12 [website stage-1 1/3] FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:d5633778c754e89a386882eddf8dbee6942447a8a4b8267c19cf1e1158d0b0ac
+#12 resolve mcr.microsoft.com/dotnet/aspnet:10.0@sha256:d5633778c754e89a386882eddf8dbee6942447a8a4b8267c19cf1e1158d0b0ac 0.0s done
+#12 sha256:d5633778c754e89a386882eddf8dbee6942447a8a4b8267c19cf1e1158d0b0ac 1.08kB / 1.08kB done
+#12 sha256:efdf6b44845c4fe3e24ba690ff1e0ef2aa7df9e2bc2e1c943498cefae75bd118 16.78MB / 16.78MB 0.2s done
+#12 sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f 3.56kB / 3.56kB 0.1s done
+#12 sha256:e4b445f93a5deeb6bd7de300febceb8dd7e481ac65ccf1b474eddc3642a3010f 1.58kB / 1.58kB done
+#12 sha256:db13e9e7957d64b9e61e7b71f48126d899f6a36813c9ffcf1afe5bd7ab1d63fb 3.13kB / 3.13kB done
+#12 sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 29.77MB / 29.77MB 0.2s done
+#12 sha256:bc2779583e092a64db5ff30d209b65ba7aa647631e450ab0f77f0749ae1e8353 36.63MB / 36.63MB 0.3s done
+#12 sha256:550612595a7e8a6d7aa7d04b8e3d39322ef59c1ce74d2e54564f747f98f12752 155B / 155B 0.2s done
+#12 extracting sha256:f2b4ef06ff01a67d4bed7657a4ae379a7d07934b7c3e743454a22a0d5275fb2b 1.5s done
+#12 extracting sha256:456132b86eeaf45afaa8081118ad42fa24a1a5d093f0e26ff7714e7b4742dd4f done
+#12 extracting sha256:550612595a7e8a6d7aa7d04b8e3d39322ef59c1ce74d2e54564f747f98f12752 done
+#12 DONE 3.9s
+
+#13 [website stage-1 2/3] WORKDIR /app
+#13 DONE 0.0s
+
+#9 [db-deploy build 1/4] FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
+#9 extracting sha256:5ddf84f0f9ba7e1acb2deb5295d242abed105bc3847526a412d80657151f8c0c 0.2s done
+#9 extracting sha256:1b69909a9b9db255575c1f0597207fb4f3bc7e621bed93f871e7e26d3b6ce07b 0.1s
+#9 extracting sha256:1b69909a9b9db255575c1f0597207fb4f3bc7e621bed93f871e7e26d3b6ce07b 1.0s done
+#9 extracting sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b
+#9 extracting sha256:dbbf1d6473a3b7447675158d7760d0df0d4d5801d5fed193ad7474e76cc3565b 4.0s done
+#9 extracting sha256:c5fd568b59b9f63c70351425bb4d879d3648371930a7461c4242274ce6197921
+#9 extracting sha256:c5fd568b59b9f63c70351425bb4d879d3648371930a7461c4242274ce6197921 0.1s done
+#9 extracting sha256:5ba41fa125ed418009c363055e24737041fd7e8d6ca79deba3e4b90da68f35ec done
+#9 extracting sha256:de471c2a5ff60e1eab27f50ddcd0e09ce95cb670b60050d8984d334e2d3b9c17 0.1s
+#9 extracting sha256:de471c2a5ff60e1eab27f50ddcd0e09ce95cb670b60050d8984d334e2d3b9c17 0.4s done
+#9 DONE 12.2s
+
+#14 [webapi build 2/4] WORKDIR /src
+#14 DONE 0.0s
+
+#15 [db-deploy build 3/4] COPY Kardia.Database/ Kardia.Database/
+#15 DONE 0.1s
+
+#16 [website build 3/9] COPY Directory.Build.props Directory.Packages.props ./
+#16 DONE 0.1s
+
+#17 [website build 4/9] COPY Kardia.Library/Kardia.Library.csproj Kardia.Library/
+#17 DONE 0.0s
+
+#18 [website build  3/11] COPY Directory.Build.props Directory.Packages.props ./
+#18 CACHED
+
+#19 [website build  4/11] COPY Kardia.Library/Kardia.Library.csproj Kardia.Library/
+#19 CACHED
+
+#20 [website build  5/11] COPY Kardia.Sdk/Kardia.Sdk.csproj Kardia.Sdk/
+#20 DONE 0.1s
+
+#21 [webapi build 5/9] COPY Kardia.WebApi/Kardia.WebApi.csproj Kardia.WebApi/
+#21 DONE 0.1s
+
+#22 [website build  6/11] COPY Kardia.Website/Kardia.Website.csproj Kardia.Website/
+#22 DONE 0.1s
+
+#23 [website build  7/11] RUN dotnet restore Kardia.Website/Kardia.Website.csproj
+#23 2.905   Determining projects to restore...
+#23 4.887   Restored /src/Kardia.Website/Kardia.Website.csproj (in 371 ms).
+#23 4.892   Restored /src/Kardia.Sdk/Kardia.Sdk.csproj (in 374 ms).
+#23 4.905   Restored /src/Kardia.Library/Kardia.Library.csproj (in 4 ms).
+#23 DONE 5.0s
+
+#24 [webapi build 6/9] RUN dotnet restore Kardia.WebApi/Kardia.WebApi.csproj
+#24 3.029   Determining projects to restore...
+#24 4.950   Restored /src/Kardia.Library/Kardia.Library.csproj (in 442 ms).
+#24 ...
+
+#25 [website build  8/11] COPY Kardia.Library/ Kardia.Library/
+#25 DONE 0.1s
+
+#26 [website build  9/11] COPY Kardia.Sdk/ Kardia.Sdk/
+#26 DONE 0.0s
+
+#27 [website build 10/11] COPY Kardia.Website/ Kardia.Website/
+#27 DONE 0.0s
+
+#28 [db-deploy build 4/4] RUN dotnet build Kardia.Database/Kardia.Database.sqlproj -c Release     && mkdir -p /dacpac     && cp "$(find Kardia.Database/bin -name 'Kardia.Database.dacpac' | head -n 1)" /dacpac/
+#28 ...
+
+#29 [website build 11/11] RUN dotnet publish Kardia.Website/Kardia.Website.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#29 ...
+
+#30 [db-deploy stage-1 2/5] RUN dotnet tool install --global microsoft.sqlpackage
+#30 8.426 You can invoke the tool using the following command: sqlpackage
+#30 8.426 Tool 'microsoft.sqlpackage' (version '170.5.96') was successfully installed.
+#30 ...
+
+#28 [db-deploy build 4/4] RUN dotnet build Kardia.Database/Kardia.Database.sqlproj -c Release     && mkdir -p /dacpac     && cp "$(find Kardia.Database/bin -name 'Kardia.Database.dacpac' | head -n 1)" /dacpac/
+#28 9.148   Determining projects to restore...
+#28 9.816 /root/.nuget/packages/microsoft.build.sql/2.1.0/sdk/Sdk.targets(262,5): warning : A newer version of Microsoft.Build.Sql is available: 2.3.0. You are using 2.1.0. [/src/Kardia.Database/Kardia.Database.sqlproj]
+#28 ...
+
+#30 [db-deploy stage-1 2/5] RUN dotnet tool install --global microsoft.sqlpackage
+#30 DONE 10.5s
+
+#31 [db-deploy stage-1 3/5] WORKDIR /deploy
+#31 DONE 0.2s
+
+#28 [db-deploy build 4/4] RUN dotnet build Kardia.Database/Kardia.Database.sqlproj -c Release     && mkdir -p /dacpac     && cp "$(find Kardia.Database/bin -name 'Kardia.Database.dacpac' | head -n 1)" /dacpac/
+#28 11.08   Restored /src/Kardia.Database/Kardia.Database.sqlproj (in 517 ms).
+#28 ...
+
+#24 [webapi build 6/9] RUN dotnet restore Kardia.WebApi/Kardia.WebApi.csproj
+#24 12.33 /src/Kardia.WebApi/Kardia.WebApi.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+#24 12.33 /src/Kardia.WebApi/Kardia.WebApi.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+#24 12.55   Restored /src/Kardia.WebApi/Kardia.WebApi.csproj (in 8.12 sec).
+#24 DONE 12.7s
+
+#32 [webapi build 7/9] COPY Kardia.Library/ Kardia.Library/
+#32 DONE 0.1s
+
+#33 [webapi build 8/9] COPY Kardia.WebApi/ Kardia.WebApi/
+#33 DONE 0.1s
+
+#28 [db-deploy build 4/4] RUN dotnet build Kardia.Database/Kardia.Database.sqlproj -c Release     && mkdir -p /dacpac     && cp "$(find Kardia.Database/bin -name 'Kardia.Database.dacpac' | head -n 1)" /dacpac/
+#28 13.06   Creating a model to represent the project...
+#28 14.87   Loading project files...
+#28 17.45   Building the project model and resolving object interdependencies...
+#28 18.32   Validating the project model...
+#28 18.81   Writing model to /src/Kardia.Database/obj/Release/Model.xml...
+#28 ...
+
+#29 [website build 11/11] RUN dotnet publish Kardia.Website/Kardia.Website.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#29 16.98   Kardia.Library -> /src/Kardia.Library/bin/Release/net10.0/Kardia.Library.dll
+#29 ...
+
+#34 [webapi build 9/9] RUN dotnet publish Kardia.WebApi/Kardia.WebApi.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#34 3.043 /src/Kardia.WebApi/Kardia.WebApi.csproj : warning NU1902: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-2fmv-rv2c-59x7
+#34 3.044 /src/Kardia.WebApi/Kardia.WebApi.csproj : warning NU1903: Package 'System.Security.Cryptography.Pkcs' 9.0.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-846f-f764-76mx
+#34 8.739   Kardia.Library -> /src/Kardia.Library/bin/Release/net10.0/Kardia.Library.dll
+#34 ...
+
+#28 [db-deploy build 4/4] RUN dotnet build Kardia.Database/Kardia.Database.sqlproj -c Release     && mkdir -p /dacpac     && cp "$(find Kardia.Database/bin -name 'Kardia.Database.dacpac' | head -n 1)" /dacpac/
+#28 27.01   Kardia.Database -> /src/Kardia.Database/bin/Release/Kardia.Database.dacpac
+#28 27.06 
+#28 27.07 Build succeeded.
+#28 27.07 
+#28 27.07 /root/.nuget/packages/microsoft.build.sql/2.1.0/sdk/Sdk.targets(262,5): warning : A newer version of Microsoft.Build.Sql is available: 2.3.0. You are using 2.1.0. [/src/Kardia.Database/Kardia.Database.sqlproj]
+#28 27.08     1 Warning(s)
+#28 27.08     0 Error(s)
+#28 27.09 
+#28 27.09 Time Elapsed 00:00:25.16
+#28 DONE 27.2s
+
+#34 [webapi build 9/9] RUN dotnet publish Kardia.WebApi/Kardia.WebApi.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#34 ...
+
+#35 [db-deploy stage-1 4/5] COPY --from=build /dacpac/Kardia.Database.dacpac ./
+#35 DONE 0.0s
+
+#36 [db-deploy stage-1 5/5] COPY Kardia.Database/Scripts/deploy.sh ./
+#36 DONE 0.0s
+
+#37 [db-deploy] exporting to image
+#37 exporting layers
+#37 exporting layers 4.4s done
+#37 writing image sha256:fb93976580a49f3decffaa8b115534cc5dbc8efdeffb3460408f89aed28d6825 done
+#37 naming to docker.io/library/kardia-db-deploy:latest done
+#37 DONE 4.4s
+
+#38 [db-deploy] resolving provenance for metadata file
+#38 DONE 0.0s
+
+#34 [webapi build 9/9] RUN dotnet publish Kardia.WebApi/Kardia.WebApi.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#34 ...
+
+#29 [website build 11/11] RUN dotnet publish Kardia.Website/Kardia.Website.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#29 26.98   Kardia.Sdk -> /src/Kardia.Sdk/bin/Release/net10.0/Kardia.Sdk.dll
+#29 ...
+
+#34 [webapi build 9/9] RUN dotnet publish Kardia.WebApi/Kardia.WebApi.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#34 26.86   Kardia.WebApi -> /src/Kardia.WebApi/bin/Release/net10.0/Kardia.WebApi.dll
+#34 27.04   Kardia.WebApi -> /app/
+#34 DONE 27.2s
+
+#29 [website build 11/11] RUN dotnet publish Kardia.Website/Kardia.Website.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#29 ...
+
+#39 [webapi stage-1 3/3] COPY --from=build /app .
+#39 DONE 0.1s
+
+#40 [webapi] exporting to image
+#40 exporting layers
+#40 exporting layers 0.7s done
+#40 writing image sha256:14dabe592f5232199875ae9e527cf40da166e51736fd86fc9f88231d632400a3 done
+#40 naming to docker.io/library/kardia-webapi:latest done
+#40 DONE 0.7s
+
+#41 [webapi] resolving provenance for metadata file
+#41 DONE 0.0s
+
+#29 [website build 11/11] RUN dotnet publish Kardia.Website/Kardia.Website.csproj -c Release -o /app --no-restore     && chmod -R a+rX /app
+#29 38.44   Kardia.Website -> /src/Kardia.Website/bin/Release/net10.0/Kardia.Website.dll
+#29 39.27   Kardia.Website -> /app/
+#29 DONE 39.4s
+
+#42 [website stage-1 3/4] COPY --from=build /app .
+#42 DONE 0.0s
+
+#43 [website stage-1 4/4] RUN mkdir -p /keys && chown "1654" /keys
+#43 DONE 0.1s
+
+#44 [website] exporting to image
+#44 exporting layers 0.8s done
+#44 writing image sha256:7e1eaff5163b62428ff38b9f90faeb18769156469c1be27465acbbeb1b7dfb60 done
+#44 naming to docker.io/library/kardia-website:latest done
+#44 DONE 0.8s
+
+#45 [website] resolving provenance for metadata file
+#45 DONE 0.0s
+ db-deploy  Built
+ webapi  Built
+ website  Built
+ Network kardia_default  Creating
+ Network kardia_default  Created
+ Volume "kardia_keys"  Creating
+ Volume "kardia_keys"  Created
+ Volume "kardia_sql"  Creating
+ Volume "kardia_sql"  Created
+ Container kardia-sql  Creating
+ Container kardia-sql  Created
+ Container kardia-db-deploy  Creating
+ Container kardia-db-deploy  Created
+ Container kardia-webapi  Creating
+ Container kardia-webapi  Created
+ Container kardia-website  Creating
+ Container kardia-website  Created
+ Container kardia-sql  Starting
+ Container kardia-sql  Started
+ Container kardia-sql  Waiting
+ Container kardia-sql  Healthy
+ Container kardia-db-deploy  Starting
+ Container kardia-db-deploy  Started
+ Container kardia-db-deploy  Waiting
+ Container kardia-db-deploy  Exited
+ Container kardia-webapi  Starting
+ Container kardia-webapi  Started
+ Container kardia-website  Starting
+ Container kardia-website  Started
+ Container kardia-sql  Waiting
+ Container kardia-db-deploy  Waiting
+ Container kardia-webapi  Waiting
+ Container kardia-website  Waiting
+ Container kardia-sql  Healthy
+ Container kardia-webapi  Healthy
+ Container kardia-db-deploy  Exited
+ Container kardia-website  Healthy

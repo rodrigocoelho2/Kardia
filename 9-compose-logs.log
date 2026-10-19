@@ -1,0 +1,294 @@
+kardia-website  | info: Microsoft.Hosting.Lifetime[14]
+kardia-website  |       Now listening on: http://[::]:8080
+kardia-website  | info: Microsoft.Hosting.Lifetime[0]
+kardia-website  |       Application started. Press Ctrl+C to shut down.
+kardia-website  | info: Microsoft.Hosting.Lifetime[0]
+kardia-website  |       Hosting environment: Production
+kardia-website  | info: Microsoft.Hosting.Lifetime[0]
+kardia-website  |       Content root path: /app
+kardia-website  | info: Kardia.Website.Controllers.AccountController[0]
+kardia-website  |       Account Rodas created (User)
+kardia-db-deploy  | Publishing to database 'Kardia' on server 'sqlserver'.
+kardia-db-deploy  | Initializing deployment (Start)
+kardia-db-deploy  | Initializing deployment (Complete)
+kardia-db-deploy  | Analyzing deployment plan (Start)
+kardia-db-deploy  | Analyzing deployment plan (Complete)
+kardia-db-deploy  | Updating database (Start)
+kardia-db-deploy  | Dropping Default Constraint [dbo].[DF_PushSubscription_LastError]...
+kardia-db-deploy  | Dropping Default Constraint [dbo].[DF_PushSubscription_CreatedAt]...
+kardia-db-deploy  | Dropping Default Constraint [dbo].[DF_PushSubscription_Device]...
+kardia-db-deploy  | Dropping Foreign Key [dbo].[FK_PushSubscription_User]...
+kardia-db-deploy  | Dropping Check Constraint [dbo].[CK_UserProfile_Sex]...
+kardia-db-deploy  | Dropping Check Constraint [dbo].[CK_UserSetting_SleepGoalPercent]...
+kardia-db-deploy  | Starting rebuilding table [dbo].[PushSubscription]...
+kardia-db-deploy  | Caution: Changing any part of an object name could break scripts and stored procedures.
+kardia-db-deploy  | Caution: Changing any part of an object name could break scripts and stored procedures.
+kardia-db-deploy  | Caution: Changing any part of an object name could break scripts and stored procedures.
+kardia-db-deploy  | Creating Index [dbo].[PushSubscription].[IX_PushSubscription_UserID]...
+kardia-db-deploy  | Creating Foreign Key [dbo].[FK_PushSubscription_User]...
+kardia-db-deploy  | Creating Check Constraint [dbo].[CK_UserProfile_Sex]...
+kardia-db-deploy  | Creating Check Constraint [dbo].[CK_UserSetting_SleepGoalPercent]...
+kardia-db-deploy  | Creating Extended Property [dbo].[PushSubscription].[MS_Description]...
+kardia-db-deploy  | Refreshing Procedure [dbo].[PushSubscriptionMark]...
+kardia-db-deploy  | Refreshing Procedure [dbo].[PushSubscriptionDelete]...
+kardia-sql        | SQL Server 2022 will run as non-root by default.
+kardia-sql        | This container is running as user mssql.
+kardia-sql        | To learn more visit https://go.microsoft.com/fwlink/?linkid=2099216.
+kardia-sql        | 2026-10-19 16:31:49.33 Server      The licensing PID was successfully processed. The new edition is [Express Edition].
+kardia-sql        | 2026-10-19 16:31:49.51 Server      Setup step is copying system data file 'C:\templatedata\master.mdf' to '/var/opt/mssql/data/master.mdf'.
+kardia-sql        | 2026-10-19 16:31:49.52 Server      Did not find an existing master data file /var/opt/mssql/data/master.mdf, copying the missing default master and other system database files. If you have moved the database location, but not moved the database files, startup may fail. To repair: shutdown SQL Server, move the master database to configured location, and restart.
+kardia-sql        | 2026-10-19 16:31:49.52 Server      Setup step is copying system data file 'C:\templatedata\mastlog.ldf' to '/var/opt/mssql/data/mastlog.ldf'.
+kardia-sql        | 2026-10-19 16:31:49.52 Server      Setup step is copying system data file 'C:\templatedata\model.mdf' to '/var/opt/mssql/data/model.mdf'.
+kardia-sql        | 2026-10-19 16:31:49.53 Server      Setup step is copying system data file 'C:\templatedata\modellog.ldf' to '/var/opt/mssql/data/modellog.ldf'.
+kardia-sql        | 2026-10-19 16:31:49.54 Server      Setup step is copying system data file 'C:\templatedata\msdbdata.mdf' to '/var/opt/mssql/data/msdbdata.mdf'.
+kardia-sql        | 2026-10-19 16:31:49.55 Server      Setup step is copying system data file 'C:\templatedata\msdblog.ldf' to '/var/opt/mssql/data/msdblog.ldf'.
+kardia-sql        | 2026-10-19 16:31:49.55 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.mdf' to '/var/opt/mssql/data/model_replicatedmaster.mdf'.
+kardia-sql        | 2026-10-19 16:31:49.55 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.ldf' to '/var/opt/mssql/data/model_replicatedmaster.ldf'.
+kardia-sql        | 2026-10-19 16:31:49.56 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdbdata.mdf' to '/var/opt/mssql/data/model_msdbdata.mdf'.
+kardia-sql        | 2026-10-19 16:31:49.57 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdblog.ldf' to '/var/opt/mssql/data/model_msdblog.ldf'.
+kardia-sql        | 2026-10-19 16:31:49.58 Server      Microsoft SQL Server 2022 (RTM-CU27-GDR) (KB5126934) - 16.0.4305.5 (X64) 
+kardia-sql        | 	Oct  2 2026 17:28:11 
+kardia-sql        | 	Copyright (C) 2022 Microsoft Corporation
+kardia-sql        | 	Express Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+kardia-sql        | 2026-10-19 16:31:49.59 Server      UTC adjustment: 1:00
+kardia-sql        | 2026-10-19 16:31:49.59 Server      (c) Microsoft Corporation.
+kardia-sql        | 2026-10-19 16:31:49.59 Server      All rights reserved.
+kardia-sql        | 2026-10-19 16:31:49.59 Server      Server process ID is 376.
+kardia-sql        | 2026-10-19 16:31:49.59 Server      Logging SQL Server messages in file '/var/opt/mssql/log/errorlog'.
+kardia-sql        | 2026-10-19 16:31:49.59 Server      Registry startup parameters: 
+kardia-sql        | 	 -d /var/opt/mssql/data/master.mdf
+kardia-sql        | 	 -l /var/opt/mssql/data/mastlog.ldf
+kardia-sql        | 	 -e /var/opt/mssql/log/errorlog
+kardia-sql        | 2026-10-19 16:31:49.59 Server      SQL Server detected 1 sockets with 1 cores per socket and 2 logical processors per socket, 2 total logical processors; using 2 logical processors based on SQL Server licensing. This is an informational message; no user action is required.
+kardia-sql        | 2026-10-19 16:31:49.60 Server      SQL Server is starting at normal priority base (=7). This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:49.60 Server      Detected 2000 MB of RAM, 1686 MB of available memory, 1686 MB of available page file. This is an informational message; no user action is required.
+kardia-sql        | 2026-10-19 16:31:49.60 Server      Using conventional memory in the memory manager.
+kardia-sql        | 2026-10-19 16:31:49.60 Server      Detected pause instruction latency: 49 cycles.
+kardia-sql        | 2026-10-19 16:31:49.60 Server      SQL Server detected the following NUMA node configuration (NUMA Node number 0, Processor Group number 0, CPU Mask 0x0000000000000003).
+kardia-sql        | 2026-10-19 16:31:49.61 Server      Page exclusion bitmap is enabled.
+kardia-sql        | 2026-10-19 16:31:49.63 Server      Buffer pool extension is not supported on Linux platform.
+kardia-sql        | 2026-10-19 16:31:49.63 Server      Buffer Pool: Allocating 2097152 bytes for 260571 hashPages.
+kardia-sql        | 2026-10-19 16:31:49.74 Server      Buffer pool extension is already disabled. No action is necessary.
+kardia-sql        | 2026-10-19 16:31:50.14 Server      Installing Client TLS certificates to the store.
+kardia-sql        | 2026-10-19 16:31:50.15 Server      CPU vectorization level(s) detected:  SSE SSE2 SSE3 SSSE3 SSE41 SSE42 AVX AVX2 POPCNT BMI1 BMI2
+kardia-sql        | 2026-10-19 16:31:50.19 Server      Successfully initialized the TLS configuration. Allowed TLS protocol versions are ['1.0 1.1 1.2']. Allowed TLS ciphers are ['ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:!DHE-RSA-AES256-GCM-SHA384:!DHE-RSA-AES128-GCM-SHA256:!DHE-RSA-AES256-SHA:!DHE-RSA-AES128-SHA'].
+kardia-sql        | 2026-10-19 16:31:50.21 Server      Query Store settings initialized with enabled = 1, 
+kardia-sql        | 2026-10-19 16:31:50.22 Server      The maximum number of dedicated administrator connections for this instance is '1'
+kardia-sql        | 2026-10-19 16:31:50.22 Server      Node configuration: node 0: CPU mask: 0x0000000000000003:0 Active CPU mask: 0x0000000000000003:0. This message provides a description of the NUMA configuration for this computer. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:50.23 Server      Using dynamic lock allocation.  Initial allocation of 2500 Lock blocks and 5000 Lock Owner blocks per node.  This is an informational message only.  No user action is required.
+kardia-sql        | 2026-10-19 16:31:50.25 Server      In-Memory OLTP initialized on lowend machine.
+kardia-sql        | 2026-10-19 16:31:50.26 Server      [INFO] Created Extended Events session 'hkenginexesession'
+kardia-sql        | 2026-10-19 16:31:50.27 Server      Database Instant File Initialization: enabled. For security and performance considerations see the topic 'Database Instant File Initialization' in SQL Server Books Online. This is an informational message only. No user action is required.
+kardia-sql        | ForceFlush is enabled for this instance. 
+kardia-sql        | 2026-10-19 16:31:50.28 Server      Total Log Writer threads: 1. This is an informational message; no user action is required.
+kardia-sql        | 2026-10-19 16:31:50.29 Server      clwb is selected for pmem flush operation.
+kardia-sql        | 2026-10-19 16:31:50.30 Server      Software Usage Metrics is disabled.
+kardia-sql        | Failed to open password policy registry path. Using default password policy values.2026-10-19 16:31:50.32 spid14s     [1]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:31:50.33 spid14s     Starting up database 'master'.
+kardia-sql        | BulkAdmin AllowedPathsList cleared (path filtering disabled)2026-10-19 16:31:50.37 Server      CLR version v4.0.30319 loaded.
+kardia-sql        | ForceFlush feature is enabled for log durability.
+kardia-sql        | 2026-10-19 16:31:50.56 spid14s     Converting database 'master' from version 927 to the current version 957.
+kardia-sql        | 2026-10-19 16:31:50.57 spid14s     Database 'master' running the upgrade step from version 927 to version 928.
+kardia-sql        | 2026-10-19 16:31:50.61 spid14s     Database 'master' running the upgrade step from version 928 to version 929.
+kardia-sql        | 2026-10-19 16:31:50.64 spid14s     Database 'master' running the upgrade step from version 929 to version 930.
+kardia-sql        | 2026-10-19 16:31:50.65 spid14s     Database 'master' running the upgrade step from version 930 to version 931.
+kardia-sql        | 2026-10-19 16:31:50.66 spid14s     Database 'master' running the upgrade step from version 931 to version 932.
+kardia-sql        | 2026-10-19 16:31:50.67 spid14s     Database 'master' running the upgrade step from version 932 to version 933.
+kardia-sql        | 2026-10-19 16:31:50.68 spid14s     Database 'master' running the upgrade step from version 933 to version 934.
+kardia-sql        | 2026-10-19 16:31:50.69 spid14s     Database 'master' running the upgrade step from version 934 to version 935.
+kardia-sql        | 2026-10-19 16:31:50.71 spid14s     Database 'master' running the upgrade step from version 935 to version 936.
+kardia-sql        | 2026-10-19 16:31:50.72 spid14s     Database 'master' running the upgrade step from version 936 to version 937.
+kardia-sql        | 2026-10-19 16:31:50.73 spid14s     Database 'master' running the upgrade step from version 937 to version 938.
+kardia-sql        | 2026-10-19 16:31:50.74 spid14s     Database 'master' running the upgrade step from version 938 to version 939.
+kardia-sql        | 2026-10-19 16:31:50.74 spid14s     Database 'master' running the upgrade step from version 939 to version 940.
+kardia-sql        | 2026-10-19 16:31:50.75 spid14s     Database 'master' running the upgrade step from version 940 to version 941.
+kardia-sql        | 2026-10-19 16:31:50.76 spid14s     Database 'master' running the upgrade step from version 941 to version 942.
+kardia-sql        | 2026-10-19 16:31:50.77 spid14s     Database 'master' running the upgrade step from version 942 to version 943.
+kardia-sql        | 2026-10-19 16:31:50.81 spid14s     Database 'master' running the upgrade step from version 943 to version 944.
+kardia-sql        | 2026-10-19 16:31:50.82 spid14s     Database 'master' running the upgrade step from version 944 to version 945.
+kardia-sql        | 2026-10-19 16:31:50.85 spid14s     Database 'master' running the upgrade step from version 945 to version 946.
+kardia-sql        | 2026-10-19 16:31:50.86 spid14s     Database 'master' running the upgrade step from version 946 to version 947.
+kardia-sql        | 2026-10-19 16:31:50.87 spid14s     Database 'master' running the upgrade step from version 947 to version 948.
+kardia-sql        | 2026-10-19 16:31:50.87 spid14s     Database 'master' running the upgrade step from version 948 to version 949.
+kardia-sql        | 2026-10-19 16:31:50.89 spid14s     Database 'master' running the upgrade step from version 949 to version 950.
+kardia-sql        | 2026-10-19 16:31:50.91 Server      Common language runtime (CLR) functionality initialized.
+kardia-sql        | 2026-10-19 16:31:50.91 spid14s     Database 'master' running the upgrade step from version 950 to version 951.
+kardia-sql        | 2026-10-19 16:31:50.92 Server      External governance manager initialized
+kardia-sql        | 2026-10-19 16:31:50.93 spid14s     Database 'master' running the upgrade step from version 951 to version 952.
+kardia-sql        | 2026-10-19 16:31:50.93 spid14s     Database 'master' running the upgrade step from version 952 to version 953.
+kardia-sql        | 2026-10-19 16:31:50.94 spid14s     Database 'master' running the upgrade step from version 953 to version 954.
+kardia-sql        | 2026-10-19 16:31:50.94 spid14s     Database 'master' running the upgrade step from version 954 to version 955.
+kardia-sql        | 2026-10-19 16:31:50.95 spid14s     Database 'master' running the upgrade step from version 955 to version 956.
+kardia-sql        | 2026-10-19 16:31:50.96 spid14s     Database 'master' running the upgrade step from version 956 to version 957.
+kardia-sql        | 2026-10-19 16:31:51.00 spid14s     SQL Server Audit is starting the audits. This is an informational message. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.00 spid14s     SQL Server Audit has started the audits. This is an informational message. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.01 spid22s     Attribute synchronization initialized
+kardia-sql        | 2026-10-19 16:31:51.01 spid22s     Attribute synchronization manager initialized
+kardia-sql        | 2026-10-19 16:31:51.03 spid14s     SQL Trace ID 1 was started by login "sa".
+kardia-sql        | 2026-10-19 16:31:51.03 spid28s     Password policy update was successful.
+kardia-sql        | 2026-10-19 16:31:51.04 spid14s     Server name is '46412fe5ba7e'. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.05 spid30s     Always On: The availability replica manager is starting. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.06 spid17s     [32767]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:31:51.06 spid30s     Always On: The availability replica manager is waiting for the instance of SQL Server to allow client connections. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.07 spid14s     [4]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:31:51.08 spid17s     Starting up database 'mssqlsystemresource'.
+kardia-sql        | 2026-10-19 16:31:51.08 spid14s     Starting up database 'msdb'.
+kardia-sql        | 2026-10-19 16:31:51.09 spid17s     The resource database build version is 16.00.4305. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:51.13 spid17s     [3]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:31:51.13 spid17s     Starting up database 'model'.
+kardia-sql        | 2026-10-19 16:31:51.27 spid14s     Converting database 'msdb' from version 927 to the current version 957.
+kardia-sql        | 2026-10-19 16:31:51.28 spid14s     Database 'msdb' running the upgrade step from version 927 to version 928.
+kardia-sql        | 2026-10-19 16:31:51.29 spid14s     Database 'msdb' running the upgrade step from version 928 to version 929.
+kardia-sql        | 2026-10-19 16:31:51.33 spid17s     Converting database 'model' from version 927 to the current version 957.
+kardia-sql        | 2026-10-19 16:31:51.33 spid17s     Database 'model' running the upgrade step from version 927 to version 928.
+kardia-sql        | 2026-10-19 16:31:51.33 spid14s     Database 'msdb' running the upgrade step from version 929 to version 930.
+kardia-sql        | 2026-10-19 16:31:51.34 spid17s     Database 'model' running the upgrade step from version 928 to version 929.
+kardia-sql        | 2026-10-19 16:31:51.35 spid14s     Database 'msdb' running the upgrade step from version 930 to version 931.
+kardia-sql        | 2026-10-19 16:31:51.37 spid14s     Database 'msdb' running the upgrade step from version 931 to version 932.
+kardia-sql        | 2026-10-19 16:31:51.38 spid17s     Database 'model' running the upgrade step from version 929 to version 930.
+kardia-sql        | 2026-10-19 16:31:51.38 spid14s     Database 'msdb' running the upgrade step from version 932 to version 933.
+kardia-sql        | 2026-10-19 16:31:51.39 spid17s     Database 'model' running the upgrade step from version 930 to version 931.
+kardia-sql        | 2026-10-19 16:31:51.39 spid14s     Database 'msdb' running the upgrade step from version 933 to version 934.
+kardia-sql        | 2026-10-19 16:31:51.39 spid17s     Database 'model' running the upgrade step from version 931 to version 932.
+kardia-sql        | 2026-10-19 16:31:51.40 spid14s     Database 'msdb' running the upgrade step from version 934 to version 935.
+kardia-sql        | 2026-10-19 16:31:51.40 spid17s     Database 'model' running the upgrade step from version 932 to version 933.
+kardia-sql        | 2026-10-19 16:31:51.41 spid14s     Database 'msdb' running the upgrade step from version 935 to version 936.
+kardia-sql        | 2026-10-19 16:31:51.42 spid17s     Database 'model' running the upgrade step from version 933 to version 934.
+kardia-sql        | 2026-10-19 16:31:51.42 spid14s     Database 'msdb' running the upgrade step from version 936 to version 937.
+kardia-sql        | 2026-10-19 16:31:51.43 spid17s     Database 'model' running the upgrade step from version 934 to version 935.
+kardia-sql        | 2026-10-19 16:31:51.43 spid14s     Database 'msdb' running the upgrade step from version 937 to version 938.
+kardia-sql        | 2026-10-19 16:31:51.44 spid17s     Database 'model' running the upgrade step from version 935 to version 936.
+kardia-sql        | 2026-10-19 16:31:51.44 spid14s     Database 'msdb' running the upgrade step from version 938 to version 939.
+kardia-sql        | 2026-10-19 16:31:51.44 spid17s     Database 'model' running the upgrade step from version 936 to version 937.
+kardia-sql        | 2026-10-19 16:31:51.45 spid14s     Database 'msdb' running the upgrade step from version 939 to version 940.
+kardia-sql        | 2026-10-19 16:31:51.45 spid17s     Database 'model' running the upgrade step from version 937 to version 938.
+kardia-sql        | 2026-10-19 16:31:51.45 spid14s     Database 'msdb' running the upgrade step from version 940 to version 941.
+kardia-sql        | 2026-10-19 16:31:51.46 spid17s     Database 'model' running the upgrade step from version 938 to version 939.
+kardia-sql        | 2026-10-19 16:31:51.46 spid14s     Database 'msdb' running the upgrade step from version 941 to version 942.
+kardia-sql        | 2026-10-19 16:31:51.46 spid17s     Database 'model' running the upgrade step from version 939 to version 940.
+kardia-sql        | 2026-10-19 16:31:51.47 spid14s     Database 'msdb' running the upgrade step from version 942 to version 943.
+kardia-sql        | 2026-10-19 16:31:51.47 spid17s     Database 'model' running the upgrade step from version 940 to version 941.
+kardia-sql        | 2026-10-19 16:31:51.48 spid17s     Database 'model' running the upgrade step from version 941 to version 942.
+kardia-sql        | 2026-10-19 16:31:51.48 spid17s     Database 'model' running the upgrade step from version 942 to version 943.
+kardia-sql        | 2026-10-19 16:31:51.51 spid17s     Database 'model' running the upgrade step from version 943 to version 944.
+kardia-sql        | 2026-10-19 16:31:51.51 spid14s     Database 'msdb' running the upgrade step from version 943 to version 944.
+kardia-sql        | 2026-10-19 16:31:51.52 spid17s     Database 'model' running the upgrade step from version 944 to version 945.
+kardia-sql        | 2026-10-19 16:31:51.53 spid14s     Database 'msdb' running the upgrade step from version 944 to version 945.
+kardia-sql        | 2026-10-19 16:31:51.54 spid17s     Database 'model' running the upgrade step from version 945 to version 946.
+kardia-sql        | 2026-10-19 16:31:51.55 spid17s     Database 'model' running the upgrade step from version 946 to version 947.
+kardia-sql        | 2026-10-19 16:31:51.56 spid14s     Database 'msdb' running the upgrade step from version 945 to version 946.
+kardia-sql        | 2026-10-19 16:31:51.57 spid17s     Database 'model' running the upgrade step from version 947 to version 948.
+kardia-sql        | 2026-10-19 16:31:51.57 spid14s     Database 'msdb' running the upgrade step from version 946 to version 947.
+kardia-sql        | 2026-10-19 16:31:51.58 spid17s     Database 'model' running the upgrade step from version 948 to version 949.
+kardia-sql        | 2026-10-19 16:31:51.59 spid14s     Database 'msdb' running the upgrade step from version 947 to version 948.
+kardia-sql        | 2026-10-19 16:31:51.60 spid17s     Database 'model' running the upgrade step from version 949 to version 950.
+kardia-sql        | 2026-10-19 16:31:51.61 spid14s     Database 'msdb' running the upgrade step from version 948 to version 949.
+kardia-sql        | 2026-10-19 16:31:51.61 spid17s     Database 'model' running the upgrade step from version 950 to version 951.
+kardia-sql        | 2026-10-19 16:31:51.62 spid14s     Database 'msdb' running the upgrade step from version 949 to version 950.
+kardia-sql        | 2026-10-19 16:31:51.63 spid14s     Database 'msdb' running the upgrade step from version 950 to version 951.
+kardia-sql        | 2026-10-19 16:31:51.64 spid17s     Database 'model' running the upgrade step from version 951 to version 952.
+kardia-sql        | 2026-10-19 16:31:51.64 spid17s     Database 'model' running the upgrade step from version 952 to version 953.
+kardia-sql        | 2026-10-19 16:31:51.66 spid17s     Database 'model' running the upgrade step from version 953 to version 954.
+kardia-sql        | 2026-10-19 16:31:51.66 spid14s     Database 'msdb' running the upgrade step from version 951 to version 952.
+kardia-sql        | 2026-10-19 16:31:51.67 spid17s     Database 'model' running the upgrade step from version 954 to version 955.
+kardia-sql        | 2026-10-19 16:31:51.67 spid14s     Database 'msdb' running the upgrade step from version 952 to version 953.
+kardia-sql        | 2026-10-19 16:31:51.67 spid17s     Database 'model' running the upgrade step from version 955 to version 956.
+kardia-sql        | 2026-10-19 16:31:51.69 spid17s     Database 'model' running the upgrade step from version 956 to version 957.
+kardia-sql        | 2026-10-19 16:31:51.70 spid14s     Database 'msdb' running the upgrade step from version 953 to version 954.
+kardia-sql        | 2026-10-19 16:31:51.70 spid14s     Database 'msdb' running the upgrade step from version 954 to version 955.
+kardia-sql        | 2026-10-19 16:31:51.72 spid14s     Database 'msdb' running the upgrade step from version 955 to version 956.
+kardia-sql        | 2026-10-19 16:31:51.73 spid17s     Clearing tempdb database.
+kardia-sql        | 2026-10-19 16:31:51.75 spid14s     Database 'msdb' running the upgrade step from version 956 to version 957.
+kardia-sql        | 2026-10-19 16:31:51.92 spid17s     [2]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:31:51.93 spid17s     Starting up database 'tempdb'.
+kardia-sql        | 2026-10-19 16:31:52.03 spid34s     The Service Broker endpoint is in disabled or stopped state.
+kardia-sql        | 2026-10-19 16:31:52.04 spid34s     The Database Mirroring endpoint is in disabled or stopped state.
+kardia-sql        | 2026-10-19 16:31:52.05 spid34s     Service Broker manager has started.
+kardia-sql        | 2026-10-19 16:31:52.17 spid28s     A self-generated certificate was successfully loaded for encryption.
+kardia-sql        | 2026-10-19 16:31:52.17 spid28s     Server is listening on [ 'any' <ipv6> 1433] accept sockets 1.
+kardia-sql        | 2026-10-19 16:31:52.17 spid28s     Server is listening on [ 'any' <ipv4> 1433] accept sockets 1.
+kardia-sql        | 2026-10-19 16:31:52.17 spid28s     Dedicated administrator connection support was not started because it is disabled on this edition of SQL Server. If you want to use a dedicated administrator connection, restart SQL Server using the trace flag 7806. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:52.18 spid28s     Server is listening on [ ::1 <ipv6> 1431] accept sockets 1.
+kardia-sql        | 2026-10-19 16:31:52.18 spid28s     Server is listening on [ 127.0.0.1 <ipv4> 1431] accept sockets 1.
+kardia-sql        | 2026-10-19 16:31:52.18 spid28s     Recovery is complete. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:52.19 spid28s     SQL Server is now ready for client connections. This is an informational message; no user action is required.
+kardia-sql        | 2026-10-19 16:31:52.20 spid23s     The default language (LCID 0) has been set for engine and full-text services.
+kardia-sql        | 2026-10-19 16:31:53.74 spid51      Attempting to load library 'xplog70.dll' into memory. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:53.76 spid51      Using 'xplog70.dll' version '2022.160.4305' to execute extended stored procedure 'xp_msver'. This is an informational message only; no user action is required.
+kardia-sql        | 2026-10-19 16:31:53.99 spid51      Attempting to load library 'xpstar.dll' into memory. This is an informational message only. No user action is required.
+kardia-sql        | 2026-10-19 16:31:54.00 spid51      Using 'xpstar.dll' version '2022.160.4305' to execute extended stored procedure 'xp_instance_regread'. This is an informational message only; no user action is required.
+kardia-sql        | 2026-10-19 16:32:03.76 spid51      [5]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+kardia-sql        | 2026-10-19 16:32:03.77 spid51      Starting up database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.77 spid51      RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [5]
+kardia-sql        | 2026-10-19 16:32:03.77 spid51      RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 5.
+kardia-sql        | 2026-10-19 16:32:03.83 spid51      Parallel redo is started for database 'Kardia' with worker pool size [1].
+kardia-sql        | 2026-10-19 16:32:03.84 spid51      Parallel redo is shutdown for database 'Kardia' with worker pool size [1].
+kardia-sql        | 2026-10-19 16:32:03.89 spid51      Setting database option AUTO_CLOSE to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.92 spid51      Setting database option ANSI_NULLS to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.92 spid51      Setting database option ANSI_PADDING to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.93 spid51      Setting database option ANSI_WARNINGS to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.93 spid51      Setting database option ARITHABORT to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.93 spid51      Setting database option CONCAT_NULL_YIELDS_NULL to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.93 spid51      Setting database option NUMERIC_ROUNDABORT to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.93 spid51      Setting database option QUOTED_IDENTIFIER to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option ANSI_NULL_DEFAULT to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option CURSOR_DEFAULT to LOCAL for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option RECOVERY to FULL for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option CURSOR_CLOSE_ON_COMMIT to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option AUTO_CREATE_STATISTICS to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option AUTO_SHRINK to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option AUTO_UPDATE_STATISTICS to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.94 spid51      Setting database option RECURSIVE_TRIGGERS to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.96 spid51      Setting database option ALLOW_SNAPSHOT_ISOLATION to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.96 spid51      Setting database option READ_COMMITTED_SNAPSHOT to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.96 spid51      Setting database option AUTO_UPDATE_STATISTICS_ASYNC to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.96 spid51      Setting database option PAGE_VERIFY to NONE for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.97 spid51      Setting database option DATE_CORRELATION_OPTIMIZATION to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.97 spid51      Setting database option DISABLE_BROKER to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.97 spid51      Setting database option PARAMETERIZATION to SIMPLE for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.97 spid51      Setting database option SUPPLEMENTAL_LOGGING to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.98 spid51      Setting database option TRUSTWORTHY to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.98 spid51      Setting database option DB_CHAINING to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.98 spid51      Setting database option HONOR_BROKER_PRIORITY to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.99 spid51      Setting database option target_recovery_time to 0 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:03.99 spid51      Setting database option FILESTREAM NON_TRANSACTED_ACCESS to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.00 spid51      Setting database option contained to none for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.00 spid51      Setting database option INCREMENTAL to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.00 spid51      Setting database option AUTO_CREATE_STATISTICS to ON for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.00 spid51      Setting database option MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT to OFF for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.01 spid51      Setting database option delayed_durability to disabled for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.01 spid51      Setting database option query_store to read_write for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.01 spid51      Setting database option query_store max_storage_size_mb to 100 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.02 spid51      Setting database option query_store flush_interval_seconds to 900 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.02 spid51      Setting database option query_store interval_length_minutes to 60 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.02 spid51      Setting database option query_store max_plans_per_query to 200 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.02 spid51      Setting database option query_store query_capture_mode to all for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.02 spid51      Setting database option query_store stale_query_threshold_days to 367 for database 'Kardia'.
+kardia-sql        | 2026-10-19 16:32:04.04 spid51      Setting database option TEMPORAL_HISTORY_RETENTION to ON for database 'Kardia'.
+kardia-db-deploy  | Refreshing Procedure [dbo].[PushSubscriptionList]...
+kardia-db-deploy  | Refreshing Procedure [dbo].[PushSubscriptionSave]...
+kardia-db-deploy  | Kardia.Database deployed.
+kardia-db-deploy  | Checking existing data against newly created constraints
+kardia-db-deploy  | Update complete.
+kardia-db-deploy  | Updating database (Complete)
+kardia-db-deploy  | Successfully published database.
+kardia-db-deploy  | Time elapsed 0:00:11.63
+kardia-db-deploy  | Kardia database (Kardia) is up to date.
+kardia-webapi     | warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+kardia-webapi     |       Storing keys in a directory '/home/app/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+kardia-webapi     | warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+kardia-webapi     |       No XML encryptor configured. Key {5e0a0232-5898-4a74-a68c-9931ec5fb5b7} may be persisted to storage in unencrypted form.
+kardia-webapi     | info: Microsoft.Hosting.Lifetime[14]
+kardia-webapi     |       Now listening on: http://[::]:8080
+kardia-webapi     | info: Microsoft.Hosting.Lifetime[0]
+kardia-webapi     |       Application started. Press Ctrl+C to shut down.
+kardia-webapi     | info: Microsoft.Hosting.Lifetime[0]
+kardia-webapi     |       Hosting environment: Production
+kardia-webapi     | info: Microsoft.Hosting.Lifetime[0]
+kardia-webapi     |       Content root path: /app
+kardia-webapi     | info: Kardia.WebApi.Features.Demo.Services.DemoStartup[0]
+kardia-webapi     |       Demo mode: account "demo" is ready with sample data.
+kardia-webapi     | info: Kardia.WebApi.Features.Users.Controllers.UserController[0]
+kardia-webapi     |       UserCreate [UserName=Rodas]
+kardia-webapi     | info: Kardia.WebApi.Features.Users.Controllers.UserController[0]
+kardia-webapi     |       UserCreate [UserName=Rodas]

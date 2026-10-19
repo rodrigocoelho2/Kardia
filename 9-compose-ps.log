@@ -1,0 +1,5 @@
+NAME               IMAGE                                        COMMAND                  SERVICE     CREATED              STATUS                          PORTS
+kardia-db-deploy   kardia-db-deploy:latest                      "/bin/bash /deploy/d…"   db-deploy   About a minute ago   Exited (0) About a minute ago   
+kardia-sql         mcr.microsoft.com/mssql/server:2022-latest   "/opt/mssql/bin/laun…"   sqlserver   4 minutes ago        Up 4 minutes (healthy)          0.0.0.0:1435->1433/tcp, [::]:1435->1433/tcp
+kardia-webapi      kardia-webapi:latest                         "dotnet Kardia.WebAp…"   webapi      About a minute ago   Up About a minute               8080/tcp
+kardia-website     kardia-website:latest                        "dotnet Kardia.Websi…"   website     About a minute ago   Up About a minute               0.0.0.0:5090->8080/tcp, [::]:5090->8080/tcp

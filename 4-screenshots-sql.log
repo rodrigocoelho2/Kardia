@@ -1,0 +1,2 @@
+sync: {'step': 'sync', 'status': 200, 'body': '{"summary":"1 day \\u00B7 30 heart-rate minutes \\u00B7 1 night \\u00B7 1 workout \\u00B7 4 daily values","days":1,"metrics":4,"heartRates":30,"sleeps":1,"workouts":1,"from":"2026-10-16","to":"2026-10-16"}', 'wrong': 401}
+72 screenshots in ci-output/screenshots-sql
