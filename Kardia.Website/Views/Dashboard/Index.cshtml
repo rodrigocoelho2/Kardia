@@ -14,13 +14,13 @@
 
 <header class="head rise">
     <div>
-        <div class="eyebrow">@Fmt.LongDate(Model.Date)</div>
-        <h1>@(Model.IsToday ? $"{Model.Greeting}, {Model.UserName}" : Fmt.LongDate(Model.Date))</h1>
+        <div class="eyebrow">@Fmt.LongDate(Model.Date)@if (day.LastSyncAt is { } syncedAt) {<span class="on-phone sync-dot" title="Apple Watch synced @Fmt.Ago(syncedAt)" aria-label="Apple Watch synced @Fmt.Ago(syncedAt)"></span>}</div>
+        <h1>@if (Model.IsToday) {<span class="on-desk">@Model.Greeting, @Model.UserName</span><span class="on-phone">Today</span>} else {@Fmt.LongDate(Model.Date)}</h1>
     </div>
     <div class="head-acts">
         @if (day.LastSyncAt is { } synced)
         {
-            <span class="chip sync"><span class="live-dot"></span>Apple Watch · synced @Fmt.Ago(synced)</span>
+            <span class="chip sync on-desk"><span class="live-dot"></span>Apple Watch · synced @Fmt.Ago(synced)</span>
         }
         else
         {
@@ -74,50 +74,25 @@ else
                     <span class="sub" style="color:var(--str-3)">Target @Fmt.One(strain.TargetLow)–@Fmt.One(strain.TargetHigh)</span>
                 </div>
             </a>
-            <div class="hero-foot">
-                <div><span class="k">@Icons.Get("kcal")Calories</span><b class="num">@Fmt.Whole(strain.TotalKcal)</b><small>kcal</small></div>
-                <div><span class="k">@Icons.Get("steps")Steps</span><b class="num">@Fmt.Whole(strain.Steps)</b></div>
-                <div><span class="k">@Icons.Get("heart")Zone 2+</span><b class="num">@strain.ZoneMinutes.Skip(1).Sum()</b><small>min</small></div>
-                <div><span class="k">@Icons.Get("sleep")Bedtime</span><b class="num">@Fmt.Clock(sleep.Bedtime)</b><small>tonight</small></div>
-            </div>
         </section>
-
-        @if (Model.AiCoach is { Enabled: true })
-        {
-            @* With an AI provider set up, the AI coach takes the coach's place (it writes only when you tap Ask AI). *@
-            <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day", Visible: true)' />
-        }
-        else
-        {
-            <section class="card coach rise" style="--d:2">
-                <div class="coach-head">
-                    <span class="coach-ico">@Icons.Get("sparkle")</span>
-                    <span class="kicker" style="color:var(--slp-text)">Coach</span>
-                </div>
-                @if (lead is not null)
-                {
-                    <p class="coach-lead">@lead.Title</p>
-                    <ul class="tips">
-                        @foreach (var tip in day.Coach)
-                        {
-                            <li class="@tip.Tone">@tip.Text</li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
-                }
-                <div class="head-acts" style="margin-top:auto">
-                    <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
-                </div>
-            </section>
-        }
+        <a class="card energy-card rise" style="--d:2" href="/stress@(dateLink)#energy">
+            <div class="card-head">
+                <span class="ttl-ico"><span class="ico-chip nrg">@Icons.Get("energy")</span><h2>Energy</h2></span>
+                <span class="side-note">woke up with @(day.Energy.Start?.ToString() ?? "—")</span>
+            </div>
+            <div class="en-big"><b class="num">@(day.Energy.Now?.ToString() ?? "—")</b><span>/ 100 @(Model.IsToday ? "left" : "left at night")</span></div>
+            <div class="en-bar"><i style="width:@(Math.Clamp(day.Energy.Now ?? 0, 0, 100))%"></i></div>
+            <div class="en-drain">
+                <div><span class="k"><i style="background:var(--str)"></i>Moving</span><b class="num">−@day.Energy.ActivityDrain</b></div>
+                <div><span class="k"><i style="background:var(--mid)"></i>Stress</span><b class="num">−@day.Energy.StressDrain</b></div>
+                <div><span class="k"><i style="background:var(--dim)"></i>Awake</span><b class="num">−@day.Energy.BaseDrain</b></div>
+            </div>
+        </a>
     </div>
     <div class="row">
         <section class="card w2 rise" style="--d:3">
             <div class="card-head">
-                <h2>Stress</h2>
+                <span class="ttl-ico"><span class="ico-chip mid">@Icons.Get("stress")</span><h2>Stress</h2></span>
                 <a class="more" href="/stress@(dateLink)">@(day.Stress.Ready ? $"{Fmt.StressWord(day.Stress.Average).ToLowerInvariant()} day · average {day.Stress.Average:0.0}" : "Stress monitor") @Icons.Get("right")</a>
             </div>
             @if (day.Stress.Blocks.Count > 0)
@@ -135,23 +110,13 @@ else
                 <p class="muted small-note">@Fmt.StressWhy(day.Stress)</p>
             }
         </section>
+        <div class="tile-grid rise" style="--d:3">
+            <div class="card day-tile"><span class="k">@Icons.Get("steps")Steps</span><b class="num">@Fmt.Whole(strain.Steps)</b><small>today</small></div>
+            <div class="card day-tile"><span class="k">@Icons.Get("kcal")Calories</span><b class="num">@Fmt.Whole(strain.TotalKcal)</b><small>kcal · @Fmt.Whole(strain.ActiveKcal) active</small></div>
+            <div class="card day-tile"><span class="k">@Icons.Get("heart")Zone 2+</span><b class="num">@strain.ZoneMinutes.Skip(1).Sum()</b><small>min today</small></div>
+            <div class="card day-tile"><span class="k">@Icons.Get("sleep")Bedtime</span><b class="num">@Fmt.Clock(sleep.Bedtime)</b><small>tonight</small></div>
+        </div>
 
-        <a class="card rise" style="--d:3" href="/stress@(dateLink)#energy">
-            <div class="card-head">
-                <h2>Energy bank</h2>
-                <span class="more">@Icons.Get("right")</span>
-            </div>
-            <div class="se-mini">
-                <div class="ring-box" style="--size:96px">
-                    @Charts.Ring((day.Energy.Now ?? 0) / 100.0, "nrg", thin: true)
-                    <div class="center"><span class="big num" style="font-size:28px">@(day.Energy.Now?.ToString() ?? "—")</span></div>
-                </div>
-                <div class="grow">
-                    <span class="kicker">@(Model.IsToday ? "Left now" : "Left at night")</span>
-                    <p class="muted" style="font-size:13px;margin:4px 0 0">Woke up with @(day.Energy.Start?.ToString() ?? "—"). Spent @day.Energy.ActivityDrain moving and @day.Energy.StressDrain on stress.</p>
-                </div>
-            </div>
-        </a>
     </div>
 
     <div class="row">
@@ -199,6 +164,40 @@ else
                             <div class="meter" style="--fill:@colour"><i style="width:@goal.Percent%"></i></div>
                         </div>
                     }
+                </div>
+            </section>
+        }
+    </div>
+
+    <div class="row coach-row">
+        @if (Model.AiCoach is { Enabled: true })
+        {
+            @* With an AI provider set up, the AI coach takes the coach's place (it writes only when you tap Ask AI). *@
+            <partial name="_AiCard" model='new AiCardModel(AiCoachTopic.Overview, Model.IsToday ? null : Model.Date, "A short read on your day", Visible: true)' />
+        }
+        else
+        {
+            <section class="card coach rise" style="--d:4">
+                <div class="coach-head">
+                    <span class="coach-ico">@Icons.Get("sparkle")</span>
+                    <span class="kicker" style="color:var(--slp-text)">Coach</span>
+                </div>
+                @if (lead is not null)
+                {
+                    <p class="coach-lead">@lead.Title</p>
+                    <ul class="tips">
+                        @foreach (var tip in day.Coach)
+                        {
+                            <li class="@tip.Tone">@tip.Text</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="muted">The coach needs a night and a morning of data to say something useful.</p>
+                }
+                <div class="head-acts" style="margin-top:auto">
+                    <a class="btn ghost small" href="/journal">@Icons.Get("journal")Log in the journal</a>
                 </div>
             </section>
         }

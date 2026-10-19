@@ -1065,3 +1065,67 @@ h1, h2, h3 { font-weight: 800; letter-spacing: -0.025em; }
 .sec-calendar { --accent: var(--rec); --accent-soft: var(--rec-soft); }
 .sec-breathe { --accent: var(--sky); --accent-soft: color-mix(in srgb, var(--sky) 14%, transparent); }
 .st-rem, [data-theme="light"] .st-rem { fill: var(--rem); } .st-core, [data-theme="light"] .st-core { fill: var(--slp); } .st-deep, [data-theme="light"] .st-deep { fill: var(--slp-2); }
+
+/* ======================================================= v1.3.1 polish == */
+
+/* Rings and progress bars in a soft gradient of their colour. */
+.rg-a { stop-color: color-mix(in srgb, var(--ring, var(--rec)) 45%, #FFFFFF); }
+.rg-b { stop-color: var(--ring, var(--rec)); }
+[data-theme="light"] .rg-a { stop-color: color-mix(in srgb, var(--ring, var(--rec)) 55%, #FFFFFF); }
+.meter i { background: linear-gradient(90deg, color-mix(in srgb, var(--fill, var(--rec)) 50%, #FFFFFF), var(--fill, var(--rec))); }
+.target .fill { background: linear-gradient(90deg, color-mix(in srgb, var(--str) 45%, #FFFFFF), var(--str)); }
+.progress i { background: linear-gradient(90deg, color-mix(in srgb, var(--sky) 45%, #FFFFFF), var(--sky)); }
+.pd.met i { background: linear-gradient(90deg, color-mix(in srgb, var(--pg, var(--rec)) 50%, #FFFFFF), var(--pg, var(--rec))); }
+
+/* Today: energy like the mock, the four day tiles under stress. */
+.ttl-ico { display: inline-flex; align-items: center; gap: 10px; }
+.ttl-ico .ico-chip { width: 36px; height: 36px; border-radius: 12px; }
+.ttl-ico .ico-chip .ic { width: 19px; height: 19px; }
+.ico-chip.nrg { --chip-bg: var(--nrg-soft); --chip-fg: var(--nrg); }
+.card-head:has(.ttl-ico) { align-items: center; }
+.energy-card { gap: 14px; }
+.en-big { display: flex; align-items: baseline; gap: 8px; }
+.en-big b { font-size: 46px; line-height: 1; }
+.en-big span { font-size: 15px; font-weight: 600; color: var(--muted); }
+.en-bar { height: 14px; border-radius: 7px; background: var(--line-2); overflow: hidden; }
+[data-theme="light"] .en-bar { background: rgba(16, 24, 40, 0.07); }
+.en-bar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, color-mix(in srgb, var(--nrg) 45%, #FFFFFF), var(--nrg)); animation: grow 1.1s var(--ease) both; transform-origin: left; }
+.en-drain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.en-drain .k { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.en-drain .k i { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+.en-drain b { font-size: 18px; }
+.tile-grid { flex: 1 1 320px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.day-tile { gap: 6px; padding: 16px; }
+.day-tile .k { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.day-tile .k .ic { width: 15px; height: 15px; }
+.day-tile b { font-size: 26px; line-height: 1.1; }
+.day-tile small { font-size: 12px; color: var(--dim); }
+
+/* Shown only on the phone or only on the computer, inline. */
+.on-phone { display: none; }
+@media (max-width: 1023px) {
+  .on-phone { display: inline; }
+  .on-desk { display: none !important; }
+
+  /* A tighter top: the bar closer to the edge, the title right under it, the day picker beside the title. */
+  .phone-top { padding-top: calc(6px + env(safe-area-inset-top)); padding-bottom: 6px; }
+  .phone-top .brand { font-size: 18px; }
+  .phone-top .icon-btn, .phone-top .avatar { width: 40px; height: 40px; }
+  .page { padding-top: 2px; gap: 14px; }
+  .head { flex-wrap: nowrap; gap: 10px; align-items: flex-end; }
+  .head > div:first-child { min-width: 0; }
+  .head .eyebrow { font-size: 13px; }
+  .head h1 { font-size: 30px; margin-top: 2px; }
+  .head .head-acts { flex: none; flex-wrap: nowrap; }
+  .head:has(.head-acts > :not(.datenav):not(.on-desk)) { flex-wrap: wrap; }
+  .head:has(.head-acts > :not(.datenav):not(.on-desk)) .head-acts { flex-wrap: wrap; }
+  .datenav { padding: 3px; }
+  .datenav a, .datenav span.off { width: 34px; height: 34px; }
+  .datenav .label { min-width: 0; padding: 0 6px; font-size: 13px; }
+  .week { padding: 6px; }
+  .week a { min-height: 58px; padding: 4px 0; }
+  .en-big b { font-size: 40px; }
+}
+.sync-dot { width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: var(--rec); vertical-align: 2px; }
+@media (max-width: 1023px) { .sync-dot.on-phone { display: inline-block; } .head .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+@media (max-width: 1023px) { .head:has(.head-acts > :not(.datenav):not(.on-desk)) .head-acts { flex: 1 1 100%; min-width: 0; } }

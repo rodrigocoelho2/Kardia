@@ -20,7 +20,7 @@ public static class Charts
     private static int _ids;
 
     /// <summary>
-    /// A score ring: a flat track and the value in the pillar's colour with round caps, plus (for strain) the target
+    /// A score ring: a flat track and the value in a soft gradient of the pillar's colour with round caps, plus (for strain) the target
     /// arc just outside it.
     /// </summary>
     /// <param name="fraction">How full, 0–1.</param>
@@ -44,8 +44,10 @@ public static class Charts
         var length = value * RingLength;
         var width = thin ? 18 : 16;
 
+        var id = NextId();
         var svg = new StringBuilder();
         svg.Append(Invariant, $"<svg class=\"ring p-{palette}\" viewBox=\"0 0 220 220\" aria-hidden=\"true\" style=\"--ring:{colour}\">");
+        svg.Append(Invariant, $"<defs><linearGradient id=\"{id}\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" class=\"rg-a\"/><stop offset=\"1\" class=\"rg-b\"/></linearGradient></defs>");
         svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-track\" stroke-width=\"{width}\"/>");
         svg.Append("<g transform=\"rotate(-90 110 110)\">");
         if (target is { } arc && !thin)
@@ -58,7 +60,7 @@ public static class Charts
 
         if (length > 0.5)
         {
-            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\"/>");
+            svg.Append(Invariant, $"<circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"none\" class=\"ring-val\" style=\"stroke:url(#{id})\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-dasharray=\"{length:0.0} {RingLength:0.0}\"/>");
         }
 
         svg.Append("</g></svg>");
