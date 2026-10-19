@@ -44,4 +44,10 @@ public enum HealthMetric
 
     /// <summary>Time in daylight, in minutes (Apple Watch, watchOS 10+).</summary>
     Daylight = 13,
+
+    /// <summary>
+    /// Heart rate while asleep (bpm): the mean of the lowest fifth of last night's heart-rate minutes, worked out by
+    /// Kardia. Stands in for Apple's resting heart rate when that hasn't arrived yet.
+    /// </summary>
+    SleepingHeartRate = 14,
 }

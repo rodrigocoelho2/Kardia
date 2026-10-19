@@ -19,7 +19,7 @@
     var sleeps = Model.Summaries.Where(static s => s.AsleepMinutes is not null).Select(static s => s.AsleepMinutes!.Value).ToList();
 }
 
-<header class="head rise">
+<header class="head tight rise">
     <div>
         <div class="eyebrow">Recovery calendar · @scored.Count days scored</div>
         <h1>@month.ToString("MMMM yyyy", inv)</h1>

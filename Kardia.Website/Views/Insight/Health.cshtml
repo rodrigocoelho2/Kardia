@@ -58,7 +58,7 @@
                             <b class="mark @Fmt.SignClass(sign.Status)" style="left:@Pct(At(value))"></b>
                         }
                     </div>
-                    <small><span class="hm-word @Fmt.SignClass(sign.Status)">@Fmt.SignWords(sign)</span> · usually @Fmt.SignRange(sign.Key, sign.Low, sign.High, sign.Unit, sign.Decimals)</small>
+                    <small><span class="hm-word @Fmt.SignClass(sign.Status)">@Fmt.SignWords(sign)</span> · usually @Fmt.SignRange(sign.Key, sign.Low, sign.High, sign.Unit, sign.Decimals)@(sign.Estimated ? " · from last night's heart rate, until Apple's arrives" : "")</small>
                 </div>
             </div>
         }

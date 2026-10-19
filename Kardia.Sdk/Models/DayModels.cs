@@ -154,6 +154,9 @@ public sealed class RecoveryDTO
     /// <summary>Gets or sets the HRV baseline (ms).</summary>
     public double HrvBaseline { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether the resting heart rate was worked out from last night's heart rate.</summary>
+    public bool RestingEstimated { get; set; }
+
     /// <summary>Gets or sets the resting heart rate.</summary>
     public double? RestingHeartRate { get; set; }
 
@@ -521,6 +524,9 @@ public sealed class HealthSignDTO
 
     /// <summary>Gets or sets the decimals to show.</summary>
     public int Decimals { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether Kardia worked the value out (resting heart rate from last night's heart rate).</summary>
+    public bool Estimated { get; set; }
 }
 
 /// <summary>Cardio load: the last 7 days of heart load against the last 28.</summary>

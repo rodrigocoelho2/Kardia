@@ -86,9 +86,42 @@ internal sealed class DayLoadService(IHealthDataRepository healthDataRepository,
             });
         }
 
+        // The heart rate asleep (stands in for Apple's resting heart rate when that hasn't arrived yet).
+        var asleep = new List<DailyMetricRow>();
+        foreach (var night in await _healthDataRepository.SleepsListAsync(userId, list[0], list[^1]))
+        {
+            var minutes = await _healthDataRepository.HeartRatesListAsync(userId, night.BedStart, night.BedEnd);
+            if (SleepingHeartRate(minutes) is { } bpm)
+            {
+                asleep.Add(new DailyMetricRow { DayDate = night.NightDate.Date, Metric = (int)HealthMetric.SleepingHeartRate, Value = (decimal)bpm });
+            }
+        }
+
+        if (asleep.Count > 0)
+        {
+            await _healthDataRepository.MetricsSaveAsync(userId, asleep);
+        }
+
         await _healthDataRepository.LoadsSaveAsync(userId, loads);
         await _healthDataRepository.WorkoutsRecoverySaveAsync(userId, recoveries);
         DataVersion.Bump(userId);
         return loads;
+    }
+
+    /// <summary>
+    /// The heart rate asleep: the mean of the lowest fifth of a night's heart-rate minutes (at least an hour of them),
+    /// so a wake-up or a bad reading can't move it.
+    /// </summary>
+    /// <param name="minutes">The night's heart-rate minutes.</param>
+    /// <returns>The bpm, one decimal, or null with too few minutes.</returns>
+    internal static double? SleepingHeartRate(IReadOnlyCollection<HeartRateRow> minutes)
+    {
+        if (minutes.Count < 60)
+        {
+            return null;
+        }
+
+        var lowest = minutes.Select(static minute => (double)minute.Bpm).Order().Take(Math.Max(10, minutes.Count / 5)).ToList();
+        return Math.Round(lowest.Average(), 1);
     }
 }

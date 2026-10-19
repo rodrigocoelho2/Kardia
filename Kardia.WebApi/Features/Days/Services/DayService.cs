@@ -228,6 +228,7 @@ internal sealed class DayService(
                 High = sign.High,
                 Status = sign.Status,
                 Decimals = sign.Decimals,
+                Estimated = sign.Estimated,
             }).ToList(),
         };
     }
@@ -270,6 +271,7 @@ internal sealed class DayService(
         Zone = score.Recovery.Zone,
         Hrv = Round(score.Value(HealthMetric.Hrv), 0),
         HrvBaseline = Math.Round(score.HrvBaseline.Mean, 0),
+        RestingEstimated = score.RestingEstimated,
         RestingHeartRate = Round(score.Value(HealthMetric.RestingHeartRate), 0),
         RestingBaseline = Math.Round(score.RestingBaseline.Mean, 0),
         RespiratoryRate = Round(score.Value(HealthMetric.RespiratoryRate), 1),

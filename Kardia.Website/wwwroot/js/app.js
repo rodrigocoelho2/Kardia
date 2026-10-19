@@ -107,9 +107,53 @@
     });
   });
 
-  /* Forms that save as soon as a choice changes (sleep goal, appearance). */
+  /* Forms that save as soon as a choice changes (sleep goal, appearance). The page comes back where you were. */
+  var SCROLL_KEY = "kardia-scroll";
+  try {
+    var kept = JSON.parse(sessionStorage.getItem(SCROLL_KEY) || "null");
+    sessionStorage.removeItem(SCROLL_KEY);
+    if (kept && kept.path === location.pathname) {
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      window.scrollTo({ top: kept.y, behavior: "instant" });
+    }
+  } catch (e) { /* storage off: the page opens at the top */ }
+
+  /* Light and dark switch in place with a soft cross-fade, and save in the background. */
+  var applyTheme = function (choice) {
+    var root = document.documentElement;
+    var light = choice === "light" || (choice === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
+    var paint = function () {
+      root.setAttribute("data-theme", light ? "light" : "dark");
+      var meta = document.querySelector("meta[data-theme-color]");
+      if (meta) meta.setAttribute("content", light ? "#F2F3F5" : "#0B0C0F");
+      var scheme = document.querySelector('meta[name="color-scheme"]');
+      if (scheme) scheme.setAttribute("content", choice === "system" ? "dark light" : light ? "light" : "dark");
+    };
+    var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) { paint(); return; }
+    if (document.startViewTransition) {
+      root.classList.add("theme-vt");
+      var vt = document.startViewTransition(paint);
+      vt.finished.finally(function () { root.classList.remove("theme-vt"); });
+    } else {
+      root.classList.add("theme-fade");
+      paint();
+      setTimeout(function () { root.classList.remove("theme-fade"); }, 380);
+    }
+  };
+
   document.querySelectorAll("form[data-autosubmit]").forEach(function (form) {
-    form.addEventListener("change", function () { form.submit(); });
+    form.addEventListener("change", function () {
+      if (form.hasAttribute("data-theme-form")) {
+        var picked = form.querySelector("input[name=theme]:checked");
+        if (!picked) return;
+        applyTheme(picked.value);
+        fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin" }).catch(function () { form.submit(); });
+        return;
+      }
+      try { sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ path: location.pathname, y: window.scrollY })); } catch (e) { /* fine */ }
+      form.submit();
+    });
   });
 
   /* Print or save as PDF. */

@@ -56,7 +56,7 @@ else
                 <div class="grow">
                     <span class="top"><span>Resting heart rate</span><span class="num">@(rec.RestingHeartRate?.ToString("0") ?? "—") <small>bpm</small> <span class="@(restChange <= 0 ? "good-t" : "warn-t")" style="font-size:12px">@Fmt.Signed(restChange)</span></span></span>
                     <div class="meter" style="--fill:var(--rose)"><i style="width:@Pct((rec.RestingHeartRate ?? 0) / Math.Max(1, rec.RestingBaseline * 1.4) * 100)"></i><b style="left:@Pct(100 / 1.4)"></b></div>
-                    <small>Normal @rec.RestingBaseline.ToString("0") bpm · lower than usual is better (25%)</small>
+                    <small>Normal @rec.RestingBaseline.ToString("0") bpm · lower than usual is better (25%)@(rec.RestingEstimated ? " · from last night's heart rate, until Apple's arrives" : "")</small>
                 </div>
             </div>
             <div class="list-row">

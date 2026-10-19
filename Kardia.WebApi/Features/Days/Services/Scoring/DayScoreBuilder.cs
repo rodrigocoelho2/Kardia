@@ -15,6 +15,12 @@ internal sealed class DayScore
     /// <summary>Gets the day's values from Apple Health.</summary>
     public required IReadOnlyDictionary<HealthMetric, double> Values { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the resting heart rate was worked out from last night's heart rate (Apple's
+    /// hadn't arrived).
+    /// </summary>
+    public bool RestingEstimated { get; init; }
+
     /// <summary>Gets the HRV baseline (the 30 days before).</summary>
     public required Baseline HrvBaseline { get; init; }
 
@@ -115,6 +121,7 @@ internal static class DayScoreBuilder
             dayValues[(HealthMetric)row.Metric] = (double)row.Value;
         }
 
+        var estimated = EstimateResting(values);
         var nightsByDay = nights.GroupBy(static night => DateOnly.FromDateTime(night.NightDate)).ToDictionary(static group => group.Key, static group => group.Last());
         var loadsByDay = loads.GroupBy(static load => DateOnly.FromDateTime(load.DayDate)).ToDictionary(static group => group.Key, static group => group.Last());
 
@@ -184,6 +191,7 @@ internal static class DayScoreBuilder
             {
                 Date = day,
                 Values = values.TryGetValue(day, out var dayValues) ? dayValues : new Dictionary<HealthMetric, double>(),
+                RestingEstimated = estimated.Contains(day),
                 HrvBaseline = hrvBaseline,
                 RestingBaseline = restingBaseline,
                 RespiratoryBaseline = respiratoryBaseline,
@@ -204,5 +212,42 @@ internal static class DayScoreBuilder
         }
 
         return scores;
+    }
+
+    /// <summary>The usual gap between Apple's resting heart rate and the heart rate asleep, until yours is known.</summary>
+    public const double DefaultRestingOffset = 3;
+
+    /// <summary>
+    /// Days without Apple's resting heart rate but with a night of heart rate get one from it: the heart rate asleep
+    /// plus your usual gap between the two (the last 30 days with both, at least 3), so it sits on the same scale.
+    /// </summary>
+    /// <param name="values">The values by day (filled in place).</param>
+    /// <returns>The days that got an estimate.</returns>
+    internal static HashSet<DateOnly> EstimateResting(Dictionary<DateOnly, Dictionary<HealthMetric, double>> values)
+    {
+        var estimated = new HashSet<DateOnly>();
+        foreach (var (day, dayValues) in values.OrderBy(static pair => pair.Key))
+        {
+            if (dayValues.ContainsKey(HealthMetric.RestingHeartRate) || !dayValues.TryGetValue(HealthMetric.SleepingHeartRate, out var asleep))
+            {
+                continue;
+            }
+
+            var gaps = new List<double>();
+            for (var back = 1; back <= Baseline.Days; back++)
+            {
+                if (values.TryGetValue(day.AddDays(-back), out var before) && !estimated.Contains(day.AddDays(-back))
+                    && before.TryGetValue(HealthMetric.RestingHeartRate, out var resting) && before.TryGetValue(HealthMetric.SleepingHeartRate, out var sleeping))
+                {
+                    gaps.Add(resting - sleeping);
+                }
+            }
+
+            var gap = gaps.Count >= 3 ? gaps.Average() : DefaultRestingOffset;
+            dayValues[HealthMetric.RestingHeartRate] = Math.Round(asleep + gap);
+            estimated.Add(day);
+        }
+
+        return estimated;
     }
 }

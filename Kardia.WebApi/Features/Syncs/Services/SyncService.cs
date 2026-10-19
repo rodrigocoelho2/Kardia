@@ -190,9 +190,10 @@ internal sealed class SyncService(
             DataVersion.Bump(id);
             var saved = watch.ElapsedMilliseconds;
 
-            // A new resting heart rate changes the load of its day too.
+            // A new resting heart rate changes the load of its day too, and a new night its heart rate asleep.
             var loadDays = data.HeartRates.Select(static row => DateOnly.FromDateTime(row.MinuteAt))
-                .Concat(data.Metrics.Where(static row => row.Metric == (int)HealthMetric.RestingHeartRate).Select(static row => DateOnly.FromDateTime(row.DayDate)));
+                .Concat(data.Metrics.Where(static row => row.Metric == (int)HealthMetric.RestingHeartRate).Select(static row => DateOnly.FromDateTime(row.DayDate)))
+                .Concat(data.Sleeps.Select(static night => DateOnly.FromDateTime(night.NightDate)));
             await _dayLoadService.RecomputeAsync(id, loadDays);
 
             var days = data.Days.ToList();

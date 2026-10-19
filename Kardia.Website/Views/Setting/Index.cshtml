@@ -167,7 +167,7 @@
         <h2>Appearance</h2>
         <span class="side-note">saved on this device</span>
     </div>
-    <form method="post" action="/settings/theme" data-autosubmit>
+    <form method="post" action="/settings/theme" data-autosubmit data-theme-form>
         @Html.AntiForgeryToken()
         <div class="choices">
             @foreach (var (value, name, icon, text) in new[] { ("system", "Automatic", "device", "follows your phone or computer"), ("dark", "Dark", "moon", "the default"), ("light", "Light", "sun", "for bright rooms") })

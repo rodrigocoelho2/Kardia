@@ -1112,13 +1112,13 @@ h1, h2, h3 { font-weight: 800; letter-spacing: -0.025em; }
   .phone-top .brand { font-size: 18px; }
   .phone-top .icon-btn, .phone-top .avatar { width: 40px; height: 40px; }
   .page { padding-top: 2px; gap: 14px; }
-  .head { flex-wrap: nowrap; gap: 10px; align-items: flex-end; }
+  .head { gap: 10px; align-items: flex-end; }
+  .head.tight { flex-wrap: nowrap; }
   .head > div:first-child { min-width: 0; }
   .head .eyebrow { font-size: 13px; }
   .head h1 { font-size: 30px; margin-top: 2px; }
-  .head .head-acts { flex: none; flex-wrap: nowrap; }
-  .head:has(.head-acts > :not(.datenav):not(.on-desk)) { flex-wrap: wrap; }
-  .head:has(.head-acts > :not(.datenav):not(.on-desk)) .head-acts { flex-wrap: wrap; }
+  .head.tight .head-acts { flex: none; flex-wrap: nowrap; }
+  .head:not(.tight) > div:first-child { flex: 1 1 100%; }
   .datenav { padding: 3px; }
   .datenav a, .datenav span.off { width: 34px; height: 34px; }
   .datenav .label { min-width: 0; padding: 0 6px; font-size: 13px; }
@@ -1127,5 +1127,10 @@ h1, h2, h3 { font-weight: 800; letter-spacing: -0.025em; }
   .en-big b { font-size: 40px; }
 }
 .sync-dot { width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: var(--rec); vertical-align: 2px; }
-@media (max-width: 1023px) { .sync-dot.on-phone { display: inline-block; } .head .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
-@media (max-width: 1023px) { .head:has(.head-acts > :not(.datenav):not(.on-desk)) .head-acts { flex: 1 1 100%; min-width: 0; } }
+@media (max-width: 1023px) { .sync-dot.on-phone { display: inline-block; } .head.tight .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+@media (max-width: 1023px) { .head:not(.tight) .head-acts, .head:not(.tight) > .tabs-seg { flex: 1 1 100%; min-width: 0; } }
+
+/* Switching light and dark: a soft cross-fade in place, no reload. */
+html.theme-vt::view-transition-old(*) { animation: vt-fade-out 0.32s ease both; mix-blend-mode: normal; }
+html.theme-vt::view-transition-new(*) { animation: fade-in 0.32s ease both; mix-blend-mode: normal; }
+html.theme-fade, html.theme-fade * { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, fill 0.3s ease, stroke 0.3s ease, box-shadow 0.3s ease !important; }

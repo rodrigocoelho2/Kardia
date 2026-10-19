@@ -12,7 +12,7 @@
     var dateLink = Model.IsToday ? "" : "?date=" + Fmt.Iso(Model.Date);
 }
 
-<header class="head rise">
+<header class="head tight rise">
     <div>
         <div class="eyebrow">@Fmt.LongDate(Model.Date)@if (day.LastSyncAt is { } syncedAt) {<span class="on-phone sync-dot" title="Apple Watch synced @Fmt.Ago(syncedAt)" aria-label="Apple Watch synced @Fmt.Ago(syncedAt)"></span>}</div>
         <h1>@if (Model.IsToday) {<span class="on-desk">@Model.Greeting, @Model.UserName</span><span class="on-phone">Today</span>} else {@Fmt.LongDate(Model.Date)}</h1>

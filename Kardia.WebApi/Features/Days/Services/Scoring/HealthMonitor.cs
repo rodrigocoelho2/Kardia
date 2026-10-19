@@ -12,7 +12,8 @@ namespace Kardia.WebApi.Features.Days.Services.Scoring;
 /// <param name="High">Top of your typical range.</param>
 /// <param name="Status">Where the value sits.</param>
 /// <param name="Decimals">Decimals to show.</param>
-internal sealed record HealthSign(string Key, string Name, double? Value, string Unit, double Typical, double Low, double High, HealthSignStatus Status, int Decimals);
+/// <param name="Estimated">Whether the value was worked out by Kardia (resting heart rate from last night's heart rate).</param>
+internal sealed record HealthSign(string Key, string Name, double? Value, string Unit, double Typical, double Low, double High, HealthSignStatus Status, int Decimals, bool Estimated = false);
 
 /// <summary>
 /// The Health Monitor: last night's HRV, resting heart rate, respiratory rate, blood oxygen and wrist temperature, each
@@ -41,7 +42,7 @@ internal static class HealthMonitor
         return
         [
             Sign("hrv", "Heart rate variability", day.Value(HealthMetric.Hrv), "ms", day.HrvBaseline, 0, lowOnly: false),
-            Sign("resting", "Resting heart rate", day.Value(HealthMetric.RestingHeartRate), "bpm", day.RestingBaseline, 0, lowOnly: false),
+            Sign("resting", "Resting heart rate", day.Value(HealthMetric.RestingHeartRate), "bpm", day.RestingBaseline, 0, lowOnly: false) with { Estimated = day.RestingEstimated },
             Sign("respiratory", "Respiratory rate", day.Value(HealthMetric.RespiratoryRate), "rpm", day.RespiratoryBaseline, 1, lowOnly: false),
             Sign("oxygen", "Blood oxygen", day.Value(HealthMetric.BloodOxygen), "%", day.OxygenBaseline, 0, lowOnly: true, cap: 100),
 
