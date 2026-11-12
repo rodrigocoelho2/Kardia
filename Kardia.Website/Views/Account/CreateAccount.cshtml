@@ -89,6 +89,12 @@
             </label>
 
             <button class="btn-l brand" type="submit">Create account @Icons.Get("arrow")</button>
+
+            @if (Model.DiscordEnabled && !Model.IsFirstAccount)
+            {
+                <div class="au-or" aria-hidden="true"><span>or</span></div>
+                <a class="btn-l discord" href="/sign-in/discord?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl)"><span class="discord-mark" aria-hidden="true"></span>Sign up with Discord</a>
+            }
             @if (!Model.IsFirstAccount)
             {
                 <p class="au-fine">Already have one? <a href="/sign-in">Sign in</a></p>

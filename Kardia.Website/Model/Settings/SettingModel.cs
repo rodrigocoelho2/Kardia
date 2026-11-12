@@ -37,6 +37,21 @@ public sealed class SettingPageModel : AppPageModel
 
     /// <summary>Gets or sets the signed-in account's id.</summary>
     public string UserId { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets a value indicating whether Discord sign-in is set up on this Kardia.</summary>
+    public bool DiscordEnabled { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether this account has a Discord account linked.</summary>
+    public bool DiscordLinked { get; set; }
+
+    /// <summary>Gets or sets the linked Discord account's name.</summary>
+    public string? DiscordName { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the account has a password (one made with Discord may not).</summary>
+    public bool HasPassword { get; set; } = true;
+
+    /// <summary>Gets or sets what just happened with Discord (linked, unlinked, taken, failed, needs-password), for a note.</summary>
+    public string? DiscordNote { get; set; }
 }
 
 /// <summary>
@@ -64,7 +79,15 @@ public sealed class SettingModel(KardiaClient apiClient) : WebsiteBaseModel(apiC
         page.Profile = profile.Data;
         var syncCall = CallAsync(() => ApiClient.SyncKeyGetAsync(userId));
         var settingCall = CallAsync(() => ApiClient.SettingGetAsync(userId));
+        var userCall = CallAsync(() => ApiClient.UserGetAsync(userId));
         page.Sync = (await syncCall).Data ?? new SyncKeyDTO();
+        if ((await userCall).Data is { } me)
+        {
+            page.HasPassword = me.HasPassword;
+            page.DiscordLinked = me.DiscordLinked;
+            page.DiscordName = me.DiscordName;
+        }
+
         page.LastSyncAt = page.Sync.LastUsedAt;
         page.Setting = (await settingCall).Data ?? new SettingDTO { UserId = userId };
         if (page.IsAdmin)

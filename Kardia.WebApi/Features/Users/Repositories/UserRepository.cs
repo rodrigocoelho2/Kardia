@@ -33,5 +33,13 @@ internal sealed class UserRepository(ISqlConnectionFactory connectionFactory) : 
     public Task TouchLoginAsync(Guid userId) => ExecuteAsync("[dbo].[UserTouchLogin]", new { UserUniqueID = userId });
 
     /// <inheritdoc />
+    public Task<UserAccount?> GetByDiscordAsync(string discordId) =>
+        QuerySingleOrDefaultAsync<UserAccount>("[dbo].[UserGetByDiscord]", new { DiscordID = discordId });
+
+    /// <inheritdoc />
+    public Task<bool> SetDiscordAsync(Guid userId, string? discordId, string? discordName) =>
+        ExecuteScalarAsync<bool>("[dbo].[UserSetDiscord]", new { UserUniqueID = userId, DiscordID = discordId, DiscordName = discordName });
+
+    /// <inheritdoc />
     public Task DeleteAsync(Guid userId) => ExecuteAsync("[dbo].[UserDelete]", new { UserUniqueID = userId });
 }

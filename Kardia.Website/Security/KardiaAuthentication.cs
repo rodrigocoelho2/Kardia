@@ -48,7 +48,7 @@ internal static class KardiaAuthentication
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<LoginThrottle>();
 
-        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        var authentication = services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(cookie =>
             {
                 cookie.Cookie.Name = CookieName;
@@ -81,6 +81,11 @@ internal static class KardiaAuthentication
                 };
                 cookie.Events.OnValidatePrincipal = ValidateAsync;
             });
+
+        if (options.DiscordEnabled)
+        {
+            authentication.AddKardiaDiscord(options);
+        }
 
         services.AddAuthorization();
         return services;

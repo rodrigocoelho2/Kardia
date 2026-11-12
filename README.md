@@ -145,6 +145,7 @@
   from a dacpac, applied again on every update), the **WebApi** and the **Website**.
 - **Accounts for the house**: everyone sees only their own data; the first account (protected by a setup key) is the
   admin. Sign-ups can be closed.
+- **Sign in with Discord**: link it to your account in Settings (the password keeps working), or sign up with it.
 - **Phone and computer**: the same pages, a tab bar on the phone and a sidebar on the computer; adds to the Home Screen
   like an app. A calm, flat look (plain cards, flat rings, Manrope): **dark** by default, **light** or **automatic** in
   Settings › Appearance.
@@ -298,6 +299,22 @@ is their sum, so overlapping exports never count twice (and timed steps tell the
 Other values sent again replace the old ones (totals keep the larger one), and the heart load of each touched day and
 the heart-rate recovery of its workouts are worked out again. The answer says what it brought:
 `1 day · 1 440 heart-rate minutes · 1 night · 1 workout · 9 daily values`.
+
+## Sign in with Discord
+
+Optional:
+
+1. At [discord.com/developers/applications](https://discord.com/developers/applications) make an application (one is
+   enough for all your apps). In **OAuth2**, copy the **Client ID**, **Reset Secret** and copy the **Client Secret**,
+   and under **Redirects** add `https://<where you open Kardia>/signin-discord` (one per address).
+2. Put them in `.env` as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`, and update Kardia.
+3. Already have an account? Sign in with your password, open **Settings → Discord → Link Discord**. From then on
+   **Sign in with Discord** opens that same account, with everything in it.
+4. Someone new presses **Sign in with Discord** (or **Sign up with Discord**), picks a user name, and has an account
+   with no password. They can add one in Settings; until then Discord can't be unlinked, so nobody gets locked out.
+
+Kardia only asks Discord who you are (the `identify` scope). New accounts through Discord follow `KARDIA_ALLOW_REGISTRATION`:
+with it off, a Discord account that isn't linked can't sign in and doesn't create one.
 
 ## Notifications and the AI coach
 

@@ -76,6 +76,36 @@ internal sealed class MemoryUserRepository(MemoryStore store, TimeProvider timeP
     }
 
     /// <inheritdoc />
+    public Task<UserAccount?> GetByDiscordAsync(string discordId)
+    {
+        lock (store.Gate)
+        {
+            var user = store.Users.FirstOrDefault(user => user.DiscordID == discordId);
+            return Task.FromResult(user is null ? null : Copy(user));
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<bool> SetDiscordAsync(Guid userId, string? discordId, string? discordName)
+    {
+        lock (store.Gate)
+        {
+            if (discordId is not null && store.Users.Any(user => user.DiscordID == discordId && user.UserUniqueID != userId))
+            {
+                return Task.FromResult(false);
+            }
+
+            if (store.Users.FirstOrDefault(user => user.UserUniqueID == userId) is { } account)
+            {
+                account.DiscordID = discordId;
+                account.DiscordName = discordId is null ? null : discordName;
+            }
+
+            return Task.FromResult(true);
+        }
+    }
+
+    /// <inheritdoc />
     public Task SetPasswordAsync(Guid userId, string passwordHash, string securityStamp)
     {
         lock (store.Gate)
@@ -133,5 +163,7 @@ internal sealed class MemoryUserRepository(MemoryStore store, TimeProvider timeP
         SecurityStamp = user.SecurityStamp,
         CreatedAt = user.CreatedAt,
         LastLoginAt = user.LastLoginAt,
+        DiscordID = user.DiscordID,
+        DiscordName = user.DiscordName,
     };
 }

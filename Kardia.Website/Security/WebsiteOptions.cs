@@ -37,4 +37,13 @@ public sealed class WebsiteOptions
 
     /// <summary>Gets a value indicating whether the first account needs the setup key.</summary>
     public bool RequiresSetupKey => !string.IsNullOrEmpty(SetupKey);
+
+    /// <summary>Gets or sets the Discord application's client id (DISCORD_CLIENT_ID; empty: no Discord sign-in).</summary>
+    public string DiscordClientId { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the Discord application's client secret (DISCORD_CLIENT_SECRET).</summary>
+    public string DiscordClientSecret { get; set; } = string.Empty;
+
+    /// <summary>Gets a value indicating whether "Sign in with Discord" is on (both Discord settings are set).</summary>
+    public bool DiscordEnabled => !string.IsNullOrWhiteSpace(DiscordClientId) && !string.IsNullOrWhiteSpace(DiscordClientSecret);
 }

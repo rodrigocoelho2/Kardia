@@ -44,6 +44,21 @@ public sealed class KardiaClient(HttpClient httpClient)
     /// <returns>The account.</returns>
     public Task<UserDTO> UserSignInAsync(UserSignInRequest item) => PostAsync<UserDTO>("user/signin", item);
 
+    /// <summary>Finds the account a Discord account is linked to (a <see cref="KardiaApiException"/> with 404 when none).</summary>
+    /// <param name="item">The Discord account's id.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserDiscordSignInAsync(UserDiscordSignInRequest item) => PostAsync<UserDTO>("user/discord/signin", item);
+
+    /// <summary>Creates an account that signs in with Discord (no password until one is set).</summary>
+    /// <param name="item">The user name and the Discord account.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserDiscordCreateAsync(UserDiscordCreateRequest item) => PostAsync<UserDTO>("user/discord/create", item);
+
+    /// <summary>Links a Discord account to an account, or unlinks it (no DiscordId).</summary>
+    /// <param name="item">The account and the Discord account.</param>
+    /// <returns>The account.</returns>
+    public Task<UserDTO> UserDiscordLinkAsync(UserDiscordLinkRequest item) => PostAsync<UserDTO>("user/discord", item);
+
     /// <summary>Changes a password.</summary>
     /// <param name="item">The account, current and new password.</param>
     /// <returns>The account.</returns>

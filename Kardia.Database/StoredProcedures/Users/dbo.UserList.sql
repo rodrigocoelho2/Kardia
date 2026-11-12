@@ -15,7 +15,9 @@ BEGIN
            u.[IsAdmin],
            u.[SecurityStamp],
            u.[CreatedAt],
-           u.[LastLoginAt]
+           u.[LastLoginAt],
+           u.[DiscordID],
+           u.[DiscordName]
     FROM [dbo].[User] u
     ORDER BY u.[UserID];
 END

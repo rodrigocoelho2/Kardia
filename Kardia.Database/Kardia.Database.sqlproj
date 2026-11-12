@@ -75,8 +75,10 @@
     <Build Include="StoredProcedures\Users\dbo.UserCreate.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserDelete.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserGet.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserGetByDiscord.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserGetByName.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserList.sql" />
+    <Build Include="StoredProcedures\Users\dbo.UserSetDiscord.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserSetPassword.sql" />
     <Build Include="StoredProcedures\Users\dbo.UserTouchLogin.sql" />
   </ItemGroup>

@@ -76,6 +76,44 @@ internal sealed class UserController(
     [SwaggerOperation(Summary = "UserSignIn", OperationId = "UserSignIn")]
     public async Task<ActionResult<UserDTO>> UserSignInAsync(UserSignInRequest item) => (await _userService.SignInAsync(item)).ToActionResult();
 
+    /// <summary>Finds the account a Discord account (already checked by the Website) is linked to.</summary>
+    /// <param name="item">The Discord account's id.</param>
+    /// <returns>The account.</returns>
+    [HttpPost("discord/signin")]
+    [ProducesResponseType<UserDTO>((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [SwaggerOperation(Summary = "UserDiscordSignIn", OperationId = "UserDiscordSignIn")]
+    public async Task<ActionResult<UserDTO>> UserDiscordSignInAsync(UserDiscordSignInRequest item) => (await _userService.DiscordSignInAsync(item)).ToActionResult();
+
+    /// <summary>Creates an account that signs in with a Discord account (already checked by the Website), without a password.</summary>
+    /// <param name="item">The user name and the Discord account.</param>
+    /// <returns>The account.</returns>
+    [HttpPost("discord/create")]
+    [ProducesResponseType<UserDTO>((int)HttpStatusCode.OK)]
+    [SwaggerOperation(Summary = "UserDiscordCreate", OperationId = "UserDiscordCreate")]
+    public async Task<ActionResult<UserDTO>> UserDiscordCreateAsync(UserDiscordCreateRequest item)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("UserDiscordCreate [UserName={UserName}]", item.UserName);
+
+        return (await _userService.DiscordCreateAsync(item)).ToActionResult();
+    }
+
+    /// <summary>Links a Discord account to an account, or unlinks it.</summary>
+    /// <param name="item">The account and the Discord account.</param>
+    /// <returns>The account.</returns>
+    [HttpPost("discord")]
+    [ProducesResponseType<UserDTO>((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [SwaggerOperation(Summary = "UserDiscordLink", OperationId = "UserDiscordLink")]
+    public async Task<ActionResult<UserDTO>> UserDiscordLinkAsync(UserDiscordLinkRequest item)
+    {
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("UserDiscordLink [Id={Id}, Linked={Linked}]", item.Id, !string.IsNullOrWhiteSpace(item.DiscordId));
+
+        return (await _userService.LinkDiscordAsync(item)).ToActionResult();
+    }
+
     /// <summary>Changes a password.</summary>
     /// <param name="item">The account, current and new password.</param>
     /// <returns>The account.</returns>

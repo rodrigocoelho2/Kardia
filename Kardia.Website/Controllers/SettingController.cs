@@ -1,9 +1,11 @@
 using Kardia.Library.Enums;
+using Kardia.Sdk;
 using Kardia.Sdk.Models;
 using Kardia.Website.Helpers;
 using Kardia.Website.Model;
 using Kardia.Website.Model.Settings;
 using Kardia.Website.Security;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -15,15 +17,17 @@ namespace Kardia.Website.Controllers;
 /// </summary>
 /// <param name="apiClient">The API client.</param>
 /// <param name="options">Website settings (the public address for the sync).</param>
-public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOptions<WebsiteOptions> options) : WebsiteBaseController(apiClient)
+public sealed class SettingController(KardiaClient apiClient, IOptions<WebsiteOptions> options) : WebsiteBaseController(apiClient)
 {
     /// <summary>The settings.</summary>
     /// <param name="saved">Which form was just saved, for the notice.</param>
+    /// <param name="discord">What just happened with Discord (linked, unlinked, taken, failed, needs-password), for a note.</param>
     /// <returns>The view.</returns>
     [HttpGet("/settings")]
-    public async Task<IActionResult> Index(string? saved = null)
+    public async Task<IActionResult> Index(string? saved = null, string? discord = null)
     {
         var page = await PageAsync();
+        page.DiscordNote = discord;
         page.Notice = saved switch
         {
             "profile" => "Profile saved. Your scores use it from now on.",
@@ -212,6 +216,44 @@ public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOption
         return View("Index", page);
     }
 
+    /// <summary>Sends the browser to Discord to link a Discord account to this account.</summary>
+    /// <returns>A redirect to Discord.</returns>
+    [HttpPost("/settings/discord")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DiscordLink()
+    {
+        if (!options.Value.DiscordEnabled)
+        {
+            return NotFound();
+        }
+
+        var properties = new AuthenticationProperties { RedirectUri = "/sign-in/discord/done" };
+        properties.Items[DiscordAuthentication.ModeKey] = "link";
+        return Challenge(properties, DiscordAuthentication.Scheme);
+    }
+
+    /// <summary>Unlinks the Discord account (only when the account has a password to sign in with).</summary>
+    /// <returns>Back to Settings with a note.</returns>
+    [HttpPost("/settings/discord/unlink")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DiscordUnlink()
+    {
+        try
+        {
+            await ApiClient.UserDiscordLinkAsync(new UserDiscordLinkRequest { Id = UserId });
+        }
+        catch (KardiaApiException exception) when (exception.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            return Redirect("/settings?discord=needs-password#discord");
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or KardiaApiException)
+        {
+            return Redirect("/settings?discord=failed#discord");
+        }
+
+        return Redirect("/settings?discord=unlinked#discord");
+    }
+
     /// <summary>Makes a new Apple Watch key (shown once).</summary>
     /// <returns>JSON <c>AjaxDataResult</c> with the key.</returns>
     [HttpPost("/settings/sync-key")]
@@ -259,6 +301,7 @@ public sealed class SettingController(Kardia.Sdk.KardiaClient apiClient, IOption
     {
         var page = await new SettingModel(ApiClient).PageAsync(Shell(new SettingPageModel(), AppSection.Settings), UserId);
         page.Theme = Theme.Of(HttpContext);
+        page.DiscordEnabled = options.Value.DiscordEnabled;
         var origin = string.IsNullOrWhiteSpace(options.Value.PublicUrl) ? $"{Request.Scheme}://{Request.Host}" : options.Value.PublicUrl.TrimEnd('/');
         page.SyncUrl = origin + "/api/sync";
         return page;

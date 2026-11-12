@@ -48,4 +48,10 @@ public sealed class AccountPageModel
 
     /// <summary>Gets or sets the demo account's password (demo mode only).</summary>
     public string? DemoPassword { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether "Sign in with Discord" is shown.</summary>
+    public bool DiscordEnabled { get; set; }
+
+    /// <summary>Gets or sets the Discord account's name, while creating an account with it.</summary>
+    public string? DiscordName { get; set; }
 }

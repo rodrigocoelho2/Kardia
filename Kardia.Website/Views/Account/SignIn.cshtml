@@ -55,6 +55,12 @@
 
             <button class="btn-l brand" type="submit">Sign in @Icons.Get("arrow")</button>
 
+            @if (Model.DiscordEnabled)
+            {
+                <div class="au-or" aria-hidden="true"><span>or</span></div>
+                <a class="btn-l discord" href="/sign-in/discord?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl)"><span class="discord-mark" aria-hidden="true"></span>Sign in with Discord</a>
+            }
+
             @if (Model.CanCreateAccount)
             {
                 <p class="au-fine">No account yet? <a href="/create-account">Create one</a></p>

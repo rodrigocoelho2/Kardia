@@ -21,6 +21,7 @@
         <a class="seg" href="#notifications">Notifications</a>
         <a class="seg" href="#appearance">Appearance</a>
         <a class="seg" href="#apple-watch">Apple Watch</a>
+        @if (Model.DiscordEnabled) { <a class="seg" href="#discord">Discord</a> }
         <a class="seg" href="#account">Password</a>
         @if (Model.IsAdmin) { <a class="seg" href="#users">Accounts</a> }
     </nav>
@@ -241,9 +242,59 @@
         </div>
     </section>
 
+    @if (Model.DiscordEnabled)
+    {
+        <section class="card rise" id="discord" style="--d:3">
+            <div class="card-head">
+                <h2>Discord</h2>
+                @if (Model.DiscordLinked) { <span class="side-note">linked to @(Model.DiscordName ?? "your Discord account")</span> }
+            </div>
+            @switch (Model.DiscordNote)
+            {
+                case "linked":
+                    <div class="alert ok" role="status">Discord is linked. Next time, use "Sign in with Discord".</div>
+                    break;
+                case "unlinked":
+                    <div class="alert ok" role="status">Discord is unlinked. Sign in with your password.</div>
+                    break;
+                case "taken":
+                    <div class="alert err" role="alert">That Discord account is already linked to another account here.</div>
+                    break;
+                case "failed":
+                    <div class="alert err" role="alert">Discord didn't finish. Try again.</div>
+                    break;
+                case "needs-password":
+                    <div class="alert err" role="alert">Discord is the only way into this account. Set a password below before unlinking it.</div>
+                    break;
+            }
+            <div class="discord-row">
+                @if (!Model.DiscordLinked)
+                {
+                    <p>Link your Discord account to sign in with it instead of your password. Nothing in your data changes.</p>
+                    <form method="post" action="/settings/discord">
+                        @Html.AntiForgeryToken()
+                        <button class="btn discord" type="submit"><span class="discord-mark" aria-hidden="true"></span>Link Discord</button>
+                    </form>
+                }
+                else if (Model.HasPassword)
+                {
+                    <p>"Sign in with Discord" opens this account; your password still works too.</p>
+                    <form method="post" action="/settings/discord/unlink">
+                        @Html.AntiForgeryToken()
+                        <button class="btn ghost" type="submit">Unlink</button>
+                    </form>
+                }
+                else
+                {
+                    <p>Discord is the only way into this account until you set a password below.</p>
+                }
+            </div>
+        </section>
+    }
+
     <section class="card rise" id="account" style="--d:3">
         <div class="card-head">
-            <h2>Password</h2>
+            <h2>@(Model.HasPassword ? "Password" : "Set a password")</h2>
         </div>
         @if (Model.ErrorsFor == "password" && Model.Errors.Count > 0)
         {
@@ -252,16 +303,23 @@
         <form class="form" method="post" action="/settings/password">
             @Html.AntiForgeryToken()
             <input type="text" name="username" value="@Model.UserName" autocomplete="username" hidden />
-            <label class="field">Current password
-                <input class="input" type="password" name="currentPassword" autocomplete="current-password" required />
-            </label>
+            @if (Model.HasPassword)
+            {
+                <label class="field">Current password
+                    <input class="input" type="password" name="currentPassword" autocomplete="current-password" required />
+                </label>
+            }
+            else
+            {
+                <small class="dim">You signed up with Discord. Add a password to sign in with your user name too.</small>
+            }
             <label class="field">New password <small>at least 8 characters</small>
                 <input class="input" type="password" name="newPassword" autocomplete="new-password" minlength="8" required />
             </label>
             <label class="field">Repeat it
                 <input class="input" type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required />
             </label>
-            <div><button class="btn ghost" type="submit">@Icons.Get("lock")Change password</button></div>
+            <div><button class="btn ghost" type="submit">@Icons.Get("lock")@(Model.HasPassword ? "Change password" : "Set password")</button></div>
             <small class="dim">Changing it signs out your other devices.</small>
         </form>
         <form method="post" action="/sign-out" class="phone-only" style="margin-top:auto">

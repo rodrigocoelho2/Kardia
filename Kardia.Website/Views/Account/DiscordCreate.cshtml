@@ -1,0 +1,39 @@
+@model Kardia.Website.Model.Account.AccountPageModel
+@* A new account with Discord: Discord already said who this is, so only the user name is left to pick. *@
+@{
+    ViewData["Title"] = "Create account";
+    ViewData["Tab"] = "create";
+}
+@section Head {
+    <link rel="stylesheet" href="~/css/public.css" asp-append-version="true" />
+}
+
+<div class="au">
+    <partial name="_AccountSide" model="Model" />
+
+    <main class="au-main">
+        <form class="au-form" method="post" action="/create-account/discord" autocomplete="off">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+            <div>
+                <h1>Almost there</h1>
+                <p class="lead2">You're signed in to Discord as <b>@Model.DiscordName</b>. Pick a user name for Kardia.</p>
+            </div>
+
+            <partial name="_AccountCard" model="Model" />
+
+            <label class="au-field">
+                User name <small>3–32 letters, numbers, dots, dashes or underscores.</small>
+                <span class="au-in">
+                    @Icons.Get("user")
+                    <input name="userName" type="text" value="@Model.UserName" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9._\-]{3,32}" required autofocus />
+                </span>
+            </label>
+
+            <button class="btn-l discord" type="submit"><span class="discord-mark" aria-hidden="true"></span>Create account with Discord</button>
+
+            <p class="au-fine">Already have an account here? <a href="/sign-in">Sign in with your password</a>, then link Discord in Settings to keep your data.</p>
+        </form>
+    </main>
+</div>
